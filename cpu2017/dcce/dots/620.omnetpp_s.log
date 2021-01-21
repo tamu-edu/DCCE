@@ -1,0 +1,226 @@
+
+*********CallGraph Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+-------------------------------------------------------
+CalRetPairInCycle   41381
+MaxNodeInCycle      72
+NodeInCycle         892
+TotalEdge           165741
+TotalCycle          81
+TotalNode           6404
+#######################################################
+
+*********General Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+BBWith3Succ         817
+AddrsNum            22022
+TotalFieldObjects   15550
+StoresNum           26792
+FSObjNum            14300
+GlobalObjs          1413
+GepsNum             76112
+FIObjNum            1414
+LoadsNum            51284
+MaxStructSize       245
+TotalPAGEdges       903492
+TotalPointers       427974
+ReturnsNum          3007
+VarArrayObj         282
+CopysNum            106406
+ConstArrayObj       94
+CallsNum            17592
+TotalObjects        15715
+FunctionObjs        6404
+HeapObjs            2280
+BitCastNumber       34656
+TotalPTAPAGEdges    219548
+StackObjs           5557
+ConstStructObj      606
+VarStructObj        5652
+NonPtrObj           10522
+IndCallSites        10061
+TotalCallSite       50139
+LocalVarInRecur     904
+BBWith2Succ         33579
+-------------------------------------------------------
+#######################################################
+
+*********Constraint Graph Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+-------------------------------------------------------
+AvgIn/OutEdge       2.86631
+AvgIn/OutAddrEdge   0.0973704
+AvgIn/OutLoadEdge   0.161762
+AvgIn/OutCopyEdge   2.55319
+MaxInAddrEdge       1
+MaxOutStoreEdge     1295
+NumOfCGNode         462180
+TotalValidNode      209345
+AvgIn/OutStoreEdge  0
+TotalValidObjNode   20333
+NumOfGeps           74749
+NumOfCGEdge         579664
+NumOfAddrs          20384
+MaxOutAddrEdge      5520
+NumOfLoads          33864
+NumOfStores         11302
+MaxOutLoadEdge      433
+NumOfCopys          459749
+MaxOutCopyEdge      10848
+MaxInStoreEdge      228
+MaxInLoadEdge       1287
+MaxInCopyEdge       838
+#######################################################
+
+*********Andersen Pointer Analysis Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+-------------------------------------------------------
+AvgTopLvlPtsSize    132.208
+AvgPtsSetSize       66.0496
+LoadStoreTime       17.41
+CollapseTime        1.01
+UpdateCGTime        11.15
+CopyGepTime         41.16
+SCCMergeTime        3.85
+SCCDetectTime       8.4
+TotalTime           90.56
+PointsToConstPtr    16989
+NullPointer         14582
+PointsToBlkPtr      0
+NumOfSCCDetect      19
+IndCallSites        10061
+MaxPtsSetSize       1000
+DYFieldObjs         15550
+MemObjects          15715
+Pointers            426781
+NumOfFieldExpand    0
+DYFieldPtrs         1193
+NumOfSFRs           0
+TotalCycleNum       977
+IndEdgeSolved       125663
+GepProcessed        145368
+MaxNodesInSCC       1924
+LoadProcessed       43428790
+CopyProcessed       714327
+NodesInCycles       8732
+Iterations          20
+StoreProcessed      2276073
+AddrProcessed       21233
+TotalObjects        31265
+TotalPWCCycleNum    41
+TotalPointers       427974
+#######################################################
+
+*********CallGraph Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+-------------------------------------------------------
+CalRetPairInCycle   41388
+TotalEdge           166157
+MaxNodeInCycle      72
+NodeInCycle         896
+TotalCycle          82
+TotalNode           6404
+#######################################################
+
+*********General Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+BBWith3Succ         817
+BBWith2Succ         33579
+BitCastNumber       34656
+LocalVarInRecur     907
+TotalCallSite       50139
+IndCallSites        10061
+NonPtrObj           10522
+ConstStructObj      606
+VarArrayObj         282
+VarStructObj        5652
+HeapObjs            2280
+GlobalObjs          1413
+ReturnsNum          3007
+CallsNum            17592
+GepsNum             76112
+ConstArrayObj       94
+CopysNum            106406
+StoresNum           26792
+LoadsNum            51284
+AddrsNum            22022
+FSObjNum            14293
+FIObjNum            1421
+StackObjs           5557
+TotalPTAPAGEdges    219548
+MaxStructSize       245
+TotalFieldObjects   15553
+FunctionObjs        6404
+TotalObjects        15715
+TotalPAGEdges       903492
+TotalPointers       427974
+-------------------------------------------------------
+#######################################################
+
+*********Constraint Graph Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+-------------------------------------------------------
+AvgIn/OutEdge       1.76889
+AvgIn/OutAddrEdge   0.0972156
+AvgIn/OutLoadEdge   0.161786
+AvgIn/OutCopyEdge   1.45589
+MaxInAddrEdge       1
+MaxOutStoreEdge     1295
+MaxInStoreEdge      228
+MaxInLoadEdge       1287
+MaxInCopyEdge       845
+NumOfStores         11302
+MaxOutAddrEdge      5520
+NumOfLoads          33863
+NumOfGeps           74745
+MaxOutLoadEdge      433
+MaxOutCopyEdge      11114
+NumOfCopys          229984
+NumOfAddrs          20348
+NumOfCGEdge         349894
+AvgIn/OutStoreEdge  0
+TotalValidObjNode   20300
+TotalValidNode      209308
+NumOfCGNode         462113
+#######################################################
+
+*********Andersen Pointer Analysis Stats***************
+################ (program : home/sungkeun/git/DCCE/cpu2017/dcce/bitcode/620)###############
+-------------------------------------------------------
+AvgTopLvlPtsSize    137.575
+AvgPtsSetSize       69.9657
+LoadStoreTime       19.44
+CollapseTime        1.01
+UpdateCGTime        18.56
+CopyGepTime         63.55
+SCCMergeTime        5.17
+SCCDetectTime       12.3
+TotalTime           131.96
+PointsToConstPtr    34259
+NullPointer         14343
+PointsToBlkPtr      0
+NumOfSCCDetect      26
+IndCallSites        10061
+MaxPtsSetSize       1010
+DYFieldObjs         15553
+MemObjects          15715
+Pointers            426781
+NumOfFieldExpand    0
+DYFieldPtrs         1193
+NumOfSFRs           0
+TotalCycleNum       977
+IndEdgeSolved       126079
+GepProcessed        158287
+MaxNodesInSCC       1993
+LoadProcessed       50055514
+CopyProcessed       878917
+NodesInCycles       8801
+Iterations          26
+StoreProcessed      2570175
+AddrProcessed       21233
+TotalObjects        31268
+TotalPWCCycleNum    41
+TotalPointers       427974
+#######################################################
+Writing 'callgraph_initial.dot'...
+Writing 'callgraph_final.dot'...

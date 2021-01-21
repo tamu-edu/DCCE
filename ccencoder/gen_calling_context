@@ -1,0 +1,147 @@
+#!/usr/bin/python
+import sys
+import os
+import os.path
+import argparse
+import utils
+from graphviz import Digraph
+from callgraph import callgraph as callgraph
+from ccenc import ccenc as ccenc
+
+def make_callgraph(args):
+    c_calls       = set() # [ (caller, callee, callsite) , ... ]
+    c_nodes       = set()
+
+    with open(args.trace, 'r') as f:
+        for line in f:
+            line = line.strip()
+
+            caller, callsite, callee = line.split(':')
+            caller = caller.split('-')[1]
+            callee = callee.split('-')[1]
+
+            c_calls.add((caller, callee, callsite))
+            c_nodes.add(caller)
+            c_nodes.add(callee)
+
+    c_cg = callgraph()
+    for node in c_nodes:
+        c_cg.add_node(node)
+    for caller, callee, callsite in c_calls:
+        c_cg.add_edge((caller,callee,callsite),
+                wt=0,label=callsite)
+
+    #if remove_not_visited_node:
+    #    utils.remove_not_visited_node(c_cg, args.root)
+
+    return c_cg
+
+def write_maxid_file(args, maxid):
+    f = open(args.maxccid_file, 'w')
+    f.write('%d\n' % maxid)
+    f.close()
+
+def write_cc_file(args, cg, maxid):
+    f = open(args.cc_file, 'w')
+    for caller, (callee, callsite) in cg.edges():
+        wt = cg.edge_weight((caller,callee,callsite))
+        if wt == 0:
+            wt = maxid+1
+        f.write('%s:%s:%s:%d\n' %(caller, callee, callsite, wt))
+    f.close()
+
+def write_backedge_file(args, backedge):
+    f = open(args.backedge_file, 'w')
+    for s in backedge:
+        f.write(s+'\n')
+    f.close()
+
+def write_funcptr_file(args, cg):
+    # callsite -> caller -> [callees]
+    cs2caller2callees = {}
+    for caller, (callee, callsite) in cg.edges():
+        if callsite not in cs2caller2callees:
+            cs2caller2callees[callsite] = {}
+
+        if caller not in cs2caller2callees[callsite]:
+            cs2caller2callees[callsite][caller] = []
+        assert(len(cs2caller2callees[callsite].keys()) == 1)
+
+        cs2caller2callees[callsite][caller].append(callee)
+
+    f = open(args.funcptr_file, 'w')
+    for callsite, caller2callees in cs2caller2callees.items():
+        for caller, callees in caller2callees.items():
+            ncallees = len(callees)
+            if ncallees > 1:
+                f.write("%s : %d\n" % (callsite, ncallees))
+
+    f.close()
+
+def write_maxneibors(args, max_neighbors):
+    f = open('output/%s.maxneibors' % (args.bench), 'w')
+    f.write('%d\n' % max_neighbors)
+    f.close()
+
+def render_callgraph(cg, args, maxids):
+    dot = Digraph()
+    for node in cg.nodes():
+        dot.node(node, label=node+':'+str(maxids[node]))
+
+    for caller, (callee, callsite) in cg.edges():
+        wt = cg.edge_weight((caller,callee,callsite))
+        dot.edge(caller, callee,
+                label=callsite+':'+str(wt))
+
+    ## create dot file and render it
+    dot.save(args.dotfile)
+    dot.render(args.dotfile, view=args.show)
+
+def main(args):
+
+
+    c_cg = make_callgraph(args)
+
+    ## caculate maxid of cc encoding
+    c_encode = ccenc()
+    c_maxids, c_backedge, c_backedge_id, max_neighbors = c_encode.maxid(c_cg, args.root)
+    print ('[%s] c_num_node       %d' % (args.bench, len(c_cg.nodes())))
+    print ('[%s] c_num_callsite   %d' % (args.bench, len(c_cg.edges())))
+    print ('[%s] c_maxid is       %d' % (args.bench, c_maxids[args.root]))
+    print ('[%s] c_backedge_id is %d' % (args.bench, c_backedge_id))
+    print ('[%s] c_max_neighbors is %d' % (args.bench, max_neighbors))
+    sys.stdout.flush()
+
+    write_maxid_file(args, c_maxids[args.root]+c_backedge_id)
+    write_cc_file(args, c_cg, c_maxids[args.root])
+    write_backedge_file(args, c_backedge)
+    write_funcptr_file(args, c_cg)
+    write_maxneibors(args, max_neighbors)
+    #render_callgraph(c_cg, args, c_maxids)
+
+
+if __name__== "__main__":
+    parser = argparse.ArgumentParser(\
+            description='Read call trace file and generate call graph.')
+    parser.add_argument('trace',
+            type=str, help='input file of function call trace.')
+    parser.add_argument('dotfile',
+            type=str, help='output file of dotfile.')
+    parser.add_argument('cc_file',
+            type=str, help='output file of calling context.')
+    parser.add_argument('maxccid_file',
+            type=str, help='output file of maxccid.')
+    parser.add_argument('backedge_file',
+            type=str, help='output file of backedge.')
+    parser.add_argument('funcptr_file',
+            type=str, help='output file of function pointer.')
+    parser.add_argument('bench',
+            type=str, help='name of benchmark.')
+    parser.add_argument('root',
+            type=str, help='start node of the callgraph(ex. main)')
+    parser.add_argument('-s',
+            '--show', action='store_true', help='display rendered graph.')
+
+    args = parser.parse_args()
+
+    main(args)
