@@ -85,6 +85,8 @@ static llvm::cl::opt<bool> anderSVFG("svfg", llvm::cl::init(false),
 static llvm::cl::opt<bool> printAliases("print-aliases", llvm::cl::init(false),
                                         llvm::cl::desc("Print results for all pair aliases"));
 
+static llvm::cl::opt<std::string> dumpModules("dump-modules", llvm::cl::value_desc("file path to dump"),
+                                        llvm::cl::desc("Dump modules"));
 
 /*!
  * Destructor
@@ -112,6 +114,9 @@ void WPAPass::runOnModule(SVFModule* svfModule)
             runPointerAnalysis(svfModule, i);
     }
     assert(!ptaVector.empty() && "No pointer analysis is specified.\n");
+    if (!dumpModules.getValue().empty()) {
+        LLVMModuleSet::getLLVMModuleSet()->dumpModulesToFile(dumpModules.getValue());
+    }
 }
 
 /*!

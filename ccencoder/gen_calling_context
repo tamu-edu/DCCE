@@ -16,7 +16,7 @@ def make_callgraph(args):
         for line in f:
             line = line.strip()
 
-            caller, callsite, callee = line.split(':')
+            caller, callee, callsite = line.split(':')
             caller = caller.split('-')[1]
             callee = callee.split('-')[1]
 
@@ -79,7 +79,7 @@ def write_funcptr_file(args, cg):
     f.close()
 
 def write_maxneibors(args, max_neighbors):
-    f = open('output/%s.maxneibors' % (args.bench), 'w')
+    f = open(args.max_neighbors, 'w')
     f.write('%d\n' % max_neighbors)
     f.close()
 
@@ -117,7 +117,7 @@ def main(args):
     write_backedge_file(args, c_backedge)
     write_funcptr_file(args, c_cg)
     write_maxneibors(args, max_neighbors)
-    #render_callgraph(c_cg, args, c_maxids)
+    render_callgraph(c_cg, args, c_maxids)
 
 
 if __name__== "__main__":
@@ -135,6 +135,8 @@ if __name__== "__main__":
             type=str, help='output file of backedge.')
     parser.add_argument('funcptr_file',
             type=str, help='output file of function pointer.')
+    parser.add_argument('max_neighbors',
+            type=str, help='output file of max_neighbors.')
     parser.add_argument('bench',
             type=str, help='name of benchmark.')
     parser.add_argument('root',

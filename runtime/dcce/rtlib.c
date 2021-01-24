@@ -1,11 +1,15 @@
 #include <stdio.h>
 
-void addWeight(int i)
+unsigned long long int ccid = 0;
+
+void addWeight(unsigned long long weight)
 {
-    printf("called addWeight %i\n", i);
+    printf("%llu + %llu = %llu\n", ccid, weight, ccid + weight);
+    ccid += weight;
 }
 
-void removeWeight(int i)
+void removeWeight(unsigned long long weight)
 {
-    printf("called removeWeight %i\n", i);
+    printf("%llu - %llu = %llu\n", ccid, weight, ccid - weight);
+    ccid += weight;
 }

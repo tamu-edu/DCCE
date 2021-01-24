@@ -409,17 +409,19 @@ void LLVMModuleSet::buildGlobalDefToRepMap()
 }
 
 // Dump modules to files
-void LLVMModuleSet::dumpModulesToFile(const std::string suffix)
+void LLVMModuleSet::dumpModulesToFile(const std::string output_path)
 {
     for (Module& mod : modules)
     {
         std::string moduleName = mod.getName().str();
         std::string OutputFilename;
-        std::size_t pos = moduleName.rfind('.');
-        if (pos != std::string::npos)
-            OutputFilename = moduleName.substr(0, pos) + suffix;
-        else
-            OutputFilename = moduleName + suffix;
+        std::size_t pos_dot = moduleName.rfind('.');
+        std::size_t pos_slash = moduleName.rfind('/');
+        if (pos_dot != std::string::npos && pos_slash != std::string::npos) {
+            OutputFilename = output_path + "/" + moduleName.substr(pos_slash+1, pos_dot);
+        } else {
+            OutputFilename = output_path + "/" + moduleName + ".bc";
+        }
 
         std::error_code EC;
         raw_fd_ostream OS(OutputFilename.c_str(), EC, llvm::sys::fs::F_None);

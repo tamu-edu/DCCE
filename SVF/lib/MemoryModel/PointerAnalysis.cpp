@@ -75,8 +75,14 @@ static llvm::cl::opt<bool> PAGDotGraph("dump-pag", llvm::cl::init(false),
 static llvm::cl::opt<bool> DumpICFG("dump-icfg", llvm::cl::init(false),
                                     llvm::cl::desc("Dump dot graph of ICFG"));
 
-static llvm::cl::opt<bool> CallGraphDotGraph("dump-callgraph", llvm::cl::init(false),
+static llvm::cl::opt<std::string> CallGraphDotGraph("dump-callgraph", llvm::cl::value_desc("output file of callgraph"),
         llvm::cl::desc("Dump dot graph of Call Graph"));
+
+static llvm::cl::opt<std::string> CCInput("ccinput", llvm::cl::value_desc("calling context file"),
+        llvm::cl::desc("calling context file file to instrument"));
+
+static llvm::cl::opt<std::string> InstrMethod("instr-method", llvm::cl::value_desc("instrumentation mdethod"),
+        llvm::cl::desc("instrumentation method"));
 
 static llvm::cl::opt<bool> PAGPrint("print-pag", llvm::cl::init(false),
                                     llvm::cl::desc("Print PAG to command line"));
@@ -200,9 +206,9 @@ void PointerAnalysis::initialize()
     callGraphSCCDetection();
 
     // dump callgraph
-	if (CallGraphDotGraph) {
-		getPTACallGraph()->dump("callgraph_initial");
-  }
+    if (!CallGraphDotGraph.getValue().empty()) {
+        getPTACallGraph()->dump(CallGraphDotGraph.getValue() + "-initial");
+    }
 }
 
 
@@ -295,9 +301,24 @@ void PointerAnalysis::finalize()
 
     getPTACallGraph()->verifyCallGraph();
 
-	if (CallGraphDotGraph) {
-		getPTACallGraph()->dump("callgraph_final");
-  }
+    if (!CallGraphDotGraph.getValue().empty()) {
+        getPTACallGraph()->dump(CallGraphDotGraph.getValue() + "-final");
+    }
+
+    if (!InstrMethod.getValue().empty()) {
+        if (InstrMethod.getValue() == "dcce") {
+            if (!CCInput.getValue().empty()) {
+                getPTACallGraph()->instrument_dcce(CCInput.getValue());
+            } else {
+                printf("CCInput is not entered.\n");
+                exit(1);
+            }
+        } else {
+            printf("Unknown instrument method: %s\n", InstrMethod.getValue());
+            exit(1);
+        }
+    }
+
 
     // FSTBHC has its own TBHC-specific test validation.
     if(!pag->isBuiltFromFile() && alias_validation

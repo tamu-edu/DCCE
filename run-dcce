@@ -1,0 +1,147 @@
+#!/usr/bin/python
+import sys
+import os
+import os.path
+import argparse
+import shlex
+from subprocess import Popen, PIPE
+
+benches = [
+    #'600.perlbench_s',
+    #'602.gcc_s',
+    #'605.mcf_s',
+    #'619.lbm_s',
+    #'620.omnetpp_s',
+    #'623.xalancbmk_s',
+    #'625.x264_s',
+    #'631.deepsjeng_s',
+    #'638.imagick_s',
+    #'641.leela_s',
+    #'644.nab_s',
+    #'657.xz_s',
+    'test',
+    ]
+
+def run_cmd(cmd, log=None):
+    print(cmd)
+    #print(shlex.split(cmd))
+    if log:
+        output = open(log, 'w')
+        process = Popen(shlex.split(cmd), stdout=output, stderr=output)
+    else:
+        #process = Popen(shlex.split(cmd), stdout=PIPE, stderr=PIPE)
+        process = Popen(shlex.split(cmd))
+    process.communicate()
+    exit_code = process.wait()
+    if (exit_code != 0):
+        print('Execution Failed with error %d. See %s' % (exit_code, log))
+        exit(1)
+
+def run_build():
+    makedirs(os.getenv('DCCE_RTLIB_BUILD_DIR'))
+    run_cmd('%s/build.sh' % (os.getenv('DCCE_ROOT')))
+
+def run_clean():
+    run_cmd('rm -rf %s' % os.getenv('DCCE_RTLIB_BUILD_DIR'))
+    run_cmd('bash %s/clean.sh' % (os.getenv('SVF_ROOT')))
+    run_cmd('rm -rf %s/test.bc' % (os.getenv('ORG_BC_ROOT')))
+
+def run_callgraph():
+    makedirs(os.getenv('ORG_CG_DIR'))
+    for bench in benches:
+        run_cmd(cmd = 'wpa -ander -dump-callgraph %s/%s %s/%s.bc' \
+                % (os.getenv('ORG_CG_DIR'), bench, os.getenv('ORG_BC_ROOT'), bench),
+                log = '%s/%s.log' % (os.getenv('ORG_CG_DIR'), bench))
+
+def run_ccenc_dcce():
+    makedirs(os.getenv('DCCE_CCENC_DIR'))
+    for bench in benches:
+        run_cmd(cmd = 'ccencoder/gen_calling_context %s/%s-final.cg ' \
+                      '%s/%s.dot ' \
+                      '%s/%s.cc ' \
+                      '%s/%s.maxid ' \
+                      '%s/%s.backedge ' \
+                      '%s/%s.funcptr ' \
+                      '%s/%s.maxneighbors ' \
+                      '%s %s ' %
+                      (os.getenv('ORG_CG_DIR'), bench,
+                       os.getenv('DCCE_CCENC_DIR'), bench,
+                       os.getenv('DCCE_CCENC_DIR'), bench,
+                       os.getenv('DCCE_CCENC_DIR'), bench,
+                       os.getenv('DCCE_CCENC_DIR'), bench,
+                       os.getenv('DCCE_CCENC_DIR'), bench,
+                       os.getenv('DCCE_CCENC_DIR'), bench,
+                       bench, 'main'),
+                 log = '%s/%s.log' % (os.getenv('DCCE_CCENC_DIR'), bench))
+
+def run_instrument_dcce():
+    makedirs(os.getenv('DCCE_BC_DIR'))
+    for bench in benches:
+        run_cmd(cmd = 'wpa -ander -ccinput %s/%s.cc -instr-method dcce -dump-modules %s %s/%s.bc' \
+                    % (os.getenv('DCCE_CCENC_DIR'), bench,
+                       os.getenv('DCCE_BC_DIR'),
+                       os.getenv('ORG_BC_ROOT'), bench),
+                log = '%s/%s.log' % (os.getenv('DCCE_BC_DIR'), bench))
+
+def run_make_exe_dcce():
+    makedirs(os.getenv('DCCE_BIN_DIR'))
+    for bench in benches:
+        run_cmd(cmd = 'bash %s/%s.make.out %s %s %s' % \
+                (os.getenv('CPU2017_MAKE_DIR'), bench,
+                os.getenv('DCCE_BC_DIR'),
+                os.getenv('DCCE_BIN_DIR'),
+                os.getenv('DCCE_RTLIB_DIR')),
+                log = '%s/%s.log' % (os.getenv('DCCE_BIN_DIR'), bench))
+
+
+
+def main(args):
+
+    if (args.build == False and \
+            args.clean == False and \
+            args.callgraph == False \
+            and args.ccenc == None and \
+            args.instrument == None and \
+            args.make_exe == None):
+        print("Nothing to do ...\nrun 'run_dcce -h' to see how to use.")
+        exit(1)
+
+    if (args.build):
+        run_build()
+    if (args.clean):
+        run_clean()
+    if (args.callgraph):
+        run_callgraph()
+    if (args.ccenc != None):
+        eval('run_ccenc_%s()' % args.ccenc)
+    if (args.instrument != None):
+        eval('run_instrument_%s()' % args.instrument)
+    if (args.make_exe != None):
+        eval('run_make_exe_%s()' % args.make_exe)
+
+def makedirs(dir):
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+
+if __name__== "__main__":
+    if os.getenv('DCCE_ENV_SETUP') != 'YES':
+        print("Environment Variabls are not set. run 'source %s' first." % 'setup_env.sh')
+        exit(1)
+
+    parser = argparse.ArgumentParser(\
+            description='Main program to run DCCE project.')
+    parser.add_argument('-build', action='store_true',
+            help='build SVF and runtime.')
+    parser.add_argument('-clean', action='store_true',
+            help='clean all the output files.')
+    parser.add_argument('-callgraph', action='store_true',
+            help='run wpa to genrate callgph(.cg) file')
+    parser.add_argument('-ccenc', choices=['dcce', 'pcce', 'valence'],
+            help='run calling context encoding with given method.')
+    parser.add_argument('-instrument', choices=['dcce', 'pcce', 'valence'],
+            help='run wpa to instrument benchmarks.')
+    parser.add_argument('-make-exe', choices=['dcce', 'pcce', 'valence'],
+            help='make executable.')
+    args = parser.parse_args()
+
+    main(args)

@@ -34,11 +34,26 @@
 #include "SVF-FE/LLVMUtil.h"
 #include "Graphs/PTACallGraph.h"
 
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 using namespace SVF;
 using namespace SVFUtil;
 
+template <class Container>
+void
+Split(const std::string& str, Container& cont, char delim = ' ')
+{
+    std::stringstream ss(str);
+    std::string token;
+    while (std::getline(ss, token, delim)) {
+        cont.push_back(token);
+    }
+}
+
 PTACallGraph::CallSiteToIdMap PTACallGraph::csToIdMap;
 PTACallGraph::IdToCallSiteMap PTACallGraph::idToCSMap;
+PTACallGraph::CSInstToID PTACallGraph::csInstToID;
 CallSiteID PTACallGraph::totalCallSiteNum = 1;
 
 
@@ -319,9 +334,11 @@ bool PTACallGraph::isReachableBetweenFunctions(const SVFFunction* srcFn, const S
  */
 void PTACallGraph::dump(const std::string& filename)
 {
+    GraphPrinter::WriteGraphToFile(outs(), filename, this);
+
     std::ofstream fout;
-    fout.open(filename + ".output");
-    
+    fout.open(filename + ".cg");
+
     for (auto it : idToCSMap) {
         CallSiteID csID = it.first;
         const CallSitePair csPair = it.second;
@@ -333,28 +350,92 @@ void PTACallGraph::dump(const std::string& filename)
         PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
         PTACallGraphNode* calleeNode = getCallGraphNode(calleeFunc);
 
+        // conditions to break
+        auto *callinst = llvm::dyn_cast<CallInst>(cbnode->getCallSite()); assert(callinst != NULL);
+        if (callinst->getCalledFunction() == NULL) { break; }  // indirect call
+        if (callerFunc == NULL) { printf("Caller of CSID:%d is null\n", csID); break; }
+        if (calleeFunc == NULL) { printf("Callee of CSID:%d is null\n", csID); break; }
+        if (callerFunc->isIntrinsic()) { break; }
+        if (calleeFunc->isIntrinsic()) { break; }
 
-        if (callerFunc == NULL) printf("[%d] caller is null\n", csID);
-        if (calleeFunc == NULL) printf("[%d] callee is null\n", csID);
-        if (callerFunc != NULL && calleeFunc != NULL) {
-            std::string str;
-            raw_string_ostream rawstr(str);
-            rawstr << callerNode->getId() << "-" << callerNode->getFunction()->getName()
-                << ":" << csID
-                << ":" << calleeNode->getId() << "-" << calleeNode->getFunction()->getName();
-
-            fout << rawstr.str() << "\n";
-
-            //printf("%s\n", rawstr.str().c_str());
-            //printf("caller %s\n", callerNode->toString().c_str());
-            //printf("callee %s\n", calleeNode->toString().c_str());
-        }
-
+        std::string str;
+        raw_string_ostream rawstr(str);
+        rawstr << callerNode->getId() << "-" << callerNode->getFunction()->getName()
+            << ":" << calleeNode->getId() << "-" << calleeNode->getFunction()->getName()
+            << ":" << csID;
+        fout << rawstr.str() << "\n";
     }
     fout.close();
-    GraphPrinter::WriteGraphToFile(outs(), filename, this);
 }
 
+void PTACallGraph::instrument_dcce(const std::string& ccinput)
+{
+    std::ifstream inf(ccinput);
+    if (!inf.is_open()) {
+        std::cout << "unable to open file " << ccinput << std::endl;
+        exit(1);
+    }
+
+    std::unordered_map<uint64_t, uint64_t> cs2w;
+    std::string line;
+
+    while (std::getline(inf, line)) {
+        std::vector<std::string> list;
+        Split(line, list, ':');
+        uint64_t cs = std::stoul(list[2], NULL, 10);
+        uint64_t w = std::stoul(list[3], NULL, 10);
+
+        assert(cs2w.find(cs) == cs2w.end());
+        cs2w[cs] = w;
+        //std::cout << "cs: " << cs << ", w: " << w << std::endl;
+    }
+    inf.close();
+
+    Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
+    LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
+
+    std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
+    Type*               retType       = Type::getVoidTy(ctx);
+    FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
+    FunctionCallee      addWeight     = mod->getOrInsertFunction("addWeight", funcType);
+    FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
+
+    for (auto& F : *mod) {
+        for (auto &B : F) {
+            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
+                auto &I = *bbit;
+                if (auto *op = llvm::dyn_cast<CallInst>(&I)) {
+                    Function *func = op->getCalledFunction();
+
+                    if (func == NULL) {
+                        break; // indirect call
+                    } else if (func->isIntrinsic()) {
+                        break;
+                    } else if (func->getName() == "addWeight" || func->getName() == "removeWeight") {
+                        break;
+                    }
+
+                    CSInstToID::const_iterator it = csInstToID.find(&I);
+                    assert(it != csInstToID.end());
+                    unsigned long long int weight = it->second;
+                    assert(weight != 0);
+
+                    IRBuilder builder(op);
+                    builder.SetInsertPoint(&I);
+
+                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
+                    Value* args[] = {i64_val};
+                    builder.CreateCall(addWeight, args);
+
+                    builder.SetInsertPoint(I.getNextNode());
+                    builder.CreateCall(removeWeight, args);
+                    bbit++;
+                }
+            }
+        }
+    }
+}
 
 namespace llvm
 {

@@ -105,7 +105,7 @@ public:
     }
 
     // Dump modules to files
-    void dumpModulesToFile(const std::string suffix);
+    void dumpModulesToFile(const std::string output_path);
 
     const SVFFunction *getSVFFunction(const Function *fun) const
     {

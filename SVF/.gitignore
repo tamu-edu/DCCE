@@ -1,3 +1,5 @@
 Release-build
 Test-Suite/
 llvm-10.0.0.obj/
+cscope
+cscope.out

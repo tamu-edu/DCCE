@@ -225,6 +225,7 @@ public:
     typedef std::pair<const CallBlockNode*, const SVFFunction*> CallSitePair;
     typedef Map<CallSitePair, CallSiteID> CallSiteToIdMap;
     typedef Map<CallSiteID, CallSitePair> IdToCallSiteMap;
+    typedef Map<const Instruction*, CallSiteID> CSInstToID;
     typedef Set<const SVFFunction*> FunctionSet;
     typedef OrderedMap<const CallBlockNode*, FunctionSet> CallEdgeMap;
     typedef CallGraphEdgeSet::iterator CallGraphEdgeIter;
@@ -244,6 +245,7 @@ private:
     /// Call site information
     static CallSiteToIdMap csToIdMap;	///< Map a pair of call instruction and callee to a callsite ID
     static IdToCallSiteMap idToCSMap;	///< Map a callsite ID to a pair of call instruction and callee
+    static CSInstToID csInstToID;	///< Map a callinst to csID
     static CallSiteID totalCallSiteNum;	///< CallSiteIDs, start from 1;
 
 protected:
@@ -336,6 +338,7 @@ public:
             CallSiteID id = totalCallSiteNum++;
             csToIdMap.insert(std::make_pair(newCS, id));
             idToCSMap.insert(std::make_pair(id, newCS));
+            csInstToID.insert(std::make_pair(cs->getCallSite(), id));
             return id;
         }
         return it->second;
@@ -437,6 +440,8 @@ public:
 
     /// Dump the graph
     void dump(const std::string& filename);
+
+    void instrument_dcce(const std::string& ccinput);
 };
 
 } // End namespace SVF
