@@ -32,7 +32,7 @@ Output files will be stored in ${DCCE_ROOT/output/callgraph.
     $ run-dcce -instrument dcce
     
 ## Build executable with instrumented bit code and runtime.
-    $ run-dcce -make-exe
+    $ run-dcce -make-exe dcce
 Executables are stored in ${DCCE_ROOT}/output/dcce/bin
 
 ## Ignore below lines for now.
