@@ -1,43 +1,43 @@
 # Distinguishable Calling Context Encoding (DCCE)
 
 ## Set Environment Variables
-Before setting, open `setup_env.sh` and modify _CPU2017_ROOT_ and _CPU2017_BUILD_PATH_ if you are going to copy your own bitcode to this setup. Then, run following command.
+In the root directory of DCCE, run following command.
 
     $ source setup_env.sh
+    
+By default, llvm in ${DCCE_ROOT}/SVF/llvm-10.0.0.obj is used. However, if you have issue with llvm, you need to modify LLVM_DIR in ${DCCE_ROOT}/SVF/setup.sh with llvm installed in your system. After sourcing the environments, you are going to use `run-dcce` program to use DCCE project.
 
-## Copy your bitcode to the project folder
-This project is set to read bit code files from ${DCCE_ROOT}/cpu2017/dcce/bitcode. If you want to use your own bitcode of cpu2017, copy to there. cp_bc.sh is example script to copy them all.
-
-## Make call graph
-We use SVF (WPA) to generate call graph and SVF is modified to output call graph with our own format (.cg). Run following command to make all the call graphs.
-
-    $ ${DCCE_ROOT}/make_cg.sh
-
-## Run calling context encoder
-Output of WPA tool (.cg) is input to the CCEncoder. CCEcoder calculates weights for all the edges and append them to the call graph file (.cc).
-
-    cd ${DCCE_ROOT}/ccencoder
-    ${DCCE_ROOT}/runall
-
-To encode individual call graph, see help message of gen_calling_context
-
-    $ ./gen_calling_context
-
-### Get statistics
-
-    $ ./plot_stats
+## Build SVF, runtime, and test program
+    $ run-dcce -build
 
 
-Ignore below lines for now.
+## Target benchmarks
+This project requires the bitcode of target benchmarks. By running `run-dcce -build`, the test program (${DCCE_ROOT}/tests/test.cc} is compiled and the bit code is stored in ${DCCE_ROOT}/bitcode/test.bc. You can play with it first and use realistic benchmarks like SPEC later. After you prepare other bitcodes, you need to update `benches` variable in `run-dcce` which is the main program to use DCCE.
 
-Build llvm-pass and runtime library:
+## Run wpa to genrate call graphes.
+    $ run-dcce -callgraph
+    
+Output files will be stored in ${DCCE_ROOT/output/callgraph.
 
-    $ mkdir build
-    $ cd build
-    $ cmake ..
-    $ make
+    $ ls output/callgraph
+    $ test-initial.dot
+    $ test-initial.cg
+    $ test-final.dot
+    $ test-final.cg
+    
+## Run Calling Context Encoder to generate weights to update Context ID.
+    $ run-dcce -ccenc dcce
 
-Build spec2017 benchmarks
+## Run wpa to instrument bit code.
+    $ run-dcce -instrument dcce
+    
+## Build executable with instrumented bit code and runtime.
+    $ run-dcce -make-exe
+Executables are stored in ${DCCE_ROOT}/output/dcce/bin
+
+## Ignore below lines for now.
+
+## Build spec2017 benchmarks
 
 Modify config file to update correct libary and include paths. Make a diff ${DCCE_ROOT}/cpu2017-config/dcce/dcce-clang-llvm-linux-x86.cfg and ${DCCE_ROOT}/cpu2017-config/Example-clang-llvm-linux-x86.cfg to see the difference.
 
