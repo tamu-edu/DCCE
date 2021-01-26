@@ -7,24 +7,58 @@ import shlex
 from subprocess import Popen, PIPE
 
 benches = [
-    #'600.perlbench_s',
-    #'602.gcc_s',
-    #'605.mcf_s',
-    #'619.lbm_s',
-    #'620.omnetpp_s',
-    #'623.xalancbmk_s',
-    #'625.x264_s',
-    #'631.deepsjeng_s',
-    #'638.imagick_s',
-    #'641.leela_s',
-    #'644.nab_s',
-    #'657.xz_s',
+    #'600.perlbench_s', # cannot run instrument because of integer overflow
+    #'602.gcc_s',      # compile issue
+    '605.mcf_s',
+    #'607.cactuBSSN_s',# compile issue
+    '619.lbm_s',
+    #'620.omnetpp_s',  # assertion during dump-callgraph lineno: 356
+    #'623.xalancbmk_s',# assertion during dump-callgraph lineno: 356
+    '625.x264_s',
+    '631.deepsjeng_s',
+    '638.imagick_s',
+    #'641.leela_s',   # assertion during dump-callgraph lineno: 356
+    '644.nab_s',
+    '657.xz_s',
+    '998.specrand_is',
     'test',
     ]
 
-def run_cmd(cmd, log=None):
+cmd_options = {
+        '600.perlbench_s':
+        '-I%s/600.perlbench_s/lib %s/600.perlbench_s/checkspam.pl 2500 5 25 11 150 1 1 1 1' % (os.getenv('CPU2017_RUN_DIR'), os.getenv('CPU2017_RUN_DIR')),
+        '602.gcc_s':
+        '%s/602.gcc_s/gcc-pp.c -O5 -fipa-pta -o %s/602.gcc_s/gcc-pp.opts-O5_-fipa-pta.s' % (os.getenv('CPU2017_RUN_DIR'), os.getenv('CPU2017_RUN_DIR')),
+        '605.mcf_s':
+        '%s/605.mcf_s/inp.in' % (os.getenv('CPU2017_RUN_DIR')),
+        '607.cactuBSSN_s':
+        '%s/607.cactuBSSN_s/spec_ref.par'  % (os.getenv('CPU2017_RUN_DIR')),
+        '619.lbm_s':
+        '2000 %s/619.lbm_s/reference.dat 0 0 %s/619.lbm_s/200_200_260_ldc.of' % (os.getenv('CPU2017_RUN_DIR'), os.getenv('CPU2017_RUN_DIR')),
+        '620.omnetpp_s':
+        '-c General -r 0',
+        '623.xalancbmk_s':
+        '-v %s/623.xalancbmk_s/t5.xml %s/623.xalancbmk_s/xalanc.xsl' % (os.getenv('CPU2017_RUN_DIR'), os.getenv('CPU2017_RUN_DIR')),
+        '625.x264_s':
+        '--seek 500 --dumpyuv 200 --frames 1250 -o %s/625.x264_s/BuckBunny_New.264 %s/625.x264_s/BuckBunny.yuv 1280x720' % (os.getenv('CPU2017_RUN_DIR'), os.getenv('CPU2017_RUN_DIR')),
+        '631.deepsjeng_s':
+        '%s/631.deepsjeng_s/ref.txt' % (os.getenv('CPU2017_RUN_DIR')),
+        '638.imagick_s':
+        '-limit disk 0 %s/638.imagick_s/refspeed_input.tga -resize 817%% -rotate -2.76 -shave 540x375 -alpha remove -auto-level -contrast-stretch 1x1%% -colorspace Lab -channel R -equalize +channel -colorspace sRGB -define histogram:unique-colors=false -adaptive-blur 0x5 -despeckle -auto-gamma -adaptive-sharpen 55 -enhance -brightness-contrast 10x10 -resize 30%% %s/638.imagick_s/refspeed_output.tga' % (os.getenv('CPU2017_RUN_DIR'), os.getenv('CPU2017_RUN_DIR')),
+        '641.leela_s':
+        '%s/641.leela_s/ref.sgf' % (os.getenv('CPU2017_RUN_DIR')),
+        '644.nab_s':
+        '%s/644.nab_s/3j1n 20140317 220' % (os.getenv('CPU2017_RUN_DIR')),
+        '657.xz_s': '%s/cpu2006docs.tar.xz 6643 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 1036078272 1111795472 4' % (os.getenv('CPU2017_RUN_DIR')),
+        '998.specrand_is': '%s/1255432124 234923' % (os.getenv('CPU2017_RUN_DIR')),
+        'test': '',
+    }
+
+def run_cmd(cmd, log=None, only_print=False):
     print(cmd)
-    #print(shlex.split(cmd))
+    if only_print:
+        return
+
     if log:
         output = open(log, 'w')
         process = Popen(shlex.split(cmd), stdout=output, stderr=output)
@@ -86,13 +120,41 @@ def run_instrument_dcce():
 def run_make_exe_dcce():
     makedirs(os.getenv('DCCE_BIN_DIR'))
     for bench in benches:
-        run_cmd(cmd = 'bash %s/%s.make.out %s %s %s' % \
-                (os.getenv('CPU2017_MAKE_DIR'), bench,
-                os.getenv('DCCE_BC_DIR'),
-                os.getenv('DCCE_BIN_DIR'),
-                os.getenv('DCCE_RTLIB_DIR')),
-                log = '%s/%s.log' % (os.getenv('DCCE_BIN_DIR'), bench))
+        if bench == 'test':
+            run_cmd(cmd = 'bash %s/test.make.out %s %s %s %s' % \
+                    (os.getenv('CPU2017_MAKE_DIR'),
+                    os.getenv('DCCE_BC_DIR'),
+                    os.getenv('DCCE_BIN_DIR'),
+                    os.getenv('DCCE_RTLIB_DIR'),
+                    bench),
+                    log = '%s/%s.log' % (os.getenv('DCCE_BIN_DIR'), bench))
+        else:
+            run_cmd(cmd = 'bash %s/common.make.out %s %s %s %s' % \
+                    (os.getenv('CPU2017_MAKE_DIR'),
+                    os.getenv('DCCE_BC_DIR'),
+                    os.getenv('DCCE_BIN_DIR'),
+                    os.getenv('DCCE_RTLIB_DIR'),
+                    bench),
+                    log = '%s/%s.log' % (os.getenv('DCCE_BIN_DIR'), bench))
 
+def run_bench_base():
+    makedirs(os.getenv('BASE_STATS_DIR'))
+    for bench in benches:
+        cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
+            (os.getenv('CPU2017_BIN_DIR'), bench, cmd_options[bench],
+            os.getenv('BASE_STATS_DIR'), bench)
+        print(cmd)
+        #os.system(cmd)
+
+
+def run_bench_dcce():
+    makedirs(os.getenv('DCCE_STATS_DIR'))
+    for bench in benches:
+        cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
+                (os.getenv('DCCE_BIN_DIR'), bench, cmd_options[bench],
+                 os.getenv('DCCE_STATS_DIR'), bench)
+        print(cmd)
+        #os.system(cmd)
 
 
 def main(args):
@@ -102,7 +164,8 @@ def main(args):
             args.callgraph == False \
             and args.ccenc == None and \
             args.instrument == None and \
-            args.make_exe == None):
+            args.make_exe == None and \
+            args.run_bench == None):
         print("Nothing to do ...\nrun 'run_dcce -h' to see how to use.")
         exit(1)
 
@@ -118,6 +181,8 @@ def main(args):
         eval('run_instrument_%s()' % args.instrument)
     if (args.make_exe != None):
         eval('run_make_exe_%s()' % args.make_exe)
+    if (args.run_bench != None):
+        eval('run_bench_%s()' % args.run_bench)
 
 def makedirs(dir):
     if not os.path.exists(dir):
@@ -142,6 +207,8 @@ if __name__== "__main__":
             help='run wpa to instrument benchmarks.')
     parser.add_argument('-make-exe', choices=['dcce', 'pcce', 'valence'],
             help='make executable.')
+    parser.add_argument('-run-bench', choices=['base', 'dcce', 'pcce', 'valence'],
+            help='run instrumented benchmarks.')
     args = parser.parse_args()
 
     main(args)

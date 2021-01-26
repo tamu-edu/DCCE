@@ -3,6 +3,7 @@
 export DCCE_ENV_SETUP=YES
 
 export DCCE_ROOT=${PWD}
+export CPU2017_RUN_DIR=/data/share/whistle/cpu2017_run
 
 export SVF_ROOT=${DCCE_ROOT}/SVF
 export CPU2017_ROOT=${DCCE_ROOT}/cpu2017
@@ -23,12 +24,14 @@ cd ${DCCE_ROOT}
 # cpu2017
 ##############
 export CPU2017_MAKE_DIR=${CPU2017_ROOT}/makeouts
+export CPU2017_BIN_DIR=${CPU2017_ROOT}/bin
 
 ##############
 # output
 ##############
 export OUTPUT_ROOT=${DCCE_ROOT}/output
 export ORG_CG_DIR=${OUTPUT_ROOT}/callgraph
+export BASE_OUT_DIR=${OUTPUT_ROOT}/base
 export DCCE_OUT_DIR=${OUTPUT_ROOT}/dcce
 export PCCE_OUT_DIR=${OUTPUT_ROOT}/pcce
 export VALENCE_OUT_DIR=${OUTPUT_ROOT}/valence
@@ -48,6 +51,13 @@ export VALENCE_BIN_DIR=${VALENCE_OUT_DIR}/bin
 export DCCE_RTLIB_DIR=${RTLIB_ROOT}/dcce
 export PCCE_RTLIB_DIR=${RTLIB_ROOT}/pcce
 export VALENCE_RTLIB_DIR=${RTLIB_ROOT}/valence
+
+export BASE_STATS_DIR=${BASE_OUT_DIR}/stats
+export DCCE_STATS_DIR=${DCCE_OUT_DIR}/stats
+export PCCE_STATS_DIR=${PCCE_OUT_DIR}/stats
+export VALENCE_STATS_DIR=${VALENCE_OUT_DIR}/stats
+
+
 
 ##############
 # runtime
