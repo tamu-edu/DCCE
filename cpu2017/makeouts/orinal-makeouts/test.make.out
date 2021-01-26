@@ -1,0 +1,6 @@
+BC_DIR=$1
+BIN_DIR=$2
+RTLIB_DIR=$3
+
+llvm-dis ${BC_DIR}/test.bc
+clang++ ${BC_DIR}/test.ll -o ${BIN_DIR}/test -l rtlib -L ${RTLIB_DIR}/build

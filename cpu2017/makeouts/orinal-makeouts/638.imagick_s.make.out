@@ -1,0 +1,1630 @@
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/client.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/client.c
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/animate.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/animate.c
+In file included from magick/animate.c:61:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/animate.c:61:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/delegate.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/delegate.c
+In file included from magick/delegate.c:59:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/delegate.c:59:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/cipher.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/cipher.c
+In file included from magick/cipher.c:50:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/cipher.c:50:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/display.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/display.c
+In file included from magick/display.c:70:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/display.c:70:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o filters/analyze.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  filters/analyze.c
+In file included from filters/analyze.c:45:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from filters/analyze.c:45:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/accelerate.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/accelerate.c
+In file included from magick/accelerate.c:59:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/accelerate.c:59:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/artifact.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/artifact.c
+In file included from magick/artifact.c:60:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/artifact.c:60:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/distribute-cache.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/distribute-cache.c
+In file included from magick/distribute-cache.c:65:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/distribute-cache.c:65:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/cache-view.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/cache-view.c
+In file included from magick/cache-view.c:54:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/cache-view.c:54:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/exception.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/exception.c
+In file included from magick/exception.c:51:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/exception.c:51:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/coder.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/coder.c
+In file included from magick/coder.c:52:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/coder.c:52:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/colormap.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/colormap.c
+In file included from magick/colormap.c:59:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/colormap.c:59:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/configure.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/configure.c
+In file included from magick/configure.c:50:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/configure.c:50:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o coders/tga.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  coders/tga.c
+In file included from coders/tga.c:58:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from coders/tga.c:58:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/log.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/log.c
+In file included from magick/log.c:50:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/log.c:50:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/constitute.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/constitute.c
+In file included from magick/constitute.c:58:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/constitute.c:58:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/fourier.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/fourier.c
+In file included from magick/fourier.c:55:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/fourier.c:55:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/gem.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/gem.c
+In file included from magick/gem.c:47:
+In file included from ./magick/gem-private.h:21:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/gem.c:47:
+In file included from ./magick/gem-private.h:21:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/geometry.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/geometry.c
+In file included from magick/geometry.c:48:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/geometry.c:48:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/annotate.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/annotate.c
+In file included from magick/annotate.c:55:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/annotate.c:55:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/hashmap.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/hashmap.c
+In file included from magick/hashmap.c:49:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/hashmap.c:49:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/monitor.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/monitor.c
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/memory.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/memory.c
+In file included from magick/memory.c:61:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/memory.c:61:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/module.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/module.c
+In file included from magick/module.c:55:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/module.c:55:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/channel.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/channel.c
+In file included from magick/channel.c:48:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/channel.c:48:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/magick.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/magick.c
+In file included from magick/magick.c:62:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/magick.c:62:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/magic.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/magic.c
+In file included from magick/magic.c:50:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/magic.c:50:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/locale.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/locale.c
+In file included from magick/locale.c:51:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/locale.c:51:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/attribute.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/attribute.c
+In file included from magick/attribute.c:60:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/attribute.c:60:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/list.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/list.c
+In file included from magick/list.c:49:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/list.c:49:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/compress.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/compress.c
+In file included from magick/compress.c:56:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/compress.c:56:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/mime.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/mime.c
+In file included from magick/mime.c:48:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/mime.c:48:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/prepress.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/prepress.c
+In file included from magick/prepress.c:49:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/prepress.c:49:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/color.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/color.c
+In file included from magick/color.c:57:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/color.c:57:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/matrix.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/matrix.c
+In file included from magick/matrix.c:48:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/matrix.c:48:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/blob.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/blob.c
+In file included from magick/blob.c:57:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/blob.c:57:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/policy.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/policy.c
+In file included from magick/policy.c:48:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/policy.c:48:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/histogram.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/histogram.c
+In file included from magick/histogram.c:53:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/histogram.c:53:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/registry.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/registry.c
+In file included from magick/registry.c:48:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/registry.c:48:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/quantum.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/quantum.c
+In file included from magick/quantum.c:54:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/quantum.c:54:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/option.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/option.c
+In file included from magick/option.c:62:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/option.c:62:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/random.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/random.c
+In file included from magick/random.c:54:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/random.c:54:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+magick/random.c:197:31: warning: implicit conversion from 'unsigned long' to 'double' changes value from 18446744073709551615 to 18446744073709551616 [-Wimplicit-int-float-conversion]
+  random_info->normalize=1.0/(~0UL);
+                            ~ ^~~~
+3 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/montage.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/montage.c
+In file included from magick/montage.c:61:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/montage.c:61:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/identify.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/identify.c
+In file included from magick/identify.c:75:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/identify.c:75:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/semaphore.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/semaphore.c
+In file included from magick/semaphore.c:47:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/semaphore.c:47:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/resample.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/resample.c
+In file included from magick/resample.c:54:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/resample.c:54:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/static.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/static.c
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/resource.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/resource.c
+In file included from magick/resource.c:50:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/resource.c:50:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/layer.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/layer.c
+In file included from magick/layer.c:54:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/layer.c:54:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/timer.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/timer.c
+In file included from magick/timer.c:47:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/timer.c:47:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/signature.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/signature.c
+In file included from magick/signature.c:49:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/signature.c:49:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/profile.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/profile.c
+In file included from magick/profile.c:52:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/profile.c:52:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/paint.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/paint.c
+In file included from magick/paint.c:48:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/paint.c:48:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/splay-tree.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/splay-tree.c
+In file included from magick/splay-tree.c:55:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/splay-tree.c:55:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/version.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/version.c
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/image.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/image.c
+In file included from magick/image.c:59:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/image.c:59:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/distort.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/distort.c
+In file included from magick/distort.c:51:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/distort.c:51:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/token.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/token.c
+In file included from magick/token.c:47:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/token.c:47:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o utilities/convert.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  utilities/convert.c
+In file included from utilities/convert.c:50:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from utilities/convert.c:50:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/cache.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/cache.c
+In file included from magick/cache.c:51:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/cache.c:51:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/compare.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/compare.c
+In file included from magick/compare.c:53:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/compare.c:53:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/colorspace.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/colorspace.c
+In file included from magick/colorspace.c:56:
+In file included from ./magick/gem-private.h:21:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/colorspace.c:56:
+In file included from ./magick/gem-private.h:21:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/type.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/type.c
+In file included from magick/type.c:51:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/type.c:51:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/string.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/string.c
+In file included from magick/string.c:50:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/string.c:50:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/utility.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/utility.c
+In file included from magick/utility.c:51:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/utility.c:51:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/wand.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/wand.c
+In file included from wand/wand.c:42:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/wand.c:42:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/magick-wand.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/magick-wand.c
+In file included from wand/magick-wand.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/magick-wand.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/composite.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/composite.c
+In file included from magick/composite.c:54:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/composite.c:54:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/pixel-iterator.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/pixel-iterator.c
+In file included from wand/pixel-iterator.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/pixel-iterator.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/pixel-wand.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/pixel-wand.c
+In file included from wand/pixel-wand.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/pixel-wand.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/stream.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/stream.c
+In file included from magick/stream.c:49:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/stream.c:49:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/feature.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/feature.c
+In file included from magick/feature.c:57:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/feature.c:57:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/magick-property.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/magick-property.c
+In file included from wand/magick-property.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/magick-property.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/property.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/property.c
+In file included from magick/property.c:67:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/property.c:67:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/threshold.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/threshold.c
+In file included from magick/threshold.c:66:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/threshold.c:66:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/segment.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/segment.c
+In file included from magick/segment.c:95:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/segment.c:95:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/transform.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/transform.c
+In file included from magick/transform.c:57:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/transform.c:57:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/resize.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/resize.c
+In file included from magick/resize.c:58:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/resize.c:58:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/fx.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/fx.c
+In file included from magick/fx.c:73:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/fx.c:73:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/effect.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/effect.c
+In file included from magick/effect.c:65:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/effect.c:65:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/shear.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/shear.c
+In file included from magick/shear.c:56:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/shear.c:56:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/quantize.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/quantize.c
+In file included from magick/quantize.c:191:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/quantize.c:191:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/enhance.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/enhance.c
+In file included from magick/enhance.c:54:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/enhance.c:54:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/drawing-wand.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/drawing-wand.c
+In file included from wand/drawing-wand.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/drawing-wand.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/xml-tree.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/xml-tree.c
+In file included from magick/xml-tree.c:56:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/xml-tree.c:56:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/decorate.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/decorate.c
+In file included from magick/decorate.c:53:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/decorate.c:53:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/magick-image.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/magick-image.c
+In file included from wand/magick-image.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/magick-image.c:49:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/deprecate.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/deprecate.c
+In file included from magick/deprecate.c:56:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/deprecate.c:56:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/statistic.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/statistic.c
+In file included from magick/statistic.c:59:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/statistic.c:59:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/draw.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/draw.c
+In file included from magick/draw.c:61:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/draw.c:61:
+In file included from ./magick/composite-private.h:24:
+In file included from ./magick/pixel-private.h:24:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/morphology.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/morphology.c
+In file included from magick/morphology.c:67:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/morphology.c:67:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/pixel.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/pixel.c
+In file included from magick/pixel.c:55:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/pixel.c:55:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/quantum-export.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/quantum-export.c
+In file included from magick/quantum-export.c:60:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/quantum-export.c:60:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o magick/quantum-import.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  magick/quantum-import.c
+In file included from magick/quantum-import.c:60:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from magick/quantum-import.c:60:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/convert.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/convert.c
+In file included from wand/convert.c:45:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/convert.c:45:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64 -c -o wand/mogrify.o -DSPEC -DNDEBUG -I.   -O3 -mavx          -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src    -DSPEC_LP64  wand/mogrify.c
+In file included from wand/mogrify.c:47:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:29:36: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*AcquireMemoryHandler)(size_t) magick_alloc_size(1),
+                                   ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+In file included from wand/mogrify.c:47:
+In file included from ./wand/studio.h:201:
+In file included from ./wand/MagickWand.h:72:
+In file included from ./magick/MagickCore.h:120:
+./magick/memory_.h:31:42: warning: '__alloc_size__' attribute only applies to functions [-Wignored-attributes]
+  *(*ResizeMemoryHandler)(void *,size_t) magick_alloc_size(2);
+                                         ^
+./magick/method-attribute.h:127:48: note: expanded from macro 'magick_alloc_size'
+#  define magick_alloc_size(x)  __attribute__((__alloc_size__(x)))
+                                               ^
+2 warnings generated.
+/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang -m64       -O3 -mavx   -z muldefs    -DSPEC_OPENMP -fopenmp -Wno-return-type -DUSE_OPENMP -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/include -I /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/projects/openmp/runtime/src  coders/tga.o filters/analyze.o magick/accelerate.o magick/animate.o magick/annotate.o magick/artifact.o magick/attribute.o magick/blob.o magick/cache-view.o magick/cache.o magick/channel.o magick/cipher.o magick/client.o magick/coder.o magick/color.o magick/colormap.o magick/colorspace.o magick/compare.o magick/composite.o magick/compress.o magick/configure.o magick/constitute.o magick/decorate.o magick/delegate.o magick/display.o magick/distort.o magick/distribute-cache.o magick/draw.o magick/effect.o magick/enhance.o magick/exception.o magick/feature.o magick/fourier.o magick/fx.o magick/gem.o magick/geometry.o magick/hashmap.o magick/histogram.o magick/identify.o magick/image.o magick/layer.o magick/list.o magick/locale.o magick/log.o magick/magic.o magick/magick.o magick/matrix.o magick/memory.o magick/mime.o magick/module.o magick/monitor.o magick/montage.o magick/morphology.o magick/option.o magick/paint.o magick/pixel.o magick/policy.o magick/prepress.o magick/profile.o magick/property.o magick/quantize.o magick/quantum-export.o magick/quantum-import.o magick/quantum.o magick/random.o magick/registry.o magick/resample.o magick/resize.o magick/resource.o magick/segment.o magick/semaphore.o magick/shear.o magick/signature.o magick/splay-tree.o magick/static.o magick/statistic.o magick/stream.o magick/string.o magick/threshold.o magick/timer.o magick/token.o magick/transform.o magick/type.o magick/utility.o magick/version.o magick/xml-tree.o utilities/convert.o wand/convert.o wand/drawing-wand.o wand/magick-image.o wand/magick-wand.o wand/mogrify.o wand/pixel-wand.o wand/magick-property.o wand/pixel-iterator.o wand/wand.o magick/deprecate.o             -lm     -fopenmp=libomp -L/home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/lib -lomp    -o imagick_s  
