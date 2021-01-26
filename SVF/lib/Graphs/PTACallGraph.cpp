@@ -334,8 +334,6 @@ bool PTACallGraph::isReachableBetweenFunctions(const SVFFunction* srcFn, const S
  */
 void PTACallGraph::dump(const std::string& filename)
 {
-    GraphPrinter::WriteGraphToFile(outs(), filename, this);
-
     std::ofstream fout;
     fout.open(filename + ".cg");
 
@@ -352,11 +350,11 @@ void PTACallGraph::dump(const std::string& filename)
 
         // conditions to break
         auto *callinst = llvm::dyn_cast<CallInst>(cbnode->getCallSite()); assert(callinst != NULL);
-        if (callinst->getCalledFunction() == NULL) { break; }  // indirect call
-        if (callerFunc == NULL) { printf("Caller of CSID:%d is null\n", csID); break; }
-        if (calleeFunc == NULL) { printf("Callee of CSID:%d is null\n", csID); break; }
-        if (callerFunc->isIntrinsic()) { break; }
-        if (calleeFunc->isIntrinsic()) { break; }
+        if (callinst->getCalledFunction() == NULL) { continue; }  // indirect call
+        if (callerFunc == NULL) { printf("Caller of CSID:%d is null\n", csID); continue; }
+        if (calleeFunc == NULL) { printf("Callee of CSID:%d is null\n", csID); continue; }
+        if (callerFunc->isIntrinsic()) { continue; }
+        if (calleeFunc->isIntrinsic()) { continue; }
 
         std::string str;
         raw_string_ostream rawstr(str);
@@ -366,6 +364,7 @@ void PTACallGraph::dump(const std::string& filename)
         fout << rawstr.str() << "\n";
     }
     fout.close();
+    GraphPrinter::WriteGraphToFile(outs(), filename, this);
 }
 
 void PTACallGraph::instrument_dcce(const std::string& ccinput)
