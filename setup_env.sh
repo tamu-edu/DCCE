@@ -32,6 +32,7 @@ export CPU2017_BIN_DIR=${CPU2017_ROOT}/bin
 export OUTPUT_ROOT=${DCCE_ROOT}/output
 export ORG_CG_DIR=${OUTPUT_ROOT}/callgraph
 export BASE_OUT_DIR=${OUTPUT_ROOT}/base
+export BASE2_OUT_DIR=${OUTPUT_ROOT}/base2
 export DCCE_OUT_DIR=${OUTPUT_ROOT}/dcce
 export PCCE_OUT_DIR=${OUTPUT_ROOT}/pcce
 export VALENCE_OUT_DIR=${OUTPUT_ROOT}/valence
@@ -40,19 +41,23 @@ export DCCE_CCENC_DIR=${DCCE_OUT_DIR}/ccenc
 export PCCE_CCENC_DIR=${PCCE_OUT_DIR}/ccenc
 export VALENCE_CCENC_DIR=${VALENCE_OUT_DIR}/ccenc
 
+export BASE2_BC_DIR=${BASE2_OUT_DIR}/bitcode
 export DCCE_BC_DIR=${DCCE_OUT_DIR}/bitcode
 export PCCE_BC_DIR=${PCCE_OUT_DIR}/bitcode
 export VALENCE_BC_DIR=${VALENCE_OUT_DIR}/bitcode
 
+export BASE2_BIN_DIR=${BASE2_OUT_DIR}/bin
 export DCCE_BIN_DIR=${DCCE_OUT_DIR}/bin
 export PCCE_BIN_DIR=${PCCE_OUT_DIR}/bin
 export VALENCE_BIN_DIR=${VALENCE_OUT_DIR}/bin
 
+export BASE2_RTLIB_DIR=${RTLIB_ROOT}/base2
 export DCCE_RTLIB_DIR=${RTLIB_ROOT}/dcce
 export PCCE_RTLIB_DIR=${RTLIB_ROOT}/pcce
 export VALENCE_RTLIB_DIR=${RTLIB_ROOT}/valence
 
 export BASE_STATS_DIR=${BASE_OUT_DIR}/stats
+export BASE2_STATS_DIR=${BASE2_OUT_DIR}/stats
 export DCCE_STATS_DIR=${DCCE_OUT_DIR}/stats
 export PCCE_STATS_DIR=${PCCE_OUT_DIR}/stats
 export VALENCE_STATS_DIR=${VALENCE_OUT_DIR}/stats
@@ -62,6 +67,7 @@ export VALENCE_STATS_DIR=${VALENCE_OUT_DIR}/stats
 ##############
 # runtime
 ##############
+export BASE2_RTLIB_BUILD_DIR=${BASE2_RTLIB_DIR}/build
 export DCCE_RTLIB_BUILD_DIR=${DCCE_RTLIB_DIR}/build
 export PCCE_RTLIB_BUILD_DIR=${PCCE_RTLIB_DIR}/build
 export VALENCE_RTLIB_BUILD_DIR=${VALENCE_RTLIB_DIR}/build

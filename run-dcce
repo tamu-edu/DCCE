@@ -108,6 +108,15 @@ def run_ccenc_dcce():
                        bench, 'main'),
                  log = '%s/%s.log' % (os.getenv('DCCE_CCENC_DIR'), bench))
 
+def run_instrument_base2():
+    makedirs(os.getenv('BASE2_BC_DIR'))
+    for bench in benches:
+        run_cmd(cmd = 'wpa -ander -ccinput %s/%s.cc -instr-method dcce -dump-modules %s %s/%s.bc' \
+                    % (os.getenv('DCCE_CCENC_DIR'), bench,
+                       os.getenv('BASE2_BC_DIR'),
+                       os.getenv('ORG_BC_ROOT'), bench),
+                log = '%s/%s.log' % (os.getenv('BASE2_BC_DIR'), bench))
+
 def run_instrument_dcce():
     makedirs(os.getenv('DCCE_BC_DIR'))
     for bench in benches:
@@ -116,6 +125,26 @@ def run_instrument_dcce():
                        os.getenv('DCCE_BC_DIR'),
                        os.getenv('ORG_BC_ROOT'), bench),
                 log = '%s/%s.log' % (os.getenv('DCCE_BC_DIR'), bench))
+
+def run_make_exe_base2():
+    makedirs(os.getenv('BASE2_BIN_DIR'))
+    for bench in benches:
+        if bench == 'test':
+            run_cmd(cmd = 'bash %s/test.make.out %s %s %s %s' % \
+                    (os.getenv('CPU2017_MAKE_DIR'),
+                    os.getenv('BASE2_BC_DIR'),
+                    os.getenv('BASE2_BIN_DIR'),
+                    os.getenv('BASE2_RTLIB_DIR'),
+                    bench),
+                    log = '%s/%s.log' % (os.getenv('BASE2_BIN_DIR'), bench))
+        else:
+            run_cmd(cmd = 'bash %s/common.make.out %s %s %s %s' % \
+                    (os.getenv('CPU2017_MAKE_DIR'),
+                    os.getenv('BASE2_BC_DIR'),
+                    os.getenv('BASE2_BIN_DIR'),
+                    os.getenv('BASE2_RTLIB_DIR'),
+                    bench),
+                    log = '%s/%s.log' % (os.getenv('BASE2_BIN_DIR'), bench))
 
 def run_make_exe_dcce():
     makedirs(os.getenv('DCCE_BIN_DIR'))
@@ -138,23 +167,40 @@ def run_make_exe_dcce():
                     log = '%s/%s.log' % (os.getenv('DCCE_BIN_DIR'), bench))
 
 def run_bench_base():
-    makedirs(os.getenv('BASE_STATS_DIR'))
-    for bench in benches:
-        cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
-            (os.getenv('CPU2017_BIN_DIR'), bench, cmd_options[bench],
-            os.getenv('BASE_STATS_DIR'), bench)
-        print(cmd)
-        #os.system(cmd)
+    for run in range(5):
+        base_stats_dir = '%s/%s' % (os.getenv('BASE_STATS_DIR'), run)
+        makedirs(base_stats_dir)
+        for bench in benches:
+            cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
+                    (os.getenv('CPU2017_BIN_DIR'), bench, cmd_options[bench],
+                     base_stats_dir, bench)
+            print(cmd)
+            #os.system(cmd)
 
+def run_bench_base2():
+    for run in range(5):
+        base_stats_dir = '%s/%s' % (os.getenv('BASE2_STATS_DIR'), run)
+        makedirs(base_stats_dir)
+        for bench in benches:
+            cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
+                    (os.getenv('BASE2_BIN_DIR'), bench, cmd_options[bench],
+                     base_stats_dir, bench)
+            print(cmd)
+            #os.system(cmd)
 
 def run_bench_dcce():
-    makedirs(os.getenv('DCCE_STATS_DIR'))
-    for bench in benches:
-        cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
-                (os.getenv('DCCE_BIN_DIR'), bench, cmd_options[bench],
-                 os.getenv('DCCE_STATS_DIR'), bench)
-        print(cmd)
-        #os.system(cmd)
+    for run in range(5):
+        dcce_stats_dir = '%s/%s' % (os.getenv('DCCE_STATS_DIR'), run)
+        makedirs(dcce_stats_dir)
+        for bench in benches:
+            cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
+                    (os.getenv('DCCE_BIN_DIR'), bench, cmd_options[bench],
+                     dcce_stats_dir, bench)
+            print(cmd)
+            cmd = 'mv gmon.out %s/%s.gmon' % \
+                    (dcce_stats_dir, bench)
+            print(cmd)
+            #os.system(cmd)
 
 
 def main(args):
@@ -203,11 +249,11 @@ if __name__== "__main__":
             help='run wpa to genrate callgph(.cg) file')
     parser.add_argument('-ccenc', choices=['dcce', 'pcce', 'valence'],
             help='run calling context encoding with given method.')
-    parser.add_argument('-instrument', choices=['dcce', 'pcce', 'valence'],
+    parser.add_argument('-instrument', choices=['base2', 'dcce', 'pcce', 'valence'],
             help='run wpa to instrument benchmarks.')
-    parser.add_argument('-make-exe', choices=['dcce', 'pcce', 'valence'],
+    parser.add_argument('-make-exe', choices=['base2', 'dcce', 'pcce', 'valence'],
             help='make executable.')
-    parser.add_argument('-run-bench', choices=['base', 'dcce', 'pcce', 'valence'],
+    parser.add_argument('-run-bench', choices=['base', 'base2', 'dcce', 'pcce', 'valence'],
             help='run instrumented benchmarks.')
     args = parser.parse_args()
 
