@@ -393,11 +393,14 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
     Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
     LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
 
+    // using rtlib
     std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
     Type*               retType       = Type::getVoidTy(ctx);
     FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
     FunctionCallee      addWeight     = mod->getOrInsertFunction("addWeight", funcType);
     FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
+    // using load/store
+    //IntegerType* int64ty = Type::getInt64Ty(ctx);
 
     for (auto& F : *mod) {
         for (auto &B : F) {
@@ -416,9 +419,29 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
 
                     CSInstToID::const_iterator it = csInstToID.find(&I);
                     assert(it != csInstToID.end());
-                    unsigned long long int weight = it->second;
-                    assert(weight != 0);
+                    unsigned long long int csid = it->second;
+                    assert(cs2w.find(csid) != cs2w.end());
+                    unsigned long long int weight = cs2w[csid];
+  
+                    // using load/store
+                    //auto ccid = mod->getGlobalVariable("ccid");
+                    //auto load = new llvm::LoadInst(ccid, "", &I);
+                    //auto v = llvm::ConstantInt::get(int64ty, weight);
+                    //auto add = llvm::BinaryOperator::Create(Instruction::Add,
+                    //        load, v, "", &I);
+                    //auto store = new llvm::StoreInst(add, ccid, &I);
 
+
+                    //auto &II = *(++bbit);
+                    //ccid = mod->getGlobalVariable("ccid");
+                    //load = new LoadInst(ccid, "", &II);
+                    //v = ConstantInt::get(int64ty, weight);
+                    //auto sub = BinaryOperator::Create(Instruction::Sub,
+                    //        load, v, "", &II);
+                    //store = new StoreInst(sub, ccid, &II);
+                    //bbit--;
+
+                    // using rtlib
                     IRBuilder builder(op);
                     builder.SetInsertPoint(&I);
 

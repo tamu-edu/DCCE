@@ -108,6 +108,13 @@ WPAPass::~WPAPass()
  */
 void WPAPass::runOnModule(SVFModule* svfModule)
 {
+    //Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
+    //LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
+    //IntegerType* int64ty = Type::getInt64Ty(ctx);
+    //auto gv = new GlobalVariable(*mod, int64ty, false,
+    //                             //GlobalValue::InternalLinkage,
+    //                             GlobalValue::ExternalLinkage,
+    //                             nullptr, "ccid", nullptr);
     for (u32_t i = 0; i<= PointerAnalysis::Default_PTA; i++)
     {
         if (PASelected.isSet(i))
