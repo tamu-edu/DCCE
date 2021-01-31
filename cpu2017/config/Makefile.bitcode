@@ -180,7 +180,7 @@ ifeq ($(OS),windows_nt)
 else
     _defines_filter = -D% -U%
     OBJ           ?= .o
-    OBJOPT        ?= -c -o $@ -emit-llvm 
+    OBJOPT        ?= -c -o $@ -emit-llvm -pg 
     LDOUT         ?= -o $@
     MATHLIBOPT    ?= -lm
     RMRF          ?= rm -rf

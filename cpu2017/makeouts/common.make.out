@@ -5,6 +5,7 @@ BENCH=$4
 
 llvm-dis ${BC_DIR}/${BENCH}.bc
 /home/sungkeun/packages/llvm-project-llvmorg-10.0.0/build/bin/clang ${BC_DIR}/${BENCH}.ll \
+        -pg \
         -m64 \
         -z muldefs \
         -O3 \

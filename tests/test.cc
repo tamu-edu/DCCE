@@ -1,4 +1,3 @@
-#include <iostream>
 void B();
 void C();
 void D();
