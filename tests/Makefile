@@ -5,7 +5,7 @@
 all: test.bc
 
 test.bc: test.cc
-	clang -emit-llvm -pg -c $^ -o ${ORG_BC_ROOT}/$@
+	clang++ -emit-llvm -pg -c $^ -o ${ORG_BC_ROOT}/$@
 
 .PHONY: clean
 	

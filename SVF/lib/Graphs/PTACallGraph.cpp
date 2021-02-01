@@ -31,6 +31,7 @@
 #include <iostream>
 #include <fstream>
 #include "Util/SVFModule.h"
+#include "Util/Instrument.h"
 #include "SVF-FE/LLVMUtil.h"
 #include "Graphs/PTACallGraph.h"
 
@@ -348,9 +349,7 @@ void PTACallGraph::dump(const std::string& filename)
         PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
         PTACallGraphNode* calleeNode = getCallGraphNode(calleeFunc);
 
-        // conditions to break
-        auto *callinst = llvm::dyn_cast<CallInst>(cbnode->getCallSite()); assert(callinst != NULL);
-        if (callinst->getCalledFunction() == NULL) { continue; }  // indirect call
+        if (cbnode->isIndirectCall()) { continue; }  // indirect call
         if (callerFunc == NULL) { printf("Caller of CSID:%d is null\n", csID); continue; }
         if (calleeFunc == NULL) { printf("Callee of CSID:%d is null\n", csID); continue; }
         if (callerFunc->isIntrinsic()) { continue; }
@@ -406,15 +405,16 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
         for (auto &B : F) {
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
                 auto &I = *bbit;
-                if (auto *op = llvm::dyn_cast<CallInst>(&I)) {
+                if (SVFUtil::isCallSite(&I)) {
+                    auto *op = llvm::dyn_cast<llvm::CallBase>(&I);
                     Function *func = op->getCalledFunction();
 
                     if (func == NULL) {
-                        break; // indirect call
+                        continue; // indirect call
                     } else if (func->isIntrinsic()) {
-                        break;
+                        continue;
                     } else if (func->getName() == "addWeight" || func->getName() == "removeWeight") {
-                        break;
+                        continue;
                     }
 
                     CSInstToID::const_iterator it = csInstToID.find(&I);
@@ -442,7 +442,7 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
                     //bbit--;
 
                     // using rtlib
-                    IRBuilder builder(op);
+                    IRBuilder builder(&I);
                     builder.SetInsertPoint(&I);
 
                     llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
@@ -450,9 +450,10 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
                     Value* args[] = {i64_val};
                     builder.CreateCall(addWeight, args);
 
-                    builder.SetInsertPoint(I.getNextNode());
-                    builder.CreateCall(removeWeight, args);
-                    bbit++;
+                    for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
+                        builder.SetInsertPoint(SI);
+                        builder.CreateCall(removeWeight, args);
+                    }
                 }
             }
         }

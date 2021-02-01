@@ -12,12 +12,12 @@ benches = [
     '605.mcf_s',
     #'607.cactuBSSN_s',# compile issue
     '619.lbm_s',
-    #'620.omnetpp_s',  # assertion during dump-callgraph lineno: 356
-    #'623.xalancbmk_s',# assertion during dump-callgraph lineno: 356
+    '620.omnetpp_s',
+    '623.xalancbmk_s',
     '625.x264_s',
     '631.deepsjeng_s',
     '638.imagick_s',
-    #'641.leela_s',   # assertion during dump-callgraph lineno: 356
+    '641.leela_s',
     '644.nab_s',
     '657.xz_s',
     '998.specrand_is',
@@ -137,8 +137,16 @@ def run_make_exe_base2():
                     os.getenv('BASE2_RTLIB_DIR'),
                     bench),
                     log = '%s/%s.log' % (os.getenv('BASE2_BIN_DIR'), bench))
+        elif bench in ['620.omnetpp_s', '623.xalancbmk_s', '641.leela_s']:
+            run_cmd(cmd = 'bash %s/common.clang++.make.out %s %s %s %s' % \
+                    (os.getenv('CPU2017_MAKE_DIR'),
+                    os.getenv('BASE2_BC_DIR'),
+                    os.getenv('BASE2_BIN_DIR'),
+                    os.getenv('BASE2_RTLIB_DIR'),
+                    bench),
+                    log = '%s/%s.log' % (os.getenv('BASE2_BIN_DIR'), bench))
         else:
-            run_cmd(cmd = 'bash %s/common.make.out %s %s %s %s' % \
+            run_cmd(cmd = 'bash %s/common.clang.make.out %s %s %s %s' % \
                     (os.getenv('CPU2017_MAKE_DIR'),
                     os.getenv('BASE2_BC_DIR'),
                     os.getenv('BASE2_BIN_DIR'),
@@ -157,8 +165,16 @@ def run_make_exe_dcce():
                     os.getenv('DCCE_RTLIB_DIR'),
                     bench),
                     log = '%s/%s.log' % (os.getenv('DCCE_BIN_DIR'), bench))
+        elif bench in ['620.omnetpp_s', '623.xalancbmk_s', '641.leela_s']:
+            run_cmd(cmd = 'bash %s/common.clang++.make.out %s %s %s %s' % \
+                    (os.getenv('CPU2017_MAKE_DIR'),
+                    os.getenv('DCCE_BC_DIR'),
+                    os.getenv('DCCE_BIN_DIR'),
+                    os.getenv('DCCE_RTLIB_DIR'),
+                    bench),
+                    log = '%s/%s.log' % (os.getenv('BASE2_BIN_DIR'), bench))
         else:
-            run_cmd(cmd = 'bash %s/common.make.out %s %s %s %s' % \
+            run_cmd(cmd = 'bash %s/common.clang.make.out %s %s %s %s' % \
                     (os.getenv('CPU2017_MAKE_DIR'),
                     os.getenv('DCCE_BC_DIR'),
                     os.getenv('DCCE_BIN_DIR'),
@@ -167,7 +183,7 @@ def run_make_exe_dcce():
                     log = '%s/%s.log' % (os.getenv('DCCE_BIN_DIR'), bench))
 
 def run_bench_base():
-    for run in range(5):
+    for run in range(2):
         base_stats_dir = '%s/%s' % (os.getenv('BASE_STATS_DIR'), run)
         makedirs(base_stats_dir)
         for bench in benches:
@@ -178,7 +194,7 @@ def run_bench_base():
             #os.system(cmd)
 
 def run_bench_base2():
-    for run in range(5):
+    for run in range(2):
         base_stats_dir = '%s/%s' % (os.getenv('BASE2_STATS_DIR'), run)
         makedirs(base_stats_dir)
         for bench in benches:
@@ -186,10 +202,13 @@ def run_bench_base2():
                     (os.getenv('BASE2_BIN_DIR'), bench, cmd_options[bench],
                      base_stats_dir, bench)
             print(cmd)
+            cmd = 'mv gmon.out %s/%s.gmon' % \
+                    (base_stats_dir, bench)
+            print(cmd)
             #os.system(cmd)
 
 def run_bench_dcce():
-    for run in range(5):
+    for run in range(2):
         dcce_stats_dir = '%s/%s' % (os.getenv('DCCE_STATS_DIR'), run)
         makedirs(dcce_stats_dir)
         for bench in benches:

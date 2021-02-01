@@ -1,3 +1,4 @@
+#include <iostream>
 void B();
 void C();
 void D();
@@ -10,32 +11,32 @@ bool called_back_edge = false;
 
 void B()
 {
-    //std::cout << "B" << std::endl;
+    std::cout << "B" << std::endl;
     E();
 }
 
 void C()
 {
-    //std::cout << "C" << std::endl;
+    std::cout << "C" << std::endl;
     D();
     G();
 }
 
 void D()
 {
-    //std::cout << "D" << std::endl;
+    std::cout << "D" << std::endl;
     E();
     F();
 }
 
 void E()
 {
-    //std::cout << "E" << std::endl;
+    std::cout << "E" << std::endl;
 }
 
 void F()
 {
-    //std::cout << "F" << std::endl;
+    std::cout << "F" << std::endl;
     if (!called_back_edge) {
         called_back_edge = true;
         C();  // back edge
@@ -45,18 +46,23 @@ void F()
 
 void G()
 {
-    //std::cout << "G" << std::endl;
+    std::cout << "G" << std::endl;
     F();
 }
 
 void H()
 {
-    //std::cout << "H" << std::endl;
+    std::cout << "H" << std::endl;
 }
 
 int main()
 {
-    B();
-    C();
+    std::cout << "main" << std::endl;
+    try {
+        B();
+        C();
+    } catch (int e) {
+        std::cout << "exception!!" << std::endl;
+    }
     return 0;
 }

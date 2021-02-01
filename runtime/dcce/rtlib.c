@@ -11,5 +11,5 @@ void addWeight(unsigned long long weight)
 void removeWeight(unsigned long long weight)
 {
     //printf("%llu - %llu = %llu\n", ccid, weight, ccid - weight);
-    ccid += weight;
+    ccid -= weight;
 }
