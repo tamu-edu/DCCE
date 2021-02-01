@@ -1,68 +1,41 @@
-#include <iostream>
-void B();
-void C();
-void D();
-void E();
-void F();
-void G();
-void H();
+#include <stdlib.h>
 
-bool called_back_edge = false;
-
-void B()
+void swap(int a, int b)
 {
-    std::cout << "B" << std::endl;
-    E();
-}
-
-void C()
-{
-    std::cout << "C" << std::endl;
-    D();
-    G();
-}
-
-void D()
-{
-    std::cout << "D" << std::endl;
-    E();
-    F();
-}
-
-void E()
-{
-    std::cout << "E" << std::endl;
-}
-
-void F()
-{
-    std::cout << "F" << std::endl;
-    if (!called_back_edge) {
-        called_back_edge = true;
-        C();  // back edge
+    int temp = a;
+    a = b;
+    b = temp;
+    if (a == 1)
+    {
+        exit(1);
     }
-    H();
 }
 
-void G()
+void addToSwap(int a, int b)
 {
-    std::cout << "G" << std::endl;
-    F();
-}
-
-void H()
-{
-    std::cout << "H" << std::endl;
+    int temp = a;
+    a = a + b;
+    b = temp;
+    if (a == 1)
+    {
+        exit(1);
+    }
 }
 
 int main()
 {
-    std::cout << "main" << std::endl;
-    try {
-        B();
-        C();
-    } catch (int e) {
-        std::cout << "exception!!" << std::endl;
+    int i = 0;
+    
+    for (int j = 100; j > 0; j--)
+    {
+        if ((i % 8) == 0)
+        {
+            addToSwap(i, j);
+        }
+        else
+        {
+            swap(i, j);
+        }
     }
     return 0;
 }
