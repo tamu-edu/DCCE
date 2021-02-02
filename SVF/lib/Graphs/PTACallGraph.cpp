@@ -142,6 +142,7 @@ void PTACallGraph::addCallGraphNode(const SVFFunction* fun)
     PTACallGraphNode* callGraphNode = new PTACallGraphNode(id, fun);
     addGNode(id,callGraphNode);
     funToCallGraphNodeMap[fun] = callGraphNode;
+    ffunToCallGraphNodeMap[fun->getLLVMFun()] = callGraphNode;
     callGraphNodeNum++;
 }
 
@@ -405,6 +406,130 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
         for (auto &B : F) {
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
                 auto &I = *bbit;
+                if (SVFUtil::isCallSite(&I)) {
+                    auto *op = llvm::dyn_cast<llvm::CallBase>(&I);
+                    Function *func = op->getCalledFunction();
+
+                    if (func == NULL) {
+                        continue; // indirect call
+                    } else if (func->isIntrinsic()) {
+                        continue;
+                    } else if (func->getName() == "addWeight" || func->getName() == "removeWeight") {
+                        continue;
+                    }
+
+                    CSInstToID::const_iterator it = csInstToID.find(&I);
+                    assert(it != csInstToID.end());
+                    unsigned long long int csid = it->second;
+                    assert(cs2w.find(csid) != cs2w.end());
+                    unsigned long long int weight = cs2w[csid];
+  
+                    // using load/store
+                    //auto ccid = mod->getGlobalVariable("ccid");
+                    //auto load = new llvm::LoadInst(ccid, "", &I);
+                    //auto v = llvm::ConstantInt::get(int64ty, weight);
+                    //auto add = llvm::BinaryOperator::Create(Instruction::Add,
+                    //        load, v, "", &I);
+                    //auto store = new llvm::StoreInst(add, ccid, &I);
+
+
+                    //auto &II = *(++bbit);
+                    //ccid = mod->getGlobalVariable("ccid");
+                    //load = new LoadInst(ccid, "", &II);
+                    //v = ConstantInt::get(int64ty, weight);
+                    //auto sub = BinaryOperator::Create(Instruction::Sub,
+                    //        load, v, "", &II);
+                    //store = new StoreInst(sub, ccid, &II);
+                    //bbit--;
+
+                    // using rtlib
+                    IRBuilder builder(&I);
+                    builder.SetInsertPoint(&I);
+
+                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
+                    Value* args[] = {i64_val};
+                    builder.CreateCall(addWeight, args);
+
+                    for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
+                        builder.SetInsertPoint(SI);
+                        builder.CreateCall(removeWeight, args);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int bench_code)
+{
+    std::ifstream inf(ccinput);
+    if (!inf.is_open()) {
+        std::cout << "unable to open file " << ccinput << std::endl;
+        exit(1);
+    }
+
+    std::unordered_map<uint64_t, uint64_t> cs2w;
+    std::string line;
+
+    while (std::getline(inf, line)) {
+        std::vector<std::string> list;
+        Split(line, list, ':');
+        uint64_t cs = std::stoul(list[2], NULL, 10);
+        uint64_t w = std::stoul(list[3], NULL, 10);
+
+        assert(cs2w.find(cs) == cs2w.end());
+        cs2w[cs] = w;
+        //std::cout << "cs: " << cs << ", w: " << w << std::endl;
+    }
+    inf.close();
+
+    Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
+    LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
+
+    // create a global variable to store ccinput
+    SVFUtil::createGlobalString(mod, "ccinput", ccinput);
+
+    // using rtlib
+    std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
+    Type*               retType       = Type::getVoidTy(ctx);
+    FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
+    FunctionCallee      addWeight     = mod->getOrInsertFunction("addWeight", funcType);
+    FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
+    FunctionCallee      initCallgraph = mod->getOrInsertFunction("initCallgraph", funcType);
+    FunctionCallee      decode = mod->getOrInsertFunction("decode", funcType);
+
+    bool insert_init = false;
+
+    for (auto& F : *mod) {
+        bool insert_decode = false;
+        for (auto &B : F) {
+            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
+                auto &I = *bbit;
+
+                if (F.getName() == "main" && !insert_init) {
+                    IRBuilder builder(&I);
+                    builder.SetInsertPoint(&I);
+
+                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
+                    Value* args[] = {i64_val};
+                    builder.CreateCall(initCallgraph, args);
+                    insert_init = true;
+                }
+
+                if (!insert_decode) {
+                    PTACallGraphNode* node = getCallGraphNode(&F);
+                    IRBuilder builder(&I);
+                    builder.SetInsertPoint(&I);
+
+                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
+                    Value* args[] = {i64_val};
+                    builder.CreateCall(decode, args);
+                    insert_decode = true;
+                }
+
                 if (SVFUtil::isCallSite(&I)) {
                     auto *op = llvm::dyn_cast<llvm::CallBase>(&I);
                     Function *func = op->getCalledFunction();

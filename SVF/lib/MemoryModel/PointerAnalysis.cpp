@@ -84,6 +84,9 @@ static llvm::cl::opt<std::string> CCInput("ccinput", llvm::cl::value_desc("calli
 static llvm::cl::opt<std::string> InstrMethod("instr-method", llvm::cl::value_desc("instrumentation mdethod"),
         llvm::cl::desc("instrumentation method"));
 
+static llvm::cl::opt<unsigned> BenchCode("bench-code",  llvm::cl::init(0),
+        llvm::cl::desc("ID indicating benchmarks"));
+
 static llvm::cl::opt<bool> PAGPrint("print-pag", llvm::cl::init(false),
                                     llvm::cl::desc("Print PAG to command line"));
 
@@ -306,13 +309,11 @@ void PointerAnalysis::finalize()
     }
 
     if (!InstrMethod.getValue().empty()) {
+        assert(!CCInput.getValue().empty() && "CCInput must be provided to run instrumentation");
         if (InstrMethod.getValue() == "dcce") {
-            if (!CCInput.getValue().empty()) {
-                getPTACallGraph()->instrument_dcce(CCInput.getValue());
-            } else {
-                printf("CCInput is not entered.\n");
-                exit(1);
-            }
+            getPTACallGraph()->instrument_dcce(CCInput.getValue());
+        } else if (InstrMethod.getValue() == "pcce") {
+            getPTACallGraph()->instrument_pcce(CCInput.getValue(), BenchCode.getValue());
         } else {
             printf("Unknown instrument method: %s\n", InstrMethod.getValue());
             exit(1);

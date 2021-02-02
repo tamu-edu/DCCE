@@ -13,11 +13,37 @@
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/IR/LegacyPassManager.h>
+#include <string>
 
 namespace SVF
 {
 namespace SVFUtil
 {
+    // Not used for now.
+    void createGlobalString(Module* mod, const std::string var_name, const std::string initial_value)
+    {
+        using namespace llvm;
+
+        ArrayType* arrayTy = ArrayType::get(IntegerType::getInt8Ty(mod->getContext()), initial_value.size()+1);
+        mod->getOrInsertGlobal(StringRef(var_name.c_str()), arrayTy);
+
+        //GlobalVariable* gvar_array__str = new GlobalVariable(/*Module=*/*mod,
+        //        /*Type=*/arrayTy,
+        //        /*isConstant=*/true,
+        //        /*Linkage=*/GlobalValue::PrivateLinkage,
+        //        /*Initializer=*/0, // has initializer, specified below
+        //        /*Name=*/var_name.c_str());
+        ////gvar_array__str->setAlignment(1);
+
+        //// Constant Definitions
+        //Constant *const_array_4 = ConstantDataArray::getString(mod->getContext(), initial_value.c_str(), true);
+        //std::vector<Constant*> const_ptr_5_indices;
+        //ConstantInt* const_int64_6 = ConstantInt::get(mod->getContext(), APInt(64, StringRef("0"), 10));
+        //const_ptr_5_indices.push_back(const_int64_6);
+        //const_ptr_5_indices.push_back(const_int64_6);
+        //Constant* const_ptr_5 = ConstantExpr::getGetElementPtr(gvar_array__str, const_ptr_5_indices);
+    }
+
     void replacePhiUseInNormalDest(InvokeInst* I, BasicBlock* New) {
         //I->getParent()->replaceSuccessorsPhiUsesWith(Block);
         BasicBlock* Succ = I->getNormalDest();
