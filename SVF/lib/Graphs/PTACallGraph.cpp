@@ -41,17 +41,6 @@
 using namespace SVF;
 using namespace SVFUtil;
 
-template <class Container>
-void
-Split(const std::string& str, Container& cont, char delim = ' ')
-{
-    std::stringstream ss(str);
-    std::string token;
-    while (std::getline(ss, token, delim)) {
-        cont.push_back(token);
-    }
-}
-
 PTACallGraph::CallSiteToIdMap PTACallGraph::csToIdMap;
 PTACallGraph::IdToCallSiteMap PTACallGraph::idToCSMap;
 PTACallGraph::CSInstToID PTACallGraph::csInstToID;
@@ -369,26 +358,9 @@ void PTACallGraph::dump(const std::string& filename)
 
 void PTACallGraph::instrument_dcce(const std::string& ccinput)
 {
-    std::ifstream inf(ccinput);
-    if (!inf.is_open()) {
-        std::cout << "unable to open file " << ccinput << std::endl;
-        exit(1);
-    }
 
     std::unordered_map<uint64_t, uint64_t> cs2w;
-    std::string line;
-
-    while (std::getline(inf, line)) {
-        std::vector<std::string> list;
-        Split(line, list, ':');
-        uint64_t cs = std::stoul(list[2], NULL, 10);
-        uint64_t w = std::stoul(list[3], NULL, 10);
-
-        assert(cs2w.find(cs) == cs2w.end());
-        cs2w[cs] = w;
-        //std::cout << "cs: " << cs << ", w: " << w << std::endl;
-    }
-    inf.close();
+    SVFUtil::parse_ccfile(ccinput, cs2w);
 
     Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
     LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
@@ -463,32 +435,14 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
 
 void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int bench_code)
 {
-    std::ifstream inf(ccinput);
-    if (!inf.is_open()) {
-        std::cout << "unable to open file " << ccinput << std::endl;
-        exit(1);
-    }
-
     std::unordered_map<uint64_t, uint64_t> cs2w;
-    std::string line;
-
-    while (std::getline(inf, line)) {
-        std::vector<std::string> list;
-        Split(line, list, ':');
-        uint64_t cs = std::stoul(list[2], NULL, 10);
-        uint64_t w = std::stoul(list[3], NULL, 10);
-
-        assert(cs2w.find(cs) == cs2w.end());
-        cs2w[cs] = w;
-        //std::cout << "cs: " << cs << ", w: " << w << std::endl;
-    }
-    inf.close();
+    SVFUtil::parse_ccfile(ccinput, cs2w);
 
     Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
     LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
 
     // create a global variable to store ccinput
-    SVFUtil::createGlobalString(mod, "ccinput", ccinput);
+    //SVFUtil::createGlobalString(mod, "ccinput", ccinput);
 
     // using rtlib
     std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
@@ -547,25 +501,9 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
                     unsigned long long int csid = it->second;
                     assert(cs2w.find(csid) != cs2w.end());
                     unsigned long long int weight = cs2w[csid];
+                    
+                    if (weight == 0) continue;
   
-                    // using load/store
-                    //auto ccid = mod->getGlobalVariable("ccid");
-                    //auto load = new llvm::LoadInst(ccid, "", &I);
-                    //auto v = llvm::ConstantInt::get(int64ty, weight);
-                    //auto add = llvm::BinaryOperator::Create(Instruction::Add,
-                    //        load, v, "", &I);
-                    //auto store = new llvm::StoreInst(add, ccid, &I);
-
-
-                    //auto &II = *(++bbit);
-                    //ccid = mod->getGlobalVariable("ccid");
-                    //load = new LoadInst(ccid, "", &II);
-                    //v = ConstantInt::get(int64ty, weight);
-                    //auto sub = BinaryOperator::Create(Instruction::Sub,
-                    //        load, v, "", &II);
-                    //store = new StoreInst(sub, ccid, &II);
-                    //bbit--;
-
                     // using rtlib
                     IRBuilder builder(&I);
                     builder.SetInsertPoint(&I);

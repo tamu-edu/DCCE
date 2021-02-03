@@ -1,0 +1,42 @@
+#!/usr/bin/python3
+import os
+
+pcce_root = '%s' % (os.getcwd())
+
+benchs = [
+    '600.perlbench_s',
+    '602.gcc_s',
+    '605.mcf_s',
+    '620.omnetpp_s',
+    '623.xalancbmk_s',
+    '625.x264_s',
+    '631.deepsjeng_s',
+    '641.leela_s',
+    '657.xz_s',
+    '998.specrand_is',
+    '619.lbm_s',
+    '638.imagick_s',
+    '644.nab_s'
+]
+
+if not os.path.exists('output'):
+    os.makedirs('output')
+
+for bench in benchs:
+#    cmd = './gen_calling_context %s/cpu2017/dcce/dots/%s.final.input ' \
+#            'output/%s.dot output/%s.cc output/%s.maxid ' \
+#            'output/%s.backedge output/%s.funcptr ' \
+#            '%s %s ' \
+#            '> output/%s.log 2>&1 & ' % \
+#            ( dcce_root, bench,
+#                    bench, bench, bench,
+#                    bench, bench,
+#                    bench, 'main',
+#                    bench)
+#    cmd = './gen_calling_context /home/grads/h/harpreetsc/DCCE/cpu2017/dcce/dots/test.cg output/test.dot output/test.cc test main' 
+    cmd = './gen_calling_context /home/sungkeun/git/DCCE-pcce/output/pcce/ccenc/100.test-final.cg ./100.test.cc test main pcce' 
+
+    #os.system(cmd)
+    print(cmd)
+
+

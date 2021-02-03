@@ -2,7 +2,7 @@
 import sys
 import os
 import os.path
-import pygraph.readwrite.dot
+#import pygraph.readwrite.dot
 from sets import Set
 
 def remove_backedge(g, main_node = None):

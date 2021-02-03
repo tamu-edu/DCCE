@@ -9,12 +9,14 @@
 #include <set>
 #include <vector>
 #include <cassert>
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 uint64_t ccid = 0;
 bool initialized = false;
 
-template <class Container>
-void Split(const std::string& str, Container& cont, char delim = ' ')
+void Split(const std::string& str, std::vector<std::string>& cont, char delim = ' ')
 {
     std::stringstream ss(str);
     std::string token;
@@ -84,7 +86,10 @@ class CallGraph
 
         std::set<std::pair<Node*, Edge*> > GetIncidents(uint64_t n)
         {
-            assert(m_incidents.find(n) != m_incidents.end());
+            if (m_incidents.find(n) == m_incidents.end()) {
+                printf("Not found indicents of node %d %s\n", n, GetNodeName(n).c_str());
+                return std::set<std::pair<Node*,Edge*> >();
+            }
             return m_incidents[n];
         }
 
@@ -118,32 +123,31 @@ class CallGraph
 
 CallGraph cg;
 std::unordered_map<unsigned int, std::string> input_map;
-extern "C" void initCallgraph(unsigned int bench_code)
+void initCallgraph(unsigned int bench_code)
 {
     initialized = true;
-    std::string cc_root = "./output-test/callgraph/";
-    input_map[600] = cc_root + "600.perlbench_s-final.cg";
-    input_map[602] = cc_root + "602.gcc_s-final.cg";
-    input_map[605] = cc_root + "605.mcf_s-final.cg";
-    input_map[607] = cc_root + "607.cactuBSSN_s-final.cg";
-    input_map[619] = cc_root + "619.lbm_s-final.cg";
-    input_map[620] = cc_root + "620.omnetpp_s-final.cg";
-    input_map[623] = cc_root + "623.xalancbmk_s-final.cg";
-    input_map[625] = cc_root + "625.x264_s-final.cg";
-    input_map[631] = cc_root + "631.deepsjeng_s-final.cg";
-    input_map[638] = cc_root + "638.imagick_s-final.cg";
-    input_map[641] = cc_root + "641.leela_s-final.cg";
-    input_map[644] = cc_root + "644.nab_s-final.cg";
-    input_map[657] = cc_root + "657.xz_s-final.cg";
-    input_map[998] = cc_root + "998.specrand_is-final.cg";
-    input_map[100] = cc_root + "100.test-final2.cg";
-    printf("initCallgraph - %s\n", input_map[bench_code].c_str());
+    std::string cc_root = "./output/pcce/ccenc/";
+    input_map[600] = cc_root + "600.perlbench_s";
+    input_map[602] = cc_root + "602.gcc_s";
+    input_map[605] = cc_root + "605.mcf_s";
+    input_map[607] = cc_root + "607.cactuBSSN_s";
+    input_map[619] = cc_root + "619.lbm_s";
+    input_map[620] = cc_root + "620.omnetpp_s";
+    input_map[623] = cc_root + "623.xalancbmk_s";
+    input_map[625] = cc_root + "625.x264_s";
+    input_map[631] = cc_root + "631.deepsjeng_s";
+    input_map[638] = cc_root + "638.imagick_s";
+    input_map[641] = cc_root + "641.leela_s";
+    input_map[644] = cc_root + "644.nab_s";
+    input_map[657] = cc_root + "657.xz_s";
+    input_map[998] = cc_root + "998.specrand_is";
+    input_map[100] = cc_root + "100.test";
+    
 
     std::string ccinput = input_map[bench_code];
-    //std::ifstream inf(ccinput);
-    std::ifstream inf("./output-test/pcce/ccenc/100.test2.cc");
+    std::ifstream inf(ccinput + ".cc");
     if (!inf.is_open()) {
-        printf("unabled to open file %s\n", ccinput);
+        printf("unabled to open file %s\n", (ccinput + ".cc").c_str());
         exit(1);
     }
 
@@ -165,12 +169,17 @@ extern "C" void initCallgraph(unsigned int bench_code)
 
         uint64_t callsite_id  = std::stoul(list[2], NULL, 10);
 
-        uint64_t weight = std::stoul(list[3], NULL, 10);
+        uint64_t weight = 0;
+        try {
+            weight = std::stoul(list[3], NULL, 10);
+        } catch (const std::out_of_range& oor) {
+            printf("out of range!!!\n");
+        }
 
-        printf("%d-%s:%d-%s:%d\n",
-                caller_id, caller_name.c_str(),
-                callee_id, callee_name.c_str(),
-                callsite_id);
+        //printf("%d-%s:%d-%s:%d\n",
+        //        caller_id, caller_name.c_str(),
+        //        callee_id, callee_name.c_str(),
+        //        callsite_id);
 
         cg.AddEdge(callsite_id, caller_id, callee_id, weight);
         cg.AddNode(caller_id, 0, caller_name);
@@ -180,13 +189,13 @@ extern "C" void initCallgraph(unsigned int bench_code)
     }
     inf.close();
 
-    std::ifstream inf2("./output-test/callgraph/100.test-final2.numcc");
+    std::ifstream inf2(ccinput + ".numcc");
     if (!inf2.is_open()) {
         printf("unabled to open numccfile\n");
         exit(1);
     }
 
-    printf("\nnumCC's\n");
+    //printf("\nnumCC's\n");
     while (std::getline(inf2, line)) {
         std::vector<std::string> list;
         Split(line, list, ':');
@@ -198,55 +207,58 @@ extern "C" void initCallgraph(unsigned int bench_code)
 
         uint64_t numcc = std::stoul(list[1], NULL, 10);
 
-        printf("%d-%s:%d\n", nid, name.c_str(), numcc);
-        printf("Setting numcc(%d) to %s\n", numcc, cg.GetNodeName(nid).c_str());
+        //printf("%d-%s:%d\n", nid, name.c_str(), numcc);
+        //printf("Setting numcc(%d) to %s\n", numcc, cg.GetNodeName(nid).c_str());
         cg.SetNumCC(nid, numcc);
     }
     inf2.close();
 }
 
-extern "C" void decode(uint64_t nid)
+void decode(uint64_t nid)
 {
     if (!initialized) return;
     uint64_t n = nid;
     std::string cc = cg.GetNodeName(n);
     uint64_t id = ccid;
 
-    printf("Starting decoding for node %d (%s) - \n", nid, cg.GetNodeName(nid).c_str(), cc.c_str());
+    //printf("Starting decoding for node %d (%s) - \n", nid, cg.GetNodeName(nid).c_str(), cc.c_str());
 
     while (cg.GetNodeName(n) != "main") {
         Node* p = NULL;
         Edge* e = NULL;
-        printf("For node %s and current id: %d\n", cg.GetNodeName(n).c_str(), id);
+        //printf("For node %s and current id: %d\n", cg.GetNodeName(n).c_str(), id);
         for (auto &node_edge : cg.GetIncidents(n)) {
             p = node_edge.first;
             e = node_edge.second;
-            printf("    check incomming edge(id:%d, w:%d) from node (%s, %d)\n",
-                    e->id, e->w,
-                    (p->name).c_str(), p->numCC);
+            //printf("    check incomming edge(id:%d, w:%d) from node (%s, %d)\n",
+            //        e->id, e->w,
+            //        (p->name).c_str(), p->numCC);
             if (e->w <= id && id < e->w + p->numCC) {
                 cc = p->name + " -> " + cc;
                 id = id - e->w ;
 
-                printf("    move up to node (%s, %d)\n",
-                        (p->name).c_str(), p->numCC);
+                //printf("    move up to node (%s, %d)\n",
+                //        (p->name).c_str(), p->numCC);
                 break;
             }
         }
-        assert(p != NULL);
+        if (p != NULL) return;
         n = p->id;
     }
-    printf("Decoded cc: %s\n", cc.c_str());
+    //printf("Decoded cc: %s\n", cc.c_str());
 }
 
-extern "C" void addWeight(uint64_t weight)
+void addWeight(uint64_t weight)
 {
-    printf("%llu + %llu = %llu\n", ccid, weight, ccid + weight);
+    //printf("%llu + %llu = %llu\n", ccid, weight, ccid + weight);
     ccid += weight;
 }
 
-extern "C" void removeWeight(uint64_t weight)
+void removeWeight(uint64_t weight)
 {
-    printf("%llu - %llu = %llu\n", ccid, weight, ccid - weight);
+    //printf("%llu - %llu = %llu\n", ccid, weight, ccid - weight);
     ccid -= weight;
 }
+#ifdef __cplusplus
+}
+#endif
