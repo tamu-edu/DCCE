@@ -236,7 +236,7 @@ class callgraph(basegraph, labeling):
 
     DIRECTED = True
 
-    def __init__(self):
+    def __init__(self, root):
         """
         Initialize a digraph.
         """
@@ -245,7 +245,10 @@ class callgraph(basegraph, labeling):
         self.node_neighbors = {}
         # Pairing: Node -> Incident nodes [ incident, callsite), ...]
         self.node_incidence = {}
+        self.root = root
 
+    def get_root(self):
+        return self.root
     def nodes(self):
         """
         Return node list.
@@ -431,3 +434,51 @@ class callgraph(basegraph, labeling):
         @return: Order of the given node.
         """
         return len(self.neighbors(node))
+
+class pccegraph(callgraph):
+
+    def __init__(self, root):
+        """
+        Initialize a PCCEObj.
+        """
+        callgraph.__init__(self, root)
+        self.numCC = {}
+        self.visited = {}
+        self.stack = []
+
+    def add_node(self, n):
+        callgraph.add_node(self, n)
+        if (self.root == n):
+            self.numCC[n] = 1
+        else:
+            self.numCC[n] = 0
+
+    def getnumCC(self, n):
+        return self.numCC[n]
+
+    def setnumCC(self, n, p):
+        if n == self.root:
+            self.numCC[n] = 1
+        else:
+            self.numCC[n] = self.getnumCC(n) + self.getnumCC(p)
+
+    def sorted_nodes(self, N, E):
+        for tail in N:
+            self.visited[tail] = False
+
+        for tail in N:
+            if tail != self.root:
+                continue
+            else:
+                if self.visited[tail] == False: 
+                    self.topoSort(tail, self.visited, self.stack)
+        return self.stack[::-1]
+
+    def topoSort(self, n, visited, stack):
+        self.visited[n] = True
+        for head, callsite in self.neighbors(n):
+            if self.visited[head] == False:
+                print("caller: %s -> callee: %s" %(n, head))
+                self.topoSort(head, self.visited, self.stack)
+
+        self.stack.append(n)

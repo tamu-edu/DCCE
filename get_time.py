@@ -8,7 +8,7 @@ import pandas
 from subprocess import Popen, PIPE
 
 benches = [
-    #'600.perlbench_s', # cannot run instrument because of integer overflow
+    '600.perlbench_s', # cannot run instrument because of integer overflow
     #'602.gcc_s',      # compile issue
     '605.mcf_s',
     #'607.cactuBSSN_s',# compile issue
@@ -19,10 +19,10 @@ benches = [
     '631.deepsjeng_s',
     '638.imagick_s',
     '641.leela_s',   # assertion during dump-callgraph lineno: 356
-    '644.nab_s',
+    #'644.nab_s',
     '657.xz_s',
     '998.specrand_is',
-    'test',
+    '100.test',
     ]
 
 def parse(line):
@@ -46,7 +46,7 @@ def main(args):
             stats[bench].append(secs)
 
     print(stats)
-    headers = ['0', '1']
+    headers = ['0',]
     idx = []
     data = []
     for bench in benches:

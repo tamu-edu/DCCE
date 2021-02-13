@@ -4,22 +4,24 @@ import os
 import pandas
 
 benches = [
-    '600.perlbench_s',
-    #'602.gcc_s',
+    '600.perlbench_s', # cannot run instrument because of integer overflow
+    #'602.gcc_s',      # compile issue
     '605.mcf_s',
-    '620.omnetpp_s',
-    '623.xalancbmk_s',
+    #'607.cactuBSSN_s',# compile issue
+    '619.lbm_s',
+    '620.omnetpp_s',  # assertion during dump-callgraph lineno: 356
+    '623.xalancbmk_s',# assertion during dump-callgraph lineno: 356
     '625.x264_s',
     '631.deepsjeng_s',
-    '641.leela_s',
+    '638.imagick_s',
+    '641.leela_s',   # assertion during dump-callgraph lineno: 356
+    '644.nab_s',
     '657.xz_s',
     '998.specrand_is',
-    '619.lbm_s',
-    '638.imagick_s',
-    '644.nab_s'
+    '100.test',
     ]
 
-output_root = './output'
+output_root = '../output/dcce/ccenc/'
 
 def get_maxccid(bench):
     file = '%s/%s.maxid' % (output_root, bench)
@@ -55,7 +57,7 @@ def get_num_callsite(bench):
     return nlines
 
 def get_max_neighbors(bench):
-    file = '%s/%s.maxneibors' % (output_root, bench)
+    file = '%s/%s.maxneighbors' % (output_root, bench)
     f = open(file, 'r')
     return int(f.readline().strip())
 

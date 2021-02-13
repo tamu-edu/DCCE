@@ -2,12 +2,12 @@
 
 .PHONY: all
 
-all: test.bc
+all: 100.test.bc
 
-test.bc: test.cc
-	clang++ -emit-llvm -pg -c $^ -o ${ORG_BC_ROOT}/$@
+100.test.bc: test.c
+	clang -emit-llvm -pg -c $^ -o ${ORG_BC_ROOT}/$@
 
 .PHONY: clean
 	
 clean:
-	rm -rf ${ORG_BC_DIR}/test.bc
+	rm -rf ${ORG_BC_DIR}/100.test.bc

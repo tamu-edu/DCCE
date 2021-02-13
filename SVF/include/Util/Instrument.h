@@ -13,11 +13,40 @@
 #include <llvm/Transforms/Utils/BasicBlockUtils.h>
 #include <llvm/Support/FileSystem.h>
 #include <llvm/IR/LegacyPassManager.h>
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <sstream>
 
 namespace SVF
 {
 namespace SVFUtil
 {
+    // Not used for now.
+    void createGlobalString(Module* mod, const std::string var_name, const std::string initial_value)
+    {
+        using namespace llvm;
+
+        ArrayType* arrayTy = ArrayType::get(IntegerType::getInt8Ty(mod->getContext()), initial_value.size()+1);
+        mod->getOrInsertGlobal(StringRef(var_name.c_str()), arrayTy);
+
+        //GlobalVariable* gvar_array__str = new GlobalVariable(/*Module=*/*mod,
+        //        /*Type=*/arrayTy,
+        //        /*isConstant=*/true,
+        //        /*Linkage=*/GlobalValue::PrivateLinkage,
+        //        /*Initializer=*/0, // has initializer, specified below
+        //        /*Name=*/var_name.c_str());
+        ////gvar_array__str->setAlignment(1);
+
+        //// Constant Definitions
+        //Constant *const_array_4 = ConstantDataArray::getString(mod->getContext(), initial_value.c_str(), true);
+        //std::vector<Constant*> const_ptr_5_indices;
+        //ConstantInt* const_int64_6 = ConstantInt::get(mod->getContext(), APInt(64, StringRef("0"), 10));
+        //const_ptr_5_indices.push_back(const_int64_6);
+        //const_ptr_5_indices.push_back(const_int64_6);
+        //Constant* const_ptr_5 = ConstantExpr::getGetElementPtr(gvar_array__str, const_ptr_5_indices);
+    }
+
     void replacePhiUseInNormalDest(InvokeInst* I, BasicBlock* New) {
         //I->getParent()->replaceSuccessorsPhiUsesWith(Block);
         BasicBlock* Succ = I->getNormalDest();
@@ -73,6 +102,44 @@ namespace SVFUtil
             nodes.insert(I->getNextNode());
         }
         return nodes;
+    }
+
+    template <class Container>
+    void
+    Split(const std::string& str, Container& cont, char delim = ' ')
+    {
+        std::stringstream ss(str);
+        std::string token;
+        while (std::getline(ss, token, delim)) {
+            cont.push_back(token);
+        }
+    }
+
+
+    void parse_ccfile(const std::string& ccinput, std::unordered_map<uint64_t,uint64_t>& cs2w)
+    {
+        std::ifstream inf(ccinput);
+        if (!inf.is_open()) {
+            std::cout << "unable to open file " << ccinput << std::endl;
+            exit(1);
+        }
+        std::string line;
+
+        while (std::getline(inf, line)) {
+            std::vector<std::string> list;
+            Split(line, list, ':');
+            uint64_t cs = std::stoul(list[2], NULL, 10);
+            uint64_t w = 0;
+            try {
+                w = std::stoul(list[3], NULL, 10);
+            } catch (const std::out_of_range& oor) {
+            }
+
+            assert(cs2w.find(cs) == cs2w.end());
+            cs2w[cs] = w;
+            //std::cout << "cs: " << cs << ", w: " << w << std::endl;
+        }
+        inf.close();
     }
 
 } // End namespace SVFUtil

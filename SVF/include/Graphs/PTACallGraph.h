@@ -221,6 +221,7 @@ class PTACallGraph : public GenericCallGraphTy
 public:
     typedef PTACallGraphEdge::CallGraphEdgeSet CallGraphEdgeSet;
     typedef Map<const SVFFunction*, PTACallGraphNode *> FunToCallGraphNodeMap;
+    typedef Map<const Function*, PTACallGraphNode *> FFunToCallGraphNodeMap;
     typedef Map<const CallBlockNode*, CallGraphEdgeSet> CallInstToCallGraphEdgesMap;
     typedef std::pair<const CallBlockNode*, const SVFFunction*> CallSitePair;
     typedef Map<CallSitePair, CallSiteID> CallSiteToIdMap;
@@ -250,6 +251,7 @@ private:
 
 protected:
     FunToCallGraphNodeMap funToCallGraphNodeMap; ///< Call Graph node map
+    FFunToCallGraphNodeMap ffunToCallGraphNodeMap; ///< Call Graph node map
     CallInstToCallGraphEdgesMap callinstToCallGraphEdgesMap; ///< Map a call instruction to its corresponding call edges
 
     NodeID callGraphNodeNum;
@@ -322,6 +324,12 @@ public:
     {
         FunToCallGraphNodeMap::const_iterator it = funToCallGraphNodeMap.find(fun);
         assert(it!=funToCallGraphNodeMap.end() && "call graph node not found!!");
+        return it->second;
+    }
+    inline PTACallGraphNode* getCallGraphNode(const Function* fun) const
+    {
+        FFunToCallGraphNodeMap::const_iterator it = ffunToCallGraphNodeMap.find(fun);
+        assert(it!=ffunToCallGraphNodeMap.end() && "call graph node not found!!");
         return it->second;
     }
     //@}
@@ -442,6 +450,7 @@ public:
     void dump(const std::string& filename);
 
     void instrument_dcce(const std::string& ccinput);
+    void instrument_pcce(const std::string& ccinput, unsigned int bench_code);
 };
 
 } // End namespace SVF
