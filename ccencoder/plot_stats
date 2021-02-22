@@ -23,10 +23,6 @@ benches = [
 
 output_root = '../output/dcce/ccenc/'
 
-def get_maxccid(bench):
-    file = '%s/%s.maxid' % (output_root, bench)
-    f = open(file, 'r')
-    return f.readline().strip()
 
 def get_ncycles(bench):
     file = '%s/%s.backedge' % (output_root, bench)
@@ -56,24 +52,35 @@ def get_num_callsite(bench):
             nlines += 1
     return nlines
 
-def get_max_neighbors(bench):
-    file = '%s/%s.maxneighbors' % (output_root, bench)
-    f = open(file, 'r')
-    return int(f.readline().strip())
+def read_stat_files(bench):
+    file = '%s/%s.stats' % (output_root, bench)
+    
+    with open(file, 'r') as f:
+        line = f.readline()
+    return line.strip().split(' ')
+
 
 def collect_stats(bench):
-    maxccid = get_maxccid(bench)
+    maxccid, backedge_id, \
+            max_neighbors, max_neighbors_name, mn_maxid, \
+            max_incidents, max_incidents_name, mi_maxid  = read_stat_files(bench)
     n_cycles = get_ncycles(bench)
     n_fptr, n_jmp_tgt = get_nfptr_maxjmps(bench)
     n_callsites = get_num_callsite(bench)
-    max_neighbors = get_max_neighbors(bench)
+    #max_neighbors = get_max_neighbors(bench)
 
-    return [maxccid, n_callsites, n_cycles, n_fptr, n_jmp_tgt, max_neighbors]
+    return [maxccid, backedge_id, \
+            n_callsites, n_cycles, n_fptr, n_jmp_tgt, \
+            max_neighbors, max_neighbors_name, mn_maxid, \
+            max_incidents, max_incidents_name, mi_maxid]
 
 
 
 def main(args):
-    headers = ['MaxCCID', '# callsites', '# Cycles', '# FuncPtr', 'Max Jump Tgts', 'Max Neighbors']
+    headers = ['MaxCCID', 'backedge_id', \
+            '# callsites', '# Cycles', '# FuncPtr', 'Max Jump Tgts', \
+            'Max Neighbors', 'Max Neighbors Name', 'MN MaxID', \
+            'Max Incidents', 'Max Incidents Name', 'MI MaxID']
     idx = []
     data = []
     if args.bench == 'all':

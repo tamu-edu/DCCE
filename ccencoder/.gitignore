@@ -1,4 +1,9 @@
 *pyc
+<<<<<<< HEAD
 *.png
 *.pdf
+=======
+*.pdf
+*.png
+>>>>>>> 7e55607c5756a248da64ba8df7e06096699bd972
 *.numpath

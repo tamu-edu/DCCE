@@ -1,4 +1,3 @@
-
 #include <fstream>
 #include <iostream>
 #include <stdio.h>
@@ -87,7 +86,7 @@ class CallGraph
         std::set<std::pair<Node*, Edge*> > GetIncidents(uint64_t n)
         {
             if (m_incidents.find(n) == m_incidents.end()) {
-                printf("Not found indicents of node %d %s\n", n, GetNodeName(n).c_str());
+                //printf("Not found indicents of node %d %s\n", n, GetNodeName(n).c_str());
                 return std::set<std::pair<Node*,Edge*> >();
             }
             return m_incidents[n];
@@ -101,7 +100,12 @@ class CallGraph
 
         std::string GetNodeName(uint64_t n)
         {
-            assert(m_nodes.find(n) != m_nodes.end());
+            if (m_nodes.find(n) == m_nodes.end()) {
+                //printf("unknown node : %d\n", n);
+                // TODO: find better solution
+                return "danguria-skip";
+            }
+            
             return m_nodes[n]->name;
         }
 
@@ -173,7 +177,7 @@ void initCallgraph(unsigned int bench_code)
         try {
             weight = std::stoul(list[3], NULL, 10);
         } catch (const std::out_of_range& oor) {
-            printf("out of range!!!\n");
+            //printf("weight out of range!!!\n");
         }
 
         //printf("%d-%s:%d-%s:%d\n",
@@ -191,7 +195,7 @@ void initCallgraph(unsigned int bench_code)
 
     std::ifstream inf2(ccinput + ".numcc");
     if (!inf2.is_open()) {
-        printf("unabled to open numccfile\n");
+        //printf("unabled to open numccfile\n");
         exit(1);
     }
 
@@ -205,7 +209,12 @@ void initCallgraph(unsigned int bench_code)
         uint64_t nid = std::stoul(node_list[0], NULL, 10);
         std::string name = node_list[1];
 
-        uint64_t numcc = std::stoul(list[1], NULL, 10);
+        uint64_t numcc = 0;
+        try {
+            numcc = std::stoul(list[1], NULL, 10);
+        } catch (const std::out_of_range& oor) {
+            //printf("numcc out of range!!!\n");
+        }
 
         //printf("%d-%s:%d\n", nid, name.c_str(), numcc);
         //printf("Setting numcc(%d) to %s\n", numcc, cg.GetNodeName(nid).c_str());
@@ -223,7 +232,7 @@ void decode(uint64_t nid)
 
     //printf("Starting decoding for node %d (%s) - \n", nid, cg.GetNodeName(nid).c_str(), cc.c_str());
 
-    while (cg.GetNodeName(n) != "main") {
+    while (cg.GetNodeName(n) != "main" && cg.GetNodeName(n) != "danguria-skip") {
         Node* p = NULL;
         Edge* e = NULL;
         //printf("For node %s and current id: %d\n", cg.GetNodeName(n).c_str(), id);
@@ -242,7 +251,7 @@ void decode(uint64_t nid)
                 break;
             }
         }
-        if (p != NULL) return;
+        if (p == NULL) return;
         n = p->id;
     }
     //printf("Decoded cc: %s\n", cc.c_str());
