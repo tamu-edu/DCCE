@@ -8,20 +8,20 @@ from subprocess import Popen, PIPE
 
 benches = [
     '600.perlbench_s', # cannot run instrument because of integer overflow
-    ##'602.gcc_s',      # compile issue
-    #'605.mcf_s',
-    ##'607.cactuBSSN_s',# compile issue
-    #'619.lbm_s',
-    #'620.omnetpp_s',
-    #'623.xalancbmk_s',
-    #'625.x264_s',
-    #'631.deepsjeng_s',
-    #'638.imagick_s',
-    #'641.leela_s',
-    ##'644.nab_s',
-    #'657.xz_s',
-    #'998.specrand_is',
-    #'100.test',
+    #'602.gcc_s',      # compile issue
+    '605.mcf_s',  # slow
+    #'607.cactuBSSN_s',# compile issue
+    '619.lbm_s',
+    '620.omnetpp_s',
+    '623.xalancbmk_s',
+    '625.x264_s',
+    '631.deepsjeng_s', # slow
+    '638.imagick_s',
+    '641.leela_s',
+    '644.nab_s',
+    '657.xz_s',
+    '998.specrand_is',
+    '100.test',
     ]
 
 cmd_options = {
@@ -49,8 +49,8 @@ cmd_options = {
         '%s/641.leela_s/ref.sgf' % (os.getenv('CPU2017_RUN_DIR')),
         '644.nab_s':
         '%s/644.nab_s/3j1n 20140317 220' % (os.getenv('CPU2017_RUN_DIR')),
-        '657.xz_s': '%s/cpu2006docs.tar.xz 6643 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 1036078272 1111795472 4' % (os.getenv('CPU2017_RUN_DIR')),
-        '998.specrand_is': '%s/1255432124 234923' % (os.getenv('CPU2017_RUN_DIR')),
+        '657.xz_s': '%s/657.xz_s/cpu2006docs.tar.xz 6643 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 1036078272 1111795472 4' % (os.getenv('CPU2017_RUN_DIR')),
+        '998.specrand_is': '%s/998.specrans_is/1255432124 234923' % (os.getenv('CPU2017_RUN_DIR')),
         '100.test': '',
     }
 
@@ -94,10 +94,10 @@ def run_ccenc(ccenc_dir, args):
                       '%s/%s.dot ' \
                       '%s/%s.cc ' \
                       '%s/%s.numcc ' \
-                      '%s/%s.maxid ' \
+                      '%s/%s.stats ' \
+                      '%s/%s.conn ' \
                       '%s/%s.backedge ' \
                       '%s/%s.funcptr ' \
-                      '%s/%s.maxneighbors ' \
                       '%s %s %s' %
                       (os.getenv('ORG_CG_DIR'), bench,
                        ccenc_dir, bench,
