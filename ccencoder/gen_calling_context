@@ -7,45 +7,9 @@ import utils
 from graphviz import Digraph
 from callgraph import callgraph as callgraph
 from callgraph import pccegraph as pccegraph
-from ccenc import ccenc as ccenc
+from dcce import dcce as dcce
 import pcce
 
-def make_callgraph(args):
-    c_calls       = set() # [ (caller, callee, callsite) , ... ]
-    c_nodes       = set()
-
-    node2id = {}
-    with open(args.trace, 'r') as f:
-        for line in f:
-            line = line.strip()
-
-            caller, callee, callsite = line.split(':')
-            caller_id = caller.split('-')[0]
-            caller = caller.split('-')[1]
-            callee_id = callee.split('-')[0]
-            callee = callee.split('-')[1]
-
-            c_calls.add((caller, callee, callsite))
-            c_nodes.add(caller)
-            c_nodes.add(callee)
-
-            node2id[caller] = caller_id
-            node2id[callee] = callee_id
-
-    if args.scheme == 'dcce':
-        c_cg = callgraph(args.root)
-    else:
-        c_cg = pccegraph(args.root)
-    for node in c_nodes:
-        c_cg.add_node(node)
-    for caller, callee, callsite in c_calls:
-        c_cg.add_edge((caller,callee,callsite),
-                wt=0,label=callsite)
-
-    #if remove_not_visited_node:
-    #    utils.remove_not_visited_node(c_cg, args.root)
-
-    return c_cg, node2id
 
 def write_cc_file(args, cg, maxid, node2id):
     f = open(args.cc_file, 'w')
@@ -122,11 +86,11 @@ def render_callgraph(cg, args, maxids):
 
 def main(args):
 
-    c_cg, node2id = make_callgraph(args)
+    c_cg, node2id = utils.make_callgraph(args.trace, args.scheme, args.root)
     if args.scheme == 'dcce':
         print("dcce")
         ## caculate maxid of cc encoding
-        c_encode = ccenc()
+        c_encode = dcce()
         c_maxids, c_backedge, c_backedge_id, \
                 max_neighbors, max_neighbors_name, mn_maxid, \
                 max_incidents, max_incidents_name, mi_maxid, \
