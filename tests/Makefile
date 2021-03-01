@@ -10,4 +10,4 @@ all: 100.test.bc
 .PHONY: clean
 	
 clean:
-	rm -rf ${ORG_BC_DIR}/100.test.bc
+	rm -rf ${ORG_BC_ROOT}/100.test.bc
