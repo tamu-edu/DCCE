@@ -70,11 +70,6 @@ def write_numcc_file(args, cg, node2id):
 def write_backedge_file(args, backedge):
     f = open(args.backedge_file, 'w')
     for s in backedge:
-        f.write(s+'\n')
-    f.close()
-
-def write_funcptr_file(args, cg):
-    # callsite -> caller -> [callees]
     cs2caller2callees = {}
     for caller, (callee, callsite) in cg.edges():
         if callsite not in cs2caller2callees:
