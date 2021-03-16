@@ -7,50 +7,9 @@ import utils
 from graphviz import Digraph
 from callgraph import callgraph as callgraph
 from callgraph import pccegraph as pccegraph
-from ccenc import ccenc as ccenc
+from dcce import dcce as dcce
 import pcce
 
-def make_callgraph(args):
-    c_calls       = set() # [ (caller, callee, callsite) , ... ]
-    c_nodes       = set()
-
-    node2id = {}
-    with open(args.trace, 'r') as f:
-        for line in f:
-            line = line.strip()
-
-            caller, callee, callsite = line.split(':')
-            caller_id = caller.split('-')[0]
-            caller = caller.split('-')[1]
-            callee_id = callee.split('-')[0]
-            callee = callee.split('-')[1]
-
-            c_calls.add((caller, callee, callsite))
-            c_nodes.add(caller)
-            c_nodes.add(callee)
-
-            node2id[caller] = caller_id
-            node2id[callee] = callee_id
-
-    if args.scheme == 'dcce':
-        c_cg = callgraph(args.root)
-    else:
-        c_cg = pccegraph(args.root)
-    for node in c_nodes:
-        c_cg.add_node(node)
-    for caller, callee, callsite in c_calls:
-        c_cg.add_edge((caller,callee,callsite),
-                wt=0,label=callsite)
-
-    #if remove_not_visited_node:
-    #    utils.remove_not_visited_node(c_cg, args.root)
-
-    return c_cg, node2id
-
-def write_maxid_file(args, maxid):
-    f = open(args.maxccid_file, 'w')
-    f.write('%d\n' % maxid)
-    f.close()
 
 def write_cc_file(args, cg, maxid, node2id):
     f = open(args.cc_file, 'w')
@@ -90,10 +49,21 @@ def write_backedge_file(args, backedge):
 
     f.close()
 
-def write_maxneibors(args, max_neighbors):
-    f = open(args.max_neighbors, 'w')
-    f.write('%d\n' % max_neighbors)
+def write_stats_file(args, c_maxid, c_backedge_id, \
+        max_neighbors, max_neighbors_name, mn_maxid, \
+        max_incidents, max_incidents_name, mi_maxid):
+    f = open(args.stats_file, 'w')
+    f.write('%d %d %d %s %d %d %s %d\n' % \
+            (c_maxid, c_backedge_id, \
+            max_neighbors, max_neighbors_name, mn_maxid, \
+            max_incidents, max_incidents_name, mi_maxid))
     f.close()
+
+def write_connectivity(args, connectivity):
+    f = open(args.conn_file, 'w')
+    for n, (nn, ni) in connectivity.iteritems():
+        f.write("%s:%d,%d\n" % (n, nn, ni))
+
 
 def render_callgraph(cg, args, maxids):
     dot = Digraph()
@@ -111,24 +81,33 @@ def render_callgraph(cg, args, maxids):
 
 def main(args):
 
-    c_cg, node2id = make_callgraph(args)
+    c_cg, node2id = utils.make_callgraph(args.trace, args.scheme, args.root)
     if args.scheme == 'dcce':
         print("dcce")
         ## caculate maxid of cc encoding
-        c_encode = ccenc()
-        c_maxids, c_backedge, c_backedge_id, max_neighbors = c_encode.maxid(c_cg, args.root)
-        print ('[%s] c_num_node       %d' % (args.bench, len(c_cg.nodes())))
-        print ('[%s] c_num_callsite   %d' % (args.bench, len(c_cg.edges())))
-        print ('[%s] c_maxid is       %d' % (args.bench, c_maxids[args.root]))
-        print ('[%s] c_backedge_id is %d' % (args.bench, c_backedge_id))
-        print ('[%s] c_max_neighbors is %d' % (args.bench, max_neighbors))
+        c_encode = dcce()
+        c_maxids, c_backedge, c_backedge_id, \
+                max_neighbors, max_neighbors_name, mn_maxid, \
+                max_incidents, max_incidents_name, mi_maxid, \
+                connectivity \
+                = c_encode.maxid(c_cg, args.root)
+        print ('[%s] num_node       %d' % (args.bench, len(c_cg.nodes())))
+        print ('[%s] num_callsite   %d' % (args.bench, len(c_cg.edges())))
+        print ('[%s] maxid is       %d' % (args.bench, c_maxids[args.root]))
+        print ('[%s] backedge_id is %d' % (args.bench, c_backedge_id))
+        print ('[%s] max_neighbors is %d' % (args.bench, max_neighbors))
+        print ('[%s] mn_maxid is %d' % (args.bench, mn_maxid))
+        print ('[%s] max_incidents is %d' % (args.bench, max_incidents))
+        print ('[%s] mi_maxid is %d' % (args.bench, mi_maxid))
         sys.stdout.flush()
-        write_maxid_file(args, c_maxids[args.root]+c_backedge_id)
+        #render_callgraph(c_cg, args, c_maxids)
         write_cc_file(args, c_cg, c_maxids[args.root], node2id)
+        write_stats_file(args, c_maxids[args.root]+c_backedge_id, c_backedge_id, \
+                max_neighbors, max_neighbors_name, mn_maxid, \
+                max_incidents, max_incidents_name, mi_maxid)
+        write_connectivity(args, connectivity)
         write_backedge_file(args, c_backedge)
         write_funcptr_file(args, c_cg)
-        write_maxneibors(args, max_neighbors)
-        #render_callgraph(c_cg, args, c_maxids)
     else:
         print("pcce")
         c_encode = pcce.pcce(c_cg)
@@ -150,14 +129,14 @@ if __name__== "__main__":
             type=str, help='output file of calling context.')
     parser.add_argument('numcc_file',
             type=str, help='output file of number of calling context.')
-    parser.add_argument('maxccid_file',
-            type=str, help='output file of maxccid.')
+    parser.add_argument('stats_file',
+            type=str, help='output file of statistics.')
+    parser.add_argument('conn_file',
+            type=str, help='output file of connectivity.')
     parser.add_argument('backedge_file',
-            type=str, help='output file of backedge.')
+            type=str, help='output file of backedges.')
     parser.add_argument('funcptr_file',
-            type=str, help='output file of function pointer.')
-    parser.add_argument('max_neighbors',
-            type=str, help='output file of max_neighbors.')
+            type=str, help='output file of funcptr.')
     parser.add_argument('bench',
             type=str, help='name of benchmark.')
     parser.add_argument('root',
