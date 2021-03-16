@@ -375,6 +375,7 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
     //IntegerType* int64ty = Type::getInt64Ty(ctx);
 
     for (auto& F : *mod) {
+        printf("Function %s\n", F.getName().str().c_str());
         for (auto &B : F) {
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
                 auto &I = *bbit;
@@ -389,6 +390,9 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
                     } else if (func->getName() == "addWeight" || func->getName() == "removeWeight") {
                         continue;
                     }
+                    //} else if (func->empty()) {
+                    //    continue;  // skip external functions such as DLL, addWeight/removeWeight/decode...
+                    //}
 
                     CSInstToID::const_iterator it = csInstToID.find(&I);
                     assert(it != csInstToID.end());
@@ -414,6 +418,7 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
                     //store = new StoreInst(sub, ccid, &II);
                     //bbit--;
 
+                    printf("Inserting addWeight before %s\n", func->getName().str().c_str());
                     // using rtlib
                     IRBuilder builder(&I);
                     builder.SetInsertPoint(&I);
@@ -456,6 +461,7 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
     bool insert_init = false;
 
     for (auto& F : *mod) {
+        printf("Function %s\n", F.getName().str().c_str());
         bool insert_decode = false;
         for (auto &B : F) {
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
@@ -473,6 +479,7 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
                 }
 
                 if (!insert_decode) {
+                    printf("Inserting decode\n");
                     PTACallGraphNode* node = getCallGraphNode(&F);
                     IRBuilder builder(&I);
                     builder.SetInsertPoint(&I);
@@ -495,6 +502,9 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
                     } else if (func->getName() == "addWeight" || func->getName() == "removeWeight") {
                         continue;
                     }
+                    //} else if (func->empty()) {
+                    //    continue;  // skip external functions such as DLL, addWeight/removeWeight/decode...
+                    //}
 
                     CSInstToID::const_iterator it = csInstToID.find(&I);
                     assert(it != csInstToID.end());
@@ -503,6 +513,7 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
                     unsigned long long int weight = cs2w[csid];
                     
                     if (weight == 0) continue;
+                    printf("Inserting addWeight before %s\n", func->getName().str().c_str());
   
                     // using rtlib
                     IRBuilder builder(&I);

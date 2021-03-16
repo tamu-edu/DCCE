@@ -130,9 +130,9 @@ namespace SVFUtil
             Split(line, list, ':');
             uint64_t cs = std::stoul(list[2], NULL, 10);
             uint64_t w = 0;
-            try {
+            // Max value of 64bit unsigned integer needs 19 decimal digits
+            if (strlen(list[3].c_str()) < 20) {
                 w = std::stoul(list[3], NULL, 10);
-            } catch (const std::out_of_range& oor) {
             }
 
             assert(cs2w.find(cs) == cs2w.end());
