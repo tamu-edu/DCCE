@@ -7,6 +7,42 @@ class pcce:
         self.pcceObj = c_cg
         self.checkmain = 0
 
+    def annotate_recursive(self, N, E):
+        NPrime = {}
+        EPrime = {}
+        for n in N:
+            NPrime[n].append(1)
+        for e in E:
+            EPrime[e].append((1, self.pcceObj.get_root(), 0))
+        for n in NPrime:
+            for e in EPrime:
+                if e in self.pcceObj.dummyList:
+            #for p, l in self.pcceObj.incidents(n):
+                    EPrime.remove(e)
+                    EPrime[e].append((1, n, 0))
+                    self.pcceObj.annotate(NPrime, EPrime)
+
+    def instrument_recursive(self, N, E):
+        self.pcceObj.annotate_recursive(N, E)
+        for n in N do:
+            Wt = 0
+            s = NPrime[n] ? 1 : 0
+            # edges should have a serial order to recognize backedges
+            
+            for p, l in self.pcceObj.incidents(n):
+#                if e is not a backedge then:
+                if s is not 1:
+                    self.pcceObj.set_edge_weight((p, n, l), Wt)
+                    print("Weight: %d Caller: %s Callee: %s" % (Wt, p, n))
+                    Wt = Wt + self.pcceObj.numCC[p]                    
+                else:
+                    self.pcceObj.push(self.pcceObj.getnumCC(n), Wt)
+                    self.pcceObj.setnumCC(n, p, s)
+                    self.pcceObj.pop(self.pcceObj.getnumCC(n), Wt)
+#                    insert push(id, l) before l
+#                    insert id = 0 before l
+#                    insert id = pop().first after l
+
     def annotate(self, N, E):
         for n in N:
             for p, l in self.pcceObj.incidents(n):

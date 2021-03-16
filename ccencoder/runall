@@ -33,8 +33,8 @@ for bench in benchs:
 #                    bench, bench,
 #                    bench, 'main',
 #                    bench)
-#    cmd = './gen_calling_context /home/grads/h/harpreetsc/DCCE/cpu2017/dcce/dots/test.cg output/test.dot output/test.cc test main' 
-    cmd = './gen_calling_context /home/sungkeun/git/DCCE-pcce/output/pcce/ccenc/100.test-final.cg ./100.test.cc test main pcce' 
+    cmd = './gen_calling_context /home/grads/h/harpreetsc/DCCE/cpu2017/dcce/dots/test.cg output/test.dot output/test.cc test main' 
+#    cmd = './gen_calling_context /home/sungkeun/git/DCCE-pcce/output/pcce/ccenc/100.test-final.cg ./100.test.cc test main pcce' 
 
     #os.system(cmd)
     print(cmd)

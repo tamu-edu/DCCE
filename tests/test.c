@@ -5,9 +5,21 @@ void E();
 void F(int n);
 void G(int n);
 void H();
+void I();
+void J();
+void rec(int counter);
+
+void rec(int counter)
+{
+    if (counter == 0) return;
+    counter--;
+    rec(counter);
+}
 
 void B()
 {
+    rec(3);
+    D();
     E();
 }
 

@@ -445,6 +445,8 @@ class pccegraph(callgraph):
         self.numCC = {}
         self.visited = {}
         self.stack = []
+        self.edgeList = []
+        self.dummyList = []
 
     def add_node(self, n):
         callgraph.add_node(self, n)
@@ -472,6 +474,9 @@ class pccegraph(callgraph):
             else:
                 if self.visited[tail] == False: 
                     self.topoSort(tail, self.visited, self.stack)
+                    ### for dummy
+                    self.edgeList.append(tail)
+                    ####
         return self.stack[::-1]
 
     def topoSort(self, n, visited, stack):
@@ -480,5 +485,11 @@ class pccegraph(callgraph):
             if self.visited[head] == False:
                 print("caller: %s -> callee: %s" %(n, head))
                 self.topoSort(head, self.visited, self.stack)
+            ### for dummy
+            elif head in self.edgeList:
+                self.dummyList.append([n, head, callsite])
+            ####
+                
 
         self.stack.append(n)
+        
