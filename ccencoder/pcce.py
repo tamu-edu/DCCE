@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 from callgraph import callgraph as callgraph
 import callgraph
 
@@ -24,9 +23,12 @@ class pcce:
 
     def instrument_recursive(self, N, E):
         self.pcceObj.annotate_recursive(N, E)
-        for n in N do:
+        for n in N:
             Wt = 0
-            s = NPrime[n] ? 1 : 0
+            if NPrime[n] == True:
+                s = 1
+            else:
+                s = 0
             # edges should have a serial order to recognize backedges
             
             for p, l in self.pcceObj.incidents(n):

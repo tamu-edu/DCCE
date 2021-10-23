@@ -1,22 +1,28 @@
 # Distinguishable Calling Context Encoding (DCCE)
 
+## Development Environment
+Every experiment in DCCE is done on top of the docker based development environment by Sungkeun. Please setup [dev-env](https://github.com/ksungkeun84/dev-env.git) first and clone this repository inside the docker container.
+
+Once you log in the dev-env docker container, activate conda with the following command
+    $ conda activate dcce
+
 ## Set Environment Variables
 In the root directory of DCCE, run following command.
 
     $ source setup_env.sh
-    
-By default, llvm in ${DCCE_ROOT}/SVF/llvm-10.0.0.obj is used. However, if you have issue with llvm, you need to modify LLVM_DIR in ${DCCE_ROOT}/SVF/setup.sh with llvm installed in your system. After sourcing the environments, you are going to use `run-dcce` program to use DCCE project.
+
+After sourcing the environments, you are going to use `run-dcce.py` program to use DCCE project.
 
 ## Build SVF, runtime, and test program
-    $ run-dcce -build
+    $ python run-dcce.py -build
 
 
 ## Target benchmarks
-This project requires the bitcode of target benchmarks. By running `run-dcce -build`, the test program (${DCCE_ROOT}/tests/test.cc} is compiled and the bit code is stored in ${DCCE_ROOT}/bitcode/test.bc. You can play with it first and use realistic benchmarks like SPEC later. After you prepare other bitcodes, you need to update `benches` variable in `run-dcce` which is the main program to use DCCE.
+This project requires the bitcode of target benchmarks. By running `python run-dcce.py -build`, the test program (${DCCE_ROOT}/tests/test.cc} is compiled and the bit code is stored in ${DCCE_ROOT}/bitcode/test.bc. You can play with it first and use realistic benchmarks like SPEC later. After you prepare other bitcodes, you need to update `benches` variable in `run-dcce.py` which is the main program to use DCCE.
 
 ## Run wpa to genrate call graphes.
-    $ run-dcce -callgraph
-    
+    $ python run-dcce.py -callgraph
+
 Output files will be stored in ${DCCE_ROOT/output/callgraph.
 
     $ ls output/callgraph
@@ -24,15 +30,15 @@ Output files will be stored in ${DCCE_ROOT/output/callgraph.
     $ test-initial.cg
     $ test-final.dot
     $ test-final.cg
-    
+
 ## Run Calling Context Encoder to generate weights to update Context ID.
-    $ run-dcce -ccenc dcce
+    $ python run-dcce.py -ccenc dcce
 
 ## Run wpa to instrument bit code.
-    $ run-dcce -instrument dcce
-    
+    $ python run-dcce.py -instrument dcce
+
 ## Build executable with instrumented bit code and runtime.
-    $ run-dcce -make-exe dcce
+    $ python run-dcce.py -make-exe dcce
 Executables are stored in ${DCCE_ROOT}/output/dcce/bin
 
 ## Ignore below lines for now.

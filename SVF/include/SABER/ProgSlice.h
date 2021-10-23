@@ -53,7 +53,7 @@ public:
     /// Constructor
     ProgSlice(const SVFGNode* src, PathCondAllocator* pa, const SVFG* graph):
         root(src), partialReachable(false), fullReachable(false), reachGlob(false),
-        pathAllocator(pa), _curSVFGNode(NULL), finalCond(pa->getFalseCond()), svfg(graph)
+        pathAllocator(pa), _curSVFGNode(nullptr), finalCond(pa->getFalseCond()), svfg(graph)
     {
     }
 
@@ -231,7 +231,8 @@ protected:
     inline bool setVFCond(const SVFGNode* node, Condition* cond)
     {
         SVFGNodeToCondMap::iterator it = svfgNodeToCondMap.find(node);
-        if(it!=svfgNodeToCondMap.end() && it->second == cond)
+        // until a fixed-point is reached (condition is not changed)
+        if(it!=svfgNodeToCondMap.end() && isEquivalentBranchCond(it->second, cond))
             return false;
 
         svfgNodeToCondMap[node] = cond;
@@ -255,6 +256,10 @@ protected:
     }
     //@}
 
+    inline bool isEquivalentBranchCond(const Condition *lhs, const Condition *rhs) const {
+        return pathAllocator->isEquivalentBranchCond(lhs, rhs);
+    };
+
     /// Return the basic block where a SVFGNode resides in
     /// a SVFGNode may not in a basic block if it is not a program statement
     /// (e.g. PAGEdge is an global assignment or NullPtrSVFGNode)
@@ -263,10 +268,9 @@ protected:
         const ICFGNode* icfgNode = node->getICFGNode();
         if(SVFUtil::isa<NullPtrSVFGNode>(node) == false)
         {
-            assert(!SVFUtil::isa<GlobalBlockNode>(icfgNode) && "this SVFG node should be in a basic block");
             return icfgNode->getBB();
         }
-        return NULL;
+        return nullptr;
     }
 
     /// Get/set current SVFG node

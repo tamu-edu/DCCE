@@ -449,6 +449,8 @@ public:
     /// Dump the graph
     void dump(const std::string& filename);
 
+    /// View the graph from the debugger
+    void view();
     void instrument_dcce(const std::string& ccinput);
     void instrument_pcce(const std::string& ccinput, unsigned int bench_code);
 };

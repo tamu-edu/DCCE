@@ -156,6 +156,26 @@ const std::string ThreadMHPIndSVFGEdge::toString() const {
     return rawstr.str();
 }
 
+const Value* StmtSVFGNode::getValue() const {
+    return getPAGEdge()->getValue();
+}
+
+const Value* CmpVFGNode::getValue() const {
+    return getRes()->getValue();
+}
+
+const Value* BinaryOPVFGNode::getValue() const {
+    return getRes()->getValue();
+}
+
+const Value* PHIVFGNode::getValue() const {
+    return getRes()->getValue();
+}
+
+const Value* ArgumentVFGNode::getValue() const {
+    return param->getValue();
+}
+
 
 FormalOUTSVFGNode::FormalOUTSVFGNode(NodeID id, const MemSSA::RETMU* exit): MRSVFGNode(id, FPOUT), mu(exit)
 {
@@ -176,7 +196,7 @@ SVFG::SVFG(MemSSA* _mssa, VFGK k): VFG(_mssa->getPTA()->getPTACallGraph(),k),mss
 void SVFG::destroy()
 {
     delete stat;
-    stat = NULL;
+    stat = nullptr;
     clearMSSA();
 }
 
@@ -191,6 +211,8 @@ void SVFG::destroy()
  */
 void SVFG::buildSVFG()
 {
+    DBOUT(DGENERAL, outs() << pasMsg("Build Sparse Value-Flow Graph \n"));
+
     stat->startClk();
 
     DBOUT(DGENERAL, outs() << pasMsg("\tCreate SVFG Addr-taken Node\n"));
@@ -412,13 +434,13 @@ SVFGEdge* SVFG::addIntraIndirectVFEdge(NodeID srcId, NodeID dstId, const PointsT
     if(SVFGEdge* edge = hasIntraVFGEdge(srcNode,dstNode,SVFGEdge::IntraIndirectVF))
     {
         assert(SVFUtil::isa<IndirectSVFGEdge>(edge) && "this should be a indirect value flow edge!");
-        return (SVFUtil::cast<IndirectSVFGEdge>(edge)->addPointsTo(cpts) ? edge : NULL);
+        return (SVFUtil::cast<IndirectSVFGEdge>(edge)->addPointsTo(cpts) ? edge : nullptr);
     }
     else
     {
         IntraIndSVFGEdge* indirectEdge = new IntraIndSVFGEdge(srcNode,dstNode);
         indirectEdge->addPointsTo(cpts);
-        return (addSVFGEdge(indirectEdge) ? indirectEdge : NULL);
+        return (addSVFGEdge(indirectEdge) ? indirectEdge : nullptr);
     }
 }
 
@@ -433,13 +455,13 @@ SVFGEdge* SVFG::addThreadMHPIndirectVFEdge(NodeID srcId, NodeID dstId, const Poi
     if(SVFGEdge* edge = hasThreadVFGEdge(srcNode,dstNode,SVFGEdge::TheadMHPIndirectVF))
     {
         assert(SVFUtil::isa<IndirectSVFGEdge>(edge) && "this should be a indirect value flow edge!");
-        return (SVFUtil::cast<IndirectSVFGEdge>(edge)->addPointsTo(cpts) ? edge : NULL);
+        return (SVFUtil::cast<IndirectSVFGEdge>(edge)->addPointsTo(cpts) ? edge : nullptr);
     }
     else
     {
         ThreadMHPIndSVFGEdge* indirectEdge = new ThreadMHPIndSVFGEdge(srcNode,dstNode);
         indirectEdge->addPointsTo(cpts);
-        return (addSVFGEdge(indirectEdge) ? indirectEdge : NULL);
+        return (addSVFGEdge(indirectEdge) ? indirectEdge : nullptr);
     }
 }
 
@@ -453,13 +475,13 @@ SVFGEdge* SVFG::addCallIndirectVFEdge(NodeID srcId, NodeID dstId, const PointsTo
     if(SVFGEdge* edge = hasInterVFGEdge(srcNode,dstNode,SVFGEdge::CallIndVF,csId))
     {
         assert(SVFUtil::isa<CallIndSVFGEdge>(edge) && "this should be a indirect value flow edge!");
-        return (SVFUtil::cast<CallIndSVFGEdge>(edge)->addPointsTo(cpts) ? edge : NULL);
+        return (SVFUtil::cast<CallIndSVFGEdge>(edge)->addPointsTo(cpts) ? edge : nullptr);
     }
     else
     {
         CallIndSVFGEdge* callEdge = new CallIndSVFGEdge(srcNode,dstNode,csId);
         callEdge->addPointsTo(cpts);
-        return (addSVFGEdge(callEdge) ? callEdge : NULL);
+        return (addSVFGEdge(callEdge) ? callEdge : nullptr);
     }
 }
 
@@ -473,13 +495,13 @@ SVFGEdge* SVFG::addRetIndirectVFEdge(NodeID srcId, NodeID dstId, const PointsTo&
     if(SVFGEdge* edge = hasInterVFGEdge(srcNode,dstNode,SVFGEdge::RetIndVF,csId))
     {
         assert(SVFUtil::isa<RetIndSVFGEdge>(edge) && "this should be a indirect value flow edge!");
-        return (SVFUtil::cast<RetIndSVFGEdge>(edge)->addPointsTo(cpts) ? edge : NULL);
+        return (SVFUtil::cast<RetIndSVFGEdge>(edge)->addPointsTo(cpts) ? edge : nullptr);
     }
     else
     {
         RetIndSVFGEdge* retEdge = new RetIndSVFGEdge(srcNode,dstNode,csId);
         retEdge->addPointsTo(cpts);
-        return (addSVFGEdge(retEdge) ? retEdge : NULL);
+        return (addSVFGEdge(retEdge) ? retEdge : nullptr);
     }
 }
 
@@ -495,7 +517,7 @@ SVFGEdge* SVFG::addInterIndirectVFCallEdge(const ActualINSVFGNode* src, const Fo
         cpts1 &= cpts2;
         return addCallIndirectVFEdge(src->getId(),dst->getId(),cpts1,csId);
     }
-    return NULL;
+    return nullptr;
 }
 
 /*!
@@ -511,7 +533,7 @@ SVFGEdge* SVFG::addInterIndirectVFRetEdge(const FormalOUTSVFGNode* src, const Ac
         cpts1 &= cpts2;
         return addRetIndirectVFEdge(src->getId(),dst->getId(),cpts1,csId);
     }
-    return NULL;
+    return nullptr;
 }
 
 /*!
@@ -520,6 +542,25 @@ SVFGEdge* SVFG::addInterIndirectVFRetEdge(const FormalOUTSVFGNode* src, const Ac
 void SVFG::dump(const std::string& file, bool simple)
 {
     GraphPrinter::WriteGraphToFile(outs(), file, this, simple);
+}
+
+std::set<const SVFGNode*> SVFG::fromValue(const llvm::Value* value) const
+{
+    PAG* pag = PAG::getPAG();
+    std::set<const SVFGNode*> ret;
+    // search for all PAGEdges first
+    for (const PAGEdge* pagEdge : pag->getValueEdges(value)) {
+        PAGEdgeToStmtVFGNodeMapTy::const_iterator it = PAGEdgeToStmtVFGNodeMap.find(pagEdge);
+        if (it != PAGEdgeToStmtVFGNodeMap.end()) {
+            ret.emplace(it->second);
+        }
+    }
+    // add all PAGNodes
+    PAGNode* pagNode = pag->getPAGNode(pag->getValueNode(value));
+    if(hasDef(pagNode)) {
+        ret.emplace(getDefSVFGNode(pagNode));
+    }
+    return ret;
 }
 
 /**
@@ -665,9 +706,9 @@ const SVFFunction* SVFG::isFunEntrySVFGNode(const SVFGNode* node) const
     else if(const InterMSSAPHISVFGNode* mphi = SVFUtil::dyn_cast<InterMSSAPHISVFGNode>(node))
     {
         if(mphi->isFormalINPHI())
-            return phi->getFun();
+            return mphi->getFun();
     }
-    return NULL;
+    return nullptr;
 }
 
 /*!
@@ -693,7 +734,7 @@ const CallBlockNode* SVFG::isCallSiteRetSVFGNode(const SVFGNode* node) const
         if(mphi->isActualOUTPHI())
             return mphi->getCallSite();
     }
-    return NULL;
+    return nullptr;
 }
 
 /*!
@@ -723,6 +764,16 @@ struct DOTGraphTraits<SVFG*> : public DOTGraphTraits<PAG*>
     static std::string getGraphName(SVFG*)
     {
         return "SVFG";
+    }
+
+    /// isNodeHidden - If the function returns true, the given node is not
+    /// displayed in the graph
+#if LLVM_VERSION_MAJOR >= 12
+    static bool isNodeHidden(SVFGNode *node, SVFG*) {
+#else
+    static bool isNodeHidden(SVFGNode *node) {
+#endif
+        return node->getInEdges().empty() && node->getOutEdges().empty();
     }
 
     std::string getNodeLabel(NodeType *node, SVFG *graph)
@@ -928,47 +979,47 @@ struct DOTGraphTraits<SVFG*> : public DOTGraphTraits<PAG*>
         }
         else if(SVFUtil::isa<FormalINSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if(SVFUtil::isa<FormalOUTSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if(SVFUtil::isa<FormalParmSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if(SVFUtil::isa<ActualINSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if(SVFUtil::isa<ActualOUTSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if(SVFUtil::isa<ActualParmSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if (SVFUtil::isa<ActualRetSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if (SVFUtil::isa<FormalRetSVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if (SVFUtil::isa<BinaryOPVFGNode>(node))
         {
-            rawstr <<  "color=black,style=double";
+            rawstr <<  "color=black,penwidth=2";
         }
         else if (SVFUtil::isa<CmpVFGNode>(node))
         {
-            rawstr <<  "color=black,style=double";
+            rawstr <<  "color=black,penwidth=2";
         }
         else if (SVFUtil::isa<UnaryOPVFGNode>(node))
         {
-            rawstr <<  "color=black,style=double";
+            rawstr <<  "color=black,penwidth=2";
         }
         else
             assert(false && "no such kind of node!!");

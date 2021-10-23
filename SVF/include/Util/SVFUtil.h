@@ -60,6 +60,7 @@ void dumpSet(NodeBS To, raw_ostream & O = SVFUtil::outs());
 
 /// Dump points-to set
 void dumpPointsToSet(unsigned node, NodeBS To) ;
+void dumpSparseSet(const NodeBS& To);
 
 /// Dump alias set
 void dumpAliasSet(unsigned node, NodeBS To) ;
@@ -116,17 +117,35 @@ inline bool cmpPts (const PointsTo& lpts,const PointsTo& rpts)
     }
 }
 
+typedef struct equalPointsTo
+{
+    bool operator()(const PointsTo& lhs, const PointsTo& rhs) const
+    {
+        return SVFUtil::cmpPts(lhs, rhs);
+    }
+} equalPointsTo;
+
+typedef OrderedSet<PointsTo, equalPointsTo> PointsToList;
+void dumpPointsToList(const PointsToList& ptl);
+
+inline bool isIntrinsicFun(const Function* func)
+{
+    if (func && (func->getIntrinsicID() == llvm::Intrinsic::donothing ||
+                 func->getIntrinsicID() == llvm::Intrinsic::dbg_addr ||
+                 func->getIntrinsicID() == llvm::Intrinsic::dbg_declare ||
+                 func->getIntrinsicID() == llvm::Intrinsic::dbg_label ||
+                 func->getIntrinsicID() == llvm::Intrinsic::dbg_value)) {
+            return true;
+    }
+    return false;
+}
 
 /// Return true if it is an intrinsic instruction
 inline bool isIntrinsicInst(const Instruction* inst)
 {
     if (const llvm::CallBase* call = llvm::dyn_cast<llvm::CallBase>(inst)) {
         const Function* func = call->getCalledFunction();
-        if (func && (func->getIntrinsicID() == llvm::Intrinsic::donothing ||
-                     func->getIntrinsicID() == llvm::Intrinsic::dbg_addr ||
-                     func->getIntrinsicID() == llvm::Intrinsic::dbg_declare ||
-                     func->getIntrinsicID() == llvm::Intrinsic::dbg_label ||
-                     func->getIntrinsicID() == llvm::Intrinsic::dbg_value)) {
+        if (isIntrinsicFun(func)) {
             return true;
         }
     }
@@ -171,25 +190,25 @@ inline CallSite getLLVMCallSite(const Instruction* inst)
 /// Get the corresponding Function based on its name
 inline const SVFFunction* getFunction(StringRef name)
 {
-    Function* fun = NULL;
+    Function* fun = nullptr;
     LLVMModuleSet* llvmModuleset = LLVMModuleSet::getLLVMModuleSet();
 
     for (u32_t i = 0; i < llvmModuleset->getModuleNum(); ++i)
     {
         Module *mod = llvmModuleset->getModule(i);
         fun = mod->getFunction(name);
-        if(fun && !fun->isDeclaration())
+        if(fun)
         {
             return llvmModuleset->getSVFFunction(fun);
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 /// Get the definition of a function across multiple modules
 inline const SVFFunction* getDefFunForMultipleModule(const Function* fun)
 {
-    if(fun == NULL) return NULL;
+    if(fun == nullptr) return nullptr;
     LLVMModuleSet* llvmModuleset = LLVMModuleSet::getLLVMModuleSet();
     const SVFFunction* svfFun = llvmModuleset->getSVFFunction(fun);
     if (fun->isDeclaration() && llvmModuleset->hasDefinition(fun))
@@ -209,7 +228,7 @@ inline const SVFFunction* getCallee(const CallSite cs)
 inline const SVFFunction* getCallee(const Instruction *inst)
 {
     if (!isCallSite(inst))
-        return NULL;
+        return nullptr;
     CallSite cs(const_cast<Instruction*>(inst));
     return getCallee(cs);
 }
@@ -219,7 +238,46 @@ inline const SVFFunction* getCallee(const Instruction *inst)
 //@{
 std::string  getSourceLoc(const Value *val);
 std::string  getSourceLocOfFunction(const Function *F);
+const std::string value2String(const Value* value);
 //@}
+
+/// Inserts an element into a Set/CondSet (with ::insert).
+template <typename Key, typename KeySet>
+inline void insertKey(const Key &key, KeySet &keySet)
+{
+    keySet.insert(key);
+}
+
+/// Inserts a NodeID into a NodeBS.
+inline void insertKey(const NodeID &key, NodeBS &keySet)
+{
+    keySet.set(key);
+}
+
+/// Removes an element from a Set/CondSet (or anything implementing ::erase).
+template <typename Key, typename KeySet>
+inline void removeKey(const Key &key, KeySet &keySet)
+{
+    keySet.erase(key);
+}
+
+/// Removes a NodeID from a NodeBS.
+inline void removeKey(const NodeID &key, NodeBS &keySet)
+{
+    keySet.reset(key);
+}
+
+/// Function to call when alarm for time limit hits.
+void timeLimitReached(int signum);
+
+/// Starts an analysis timer. If timeLimit is 0, sets no timer.
+/// If an alarm has already been set, does not set another.
+/// Returns whether we set a timer or not.
+bool startAnalysisLimitTimer(unsigned timeLimit);
+
+/// Stops an analysis timer. limitTimerSet indicates whether the caller set the
+/// timer or not (return value of startLimitTimer).
+void stopAnalysisLimitTimer(bool limitTimerSet);
 
 } // End namespace SVFUtil
 

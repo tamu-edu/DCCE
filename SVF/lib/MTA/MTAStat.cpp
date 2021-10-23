@@ -5,6 +5,7 @@
  *      Author: Yulei Sui, Peng Di
  */
 
+#include "Util/Options.h"
 #include "MTA/MTAStat.h"
 #include "MTA/TCT.h"
 #include "MTA/MHP.h"
@@ -15,7 +16,6 @@
 
 using namespace SVF;
 
-static llvm::cl::opt<bool> AllPairMHP("allpairMhp", llvm::cl::init(false), llvm::cl::desc("All pair MHP computation"));
 
 /*!
  * Statistics for thread call graph
@@ -26,11 +26,11 @@ void MTAStat::performThreadCallGraphStat(ThreadCallGraph* tcg)
     u32_t numOfJoinEdge = 0;
     u32_t numOfIndForksite = 0;
     u32_t numOfIndForkEdge = 0;
-    for (ThreadCallGraph::CallSiteSet::iterator it = tcg->forksitesBegin(), eit = tcg->forksitesEnd(); it != eit; ++it)
+    for (ThreadCallGraph::CallSiteSet::const_iterator it = tcg->forksitesBegin(), eit = tcg->forksitesEnd(); it != eit; ++it)
     {
         bool indirectfork = false;
-        const Function* spawnee = SVFUtil::dyn_cast<Function>(tcg->getThreadAPI()->getForkedFun(*it));
-        if(spawnee==NULL)
+        const Function* spawnee = SVFUtil::dyn_cast<Function>(tcg->getThreadAPI()->getForkedFun((*it)->getCallSite()));
+        if(spawnee==nullptr)
         {
             numOfIndForksite++;
             indirectfork = true;
@@ -44,7 +44,7 @@ void MTAStat::performThreadCallGraphStat(ThreadCallGraph* tcg)
         }
     }
 
-    for (ThreadCallGraph::CallSiteSet::iterator it = tcg->joinsitesBegin(), eit = tcg->joinsitesEnd(); it != eit; ++it)
+    for (ThreadCallGraph::CallSiteSet::const_iterator it = tcg->joinsitesBegin(), eit = tcg->joinsitesEnd(); it != eit; ++it)
     {
         for (ThreadCallGraph::JoinEdgeSet::const_iterator cgIt = tcg->getJoinEdgeBegin(*it), ecgIt =
                     tcg->getJoinEdgeEnd(*it); cgIt != ecgIt; ++cgIt)
@@ -91,19 +91,20 @@ void MTAStat::performTCTStat(TCT* tct)
 void MTAStat::performMHPPairStat(MHP* mhp, LockAnalysis* lsa)
 {
 
-    if(AllPairMHP)
+    if(Options::AllPairMHP)
     {
         InstSet instSet1;
         InstSet instSet2;
-        SVFModule* mod = mhp->getThreadCallGraph()->getModule();
+        SVFModule* mod = mhp->getTCT()->getSVFModule();
         for (SVFModule::iterator F = mod->begin(), E = mod->end(); F != E; ++F)
         {
-            const Function* fun = (*F);
+            const SVFFunction* fun = (*F);
+            const Function* llvmfun = fun->getLLVMFun();
             if(SVFUtil::isExtCall(fun))
                 continue;
-            if(!mhp->isConnectedfromMain(fun))
+            if(!mhp->isConnectedfromMain(llvmfun))
                 continue;
-            for (const_inst_iterator II = inst_begin(fun), E = inst_end(fun); II != E; ++II)
+            for (const_inst_iterator II = inst_begin(llvmfun), E = inst_end(llvmfun); II != E; ++II)
             {
                 const Instruction *inst = &*II;
                 if(SVFUtil::isa<LoadInst>(inst))

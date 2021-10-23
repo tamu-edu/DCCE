@@ -61,14 +61,14 @@ private:
     GlobalDefToRepMapTy GlobalDefToRepMap;
 
     /// Constructor
-    LLVMModuleSet(): svfModule(nullptr), cxts(nullptr) {}
+    LLVMModuleSet(): svfModule(nullptr), cxts(nullptr), preProcessed(false) {}
 
     void build();
 
 public:
     static inline LLVMModuleSet *getLLVMModuleSet()
     {
-        if (llvmModuleSet == NULL)
+        if (llvmModuleSet == nullptr)
             llvmModuleSet = new LLVMModuleSet();
         return llvmModuleSet;
     }
@@ -77,7 +77,7 @@ public:
     {
         if (llvmModuleSet)
             delete llvmModuleSet;
-        llvmModuleSet = NULL;
+        llvmModuleSet = nullptr;
     }
 
     SVFModule* buildSVFModule(Module &mod);
@@ -87,6 +87,8 @@ public:
 		assert(svfModule && "svfModule has not been built yet!");
 		return svfModule;
 	}
+
+    void preProcessBCs(std::vector<std::string> &moduleNameVec);
 
     u32_t getModuleNum() const
     {
@@ -234,6 +236,9 @@ private:
     void initialize();
     void buildFunToFunMap();
     void buildGlobalDefToRepMap();
+    /// Invoke llvm passes to modify module
+    void prePassSchedule();
+    bool preProcessed;
 };
 
 } // End namespace SVF

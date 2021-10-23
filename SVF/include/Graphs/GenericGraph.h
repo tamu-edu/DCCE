@@ -95,7 +95,7 @@ public:
     /// Add the hash function for std::set (we also can overload operator< to implement this)
     //  and duplicated elements in the set are not inserted (binary tree comparison)
     //@{
-    typedef struct
+    typedef struct equalGEdge
     {
         bool operator()(const GenericEdge<NodeType>* lhs, const GenericEdge<NodeType>* rhs) const
         {
@@ -157,8 +157,7 @@ public:
     /// Destructor
     virtual ~GenericNode()
     {
-        for(iterator it = InEdges.begin(), eit = InEdges.end(); it!=eit; ++it)
-            delete *it;
+
     }
 
     /// Get ID
@@ -306,7 +305,7 @@ public:
         if (it != InEdges.end())
             return *it;
         else
-            return NULL;
+            return nullptr;
     }
     inline EdgeType* hasOutgoingEdge(EdgeType* edge) const
     {
@@ -314,7 +313,7 @@ public:
         if (it != OutEdges.end())
             return *it;
         else
-            return NULL;
+            return nullptr;
     }
     //@}
 };
@@ -353,9 +352,13 @@ public:
     /// Release memory
     void destroy()
     {
+        for (iterator I = IDToNodeMap.begin(), E = IDToNodeMap.end(); I != E; ++I){
+            // NodeType* node = I->second;
+            // for(typename NodeType::iterator it = node->InEdgeBegin(), eit = node->InEdgeEnd(); it!=eit; ++it)
+            //         delete *it;
+        }
         for (iterator I = IDToNodeMap.begin(), E = IDToNodeMap.end(); I != E; ++I)
             delete I->second;
-
     }
     /// Iterators
     //@{
@@ -454,10 +457,13 @@ template<class NodeTy,class EdgeTy> struct GraphTraits<SVF::GenericNode<NodeTy,E
     typedef NodeTy NodeType;
     typedef EdgeTy EdgeType;
 
-    typedef std::pointer_to_unary_function<EdgeType*, NodeType*> DerefEdge;
+    static inline NodeType* edge_dest(const EdgeType* E)
+    {
+        return E->getDstNode();
+    }
 
     // nodes_iterator/begin/end - Allow iteration over all nodes in the graph
-    typedef mapped_iterator<typename SVF::GenericNode<NodeTy,EdgeTy>::iterator, DerefEdge> ChildIteratorType;
+    typedef mapped_iterator<typename SVF::GenericNode<NodeTy,EdgeTy>::iterator, decltype(&edge_dest)> ChildIteratorType;
 
     static NodeType* getEntryNode(NodeType* pagN)
     {
@@ -466,25 +472,20 @@ template<class NodeTy,class EdgeTy> struct GraphTraits<SVF::GenericNode<NodeTy,E
 
     static inline ChildIteratorType child_begin(const NodeType* N)
     {
-        return map_iterator(N->OutEdgeBegin(), DerefEdge(edgeDereference));
+        return map_iterator(N->OutEdgeBegin(), &edge_dest);
     }
     static inline ChildIteratorType child_end(const NodeType* N)
     {
-        return map_iterator(N->OutEdgeEnd(), DerefEdge(edgeDereference));
+        return map_iterator(N->OutEdgeEnd(), &edge_dest);
     }
     static inline ChildIteratorType direct_child_begin(const NodeType *N)
     {
-        return map_iterator(N->directOutEdgeBegin(), DerefEdge(edgeDereference));
+        return map_iterator(N->directOutEdgeBegin(), &edge_dest);
     }
     static inline ChildIteratorType direct_child_end(const NodeType *N)
     {
-        return map_iterator(N->directOutEdgeEnd(), DerefEdge(edgeDereference));
+        return map_iterator(N->directOutEdgeEnd(), &edge_dest);
     }
-    static NodeType* edgeDereference(EdgeType* edge)
-    {
-        return edge->getDstNode();
-    }
-
 };
 
 /*!
@@ -496,10 +497,13 @@ struct GraphTraits<Inverse<SVF::GenericNode<NodeTy,EdgeTy>* > >
     typedef NodeTy NodeType;
     typedef EdgeTy EdgeType;
 
-    typedef std::pointer_to_unary_function<EdgeType*, NodeType*> DerefEdge;
+    static inline NodeType* edge_dest(const EdgeType* E)
+    {
+        return E->getSrcNode();
+    }
 
     // nodes_iterator/begin/end - Allow iteration over all nodes in the graph
-    typedef mapped_iterator<typename SVF::GenericNode<NodeTy,EdgeTy>::iterator, DerefEdge> ChildIteratorType;
+    typedef mapped_iterator<typename SVF::GenericNode<NodeTy,EdgeTy>::iterator, decltype(&edge_dest)> ChildIteratorType;
 
     static inline NodeType* getEntryNode(Inverse<NodeType* > G)
     {
@@ -508,16 +512,11 @@ struct GraphTraits<Inverse<SVF::GenericNode<NodeTy,EdgeTy>* > >
 
     static inline ChildIteratorType child_begin(const NodeType* N)
     {
-        return map_iterator(N->InEdgeBegin(), DerefEdge(edgeDereference));
+        return map_iterator(N->InEdgeBegin(), &edge_dest);
     }
     static inline ChildIteratorType child_end(const NodeType* N)
     {
-        return map_iterator(N->InEdgeEnd(), DerefEdge(edgeDereference));
-    }
-
-    static inline NodeType* edgeDereference(EdgeType* edge)
-    {
-        return edge->getSrcNode();
+        return map_iterator(N->InEdgeEnd(), &edge_dest);
     }
 
     static inline unsigned getNodeID(const NodeType* N)
@@ -537,26 +536,25 @@ template<class NodeTy,class EdgeTy> struct GraphTraits<SVF::GenericGraph<NodeTy,
 
     static NodeType* getEntryNode(GenericGraphTy* pag)
     {
-        return NULL; // return null here, maybe later we could create a dummy node
+        return nullptr; // return null here, maybe later we could create a dummy node
     }
+
     typedef std::pair<SVF::NodeID, NodeType*> PairTy;
-    typedef std::pointer_to_unary_function<PairTy, NodeType*> DerefVal;
+    static inline NodeType* deref_val(PairTy P)
+    {
+        return P.second;
+    }
 
     // nodes_iterator/begin/end - Allow iteration over all nodes in the graph
-    typedef mapped_iterator<typename GenericGraphTy::iterator, DerefVal> nodes_iterator;
+    typedef mapped_iterator<typename GenericGraphTy::iterator, decltype(&deref_val)> nodes_iterator;
 
     static nodes_iterator nodes_begin(GenericGraphTy *G)
     {
-        return map_iterator(G->begin(), DerefVal(Valdereference));
+        return map_iterator(G->begin(), &deref_val);
     }
     static nodes_iterator nodes_end(GenericGraphTy *G)
     {
-        return map_iterator(G->end(), DerefVal(Valdereference));
-    }
-
-    static NodeType* Valdereference(PairTy P)
-    {
-        return P.second;
+        return map_iterator(G->end(), &deref_val);
     }
 
     static unsigned graphSize(GenericGraphTy* G)

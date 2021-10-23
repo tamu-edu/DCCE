@@ -30,6 +30,7 @@
 #ifndef INCLUDE_MEMORYMODEL_POINTERANALYSISIMPL_H_
 #define INCLUDE_MEMORYMODEL_POINTERANALYSISIMPL_H_
 
+#include <Graphs/ConsG.h>
 #include "MemoryModel/PointerAnalysis.h"
 
 namespace SVF
@@ -42,15 +43,32 @@ class BVDataPTAImpl : public PointerAnalysis
 {
 
 public:
-    typedef PTData<NodeID, NodeID, PointsTo> PTDataTy;
-    typedef MutablePTData<NodeID, NodeID, PointsTo> MutPTDataTy;
-    typedef DiffPTData<NodeID, NodeID, PointsTo> DiffPTDataTy;
-    typedef MutableDiffPTData<NodeID, NodeID, PointsTo> MutDiffPTDataTy;
-    typedef DFPTData<NodeID, NodeID, PointsTo> DFPTDataTy;
-    typedef MutableDFPTData<NodeID, NodeID, PointsTo> MutDFPTDataTy;
-    typedef IncMutableDFPTData<NodeID, NodeID, PointsTo> IncMutDFPTDataTy;
-    typedef VersionedPTData<NodeID, NodeID, PointsTo, VersionedVar> VersionedPTDataTy;
-    typedef MutableVersionedPTData<NodeID, NodeID, PointsTo, VersionedVar> MutVersionedPTDataTy;
+    typedef PTData<NodeID, NodeSet, NodeID, PointsTo> PTDataTy;
+    typedef DiffPTData<NodeID, NodeSet, NodeID, PointsTo> DiffPTDataTy;
+    typedef DFPTData<NodeID, NodeSet, NodeID, PointsTo> DFPTDataTy;
+    typedef VersionedPTData<NodeID, NodeSet, NodeID, PointsTo, VersionedVar, Set<VersionedVar>> VersionedPTDataTy;
+
+    typedef MutablePTData<NodeID, NodeSet, NodeID, PointsTo> MutPTDataTy;
+    typedef MutableDiffPTData<NodeID, NodeSet, NodeID, PointsTo> MutDiffPTDataTy;
+    typedef MutableDFPTData<NodeID, NodeSet, NodeID, PointsTo> MutDFPTDataTy;
+    typedef MutableIncDFPTData<NodeID, NodeSet, NodeID, PointsTo> MutIncDFPTDataTy;
+    typedef MutableVersionedPTData<NodeID, NodeSet, NodeID, PointsTo, VersionedVar, Set<VersionedVar>> MutVersionedPTDataTy;
+
+    typedef PersistentPTData<NodeID, NodeSet, NodeID, PointsTo> PersPTDataTy;
+    typedef PersistentDiffPTData<NodeID, NodeSet, NodeID, PointsTo> PersDiffPTDataTy;
+    typedef PersistentDFPTData<NodeID, NodeSet, NodeID, PointsTo> PersDFPTDataTy;
+    typedef PersistentIncDFPTData<NodeID, NodeSet, NodeID, PointsTo> PersIncDFPTDataTy;
+    typedef PersistentVersionedPTData<NodeID, NodeSet, NodeID, PointsTo, VersionedVar, Set<VersionedVar>> PersVersionedPTDataTy;
+
+    /// How the PTData used is implemented.
+    enum PTBackingType
+    {
+        Mutable,
+        Persistent,
+    };
+
+    // TODO: make this not static?
+    static PersistentPointsToCache<PointsTo> ptCache;
 
     /// Constructor
     BVDataPTAImpl(PAG* pag, PointerAnalysis::PTATY type, bool alias_check = true);
@@ -59,6 +77,11 @@ public:
     virtual ~BVDataPTAImpl()
     {
         destroy();
+    }
+
+    static inline PersistentPointsToCache<PointsTo> &getPtCache(void)
+    {
+        return ptCache;
     }
 
     static inline bool classof(const PointerAnalysis *pta)
@@ -70,7 +93,7 @@ public:
     inline void destroy()
     {
         delete ptD;
-        ptD = NULL;
+        ptD = nullptr;
     }
 
     /// Get points-to and reverse points-to
@@ -127,21 +150,30 @@ public:
     //@{
     virtual void writeToFile(const std::string& filename);
     virtual bool readFromFile(const std::string& filename);
+    virtual void writeToModule();
+    virtual bool readFromModule();
     //@}
 
 protected:
+    /// Get points-to data structure
+    inline PTDataTy* getPTDataTy() const
+    {
+        return ptD;
+    }
+
+
+    /// Finalization of pointer analysis, and normalize points-to information to Bit Vector representation
+    virtual void finalize()
+    {
+        normalizePointsTo();
+        PointerAnalysis::finalize();
+    }
 
     /// Update callgraph. This should be implemented by its subclass.
     virtual inline bool updateCallGraph(const CallSiteToFunPtrMap&)
     {
         assert(false && "Virtual function not implemented!");
         return false;
-    }
-
-    /// Get points-to data structure
-    inline PTDataTy* getPTDataTy() const
-    {
-        return ptD;
     }
 
     inline DiffPTDataTy* getDiffPTDataTy() const
@@ -172,23 +204,12 @@ protected:
         return v;
     }
 
-    inline bool hasPtsMap(void) const
-    {
-        return SVFUtil::isa<MutPTDataTy>(ptD) || SVFUtil::isa<MutDiffPTDataTy>(ptD);
-    }
-
-    inline const typename MutPTDataTy::PtsMap& getPtsMap() const
-    {
-        if (MutPTDataTy *m = SVFUtil::dyn_cast<MutPTDataTy>(ptD)) return m->getPtsMap();
-        else if (MutDiffPTDataTy *md = SVFUtil::dyn_cast<MutDiffPTDataTy>(ptD)) return md->getPtsMap();
-        else {
-			assert(false && "BVDataPTAImpl::getPtsMap: not a PTData with a PtsMap!");
-			return SVFUtil::dyn_cast<MutPTDataTy>(ptD)->getPtsMap();
-        }
-    }
-
     /// On the fly call graph construction
     virtual void onTheFlyCallGraphSolve(const CallSiteToFunPtrMap& callsites, CallEdgeMap& newEdges);
+
+    /// Normalize points-to information for field-sensitive analysis,
+    /// i.e., replace fieldObj with baseObj if it is field-insensitive
+    virtual void normalizePointsTo();
 
 private:
     /// Points-to data
@@ -232,8 +253,8 @@ class CondPTAImpl : public PointerAnalysis
 public:
     typedef CondVar<Cond> CVar;
     typedef CondStdSet<CVar>  CPtSet;
-    typedef PTData<CVar, CVar, CPtSet> PTDataTy;
-    typedef MutablePTData<CVar, CVar, CPtSet> MutPTDataTy;
+    typedef PTData<CVar, Set<CVar>, CVar, CPtSet> PTDataTy;
+    typedef MutablePTData<CVar, Set<CVar>, CVar, CPtSet> MutPTDataTy;
     typedef Map<NodeID,PointsTo> PtrToBVPtsMap; /// map a pointer to its BitVector points-to representation
     typedef Map<NodeID, NodeSet> PtrToNSMap;
     typedef Map<NodeID,CPtSet> PtrToCPtsMap;	 /// map a pointer to its conditional points-to set
@@ -264,7 +285,7 @@ public:
     inline void destroy()
     {
         delete ptD;
-        ptD = NULL;
+        ptD = nullptr;
     }
 
     /// Get points-to data
@@ -288,7 +309,8 @@ public:
     inline const typename MutPTDataTy::PtsMap& getPtsMap() const
     {
         if (MutPTDataTy *m = SVFUtil::dyn_cast<MutPTDataTy>(ptD)) return m->getPtsMap();
-        else assert(false && "CondPTAImpl::getPtsMap: not a PTData with a PtsMap!");
+        assert(false && "CondPTAImpl::getPtsMap: not a PTData with a PtsMap!");
+        exit(1);
     }
 
     /// Get points-to and reverse points-to
@@ -346,7 +368,7 @@ protected:
     /// Finalization of pointer analysis, and normalize points-to information to Bit Vector representation
     virtual void finalize()
     {
-        NormalizePointsTo();
+        normalizePointsTo();
         PointerAnalysis::finalize();
     }
     /// Union/add points-to, and add the reverse points-to for node collapse purpose
@@ -420,7 +442,7 @@ protected:
     //@}
 
     /// Normalize points-to information to BitVector/conditional representation
-    virtual void NormalizePointsTo()
+    virtual void normalizePointsTo()
     {
         normalized = true;
         if (hasPtsMap())

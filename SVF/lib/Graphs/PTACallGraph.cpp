@@ -57,7 +57,7 @@ void PTACallGraphEdge::addDirectCallSite(const CallBlockNode* call)
 
 void PTACallGraphEdge::addInDirectCallSite(const CallBlockNode* call)
 {
-    assert((NULL == SVFUtil::getCallee(call->getCallSite()) || NULL == SVFUtil::dyn_cast<Function> (SVFUtil::getForkedFun(call->getCallSite()))) && "not an indirect callsite??");
+    assert((nullptr == SVFUtil::getCallee(call->getCallSite()) || nullptr == SVFUtil::dyn_cast<Function> (SVFUtil::getForkedFun(call->getCallSite()))) && "not an indirect callsite??");
     indirectCalls.insert(call);
 }
 //@}
@@ -149,7 +149,7 @@ PTACallGraphEdge* PTACallGraph::hasGraphEdge(PTACallGraphNode* src, PTACallGraph
         return outEdge;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 /*!
@@ -164,7 +164,7 @@ PTACallGraphEdge* PTACallGraph::getGraphEdge(PTACallGraphNode* src, PTACallGraph
         if (edge->getEdgeKind() == kind && edge->getDstID() == dst->getId())
             return edge;
     }
-    return NULL;
+    return nullptr;
 }
 
 /*!
@@ -182,10 +182,6 @@ void PTACallGraph::addDirectCallGraphEdge(const CallBlockNode* cs,const SVFFunct
     {
         PTACallGraphEdge* edge = new PTACallGraphEdge(caller,callee,PTACallGraphEdge::CallRetEdge,csId);
         edge->addDirectCallSite(cs);
-        //printf("addDirectCallSite: caller [%s] callee [%s] edge [%s] csId [%d]\n",
-        //        caller->toString().c_str(),
-        //        callee->toString().c_str(), 
-        //        edge->toString().c_str(), csId);
         addEdge(edge);
         callinstToCallGraphEdgesMap[cs].insert(edge);
     }
@@ -399,7 +395,7 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
                     unsigned long long int csid = it->second;
                     assert(cs2w.find(csid) != cs2w.end());
                     unsigned long long int weight = cs2w[csid];
-  
+
                     // using load/store
                     //auto ccid = mod->getGlobalVariable("ccid");
                     //auto load = new llvm::LoadInst(ccid, "", &I);
@@ -534,6 +530,11 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
     }
 }
 
+void PTACallGraph::view()
+{
+    llvm::ViewGraph(this, "Call Graph");
+}
+
 namespace llvm
 {
 
@@ -567,7 +568,7 @@ struct DOTGraphTraits<PTACallGraph*> : public DefaultDOTGraphTraits
         const SVFFunction* fun = node->getFunction();
         if (!SVFUtil::isExtCall(fun))
         {
-            return "shape=circle";
+            return "shape=box";
         }
         else
             return "shape=Mrecord";

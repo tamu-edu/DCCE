@@ -5,6 +5,7 @@
  *      Author: Yulei Sui, Peng Di
  */
 
+#include "Util/Options.h"
 #include "MTA/MTAAnnotator.h"
 #include "MTA/LockAnalysis.h"
 #include <sstream>
@@ -12,7 +13,6 @@
 using namespace SVF;
 using namespace SVFUtil;
 
-static llvm::cl::opt<u32_t> AnnoFlag("anno", llvm::cl::init(0), llvm::cl::desc("prune annotated instructions: 0001 Thread Local; 0002 Alias; 0004 MHP."));
 
 void MTAAnnotator::annotateDRCheck(Instruction* inst)
 {
@@ -38,10 +38,9 @@ void MTAAnnotator::collectLoadStoreInst(SVFModule* mod)
 
     for (SVFModule::iterator F = mod->begin(), E = mod->end(); F != E; ++F)
     {
-        const Function* fun = (*F);
-        if (SVFUtil::isExtCall(fun))
+        if (SVFUtil::isExtCall(*F))
             continue;
-        for (inst_iterator II = inst_begin(*F), E = inst_end(*F); II != E; ++II)
+        for (inst_iterator II = inst_begin((*F)->getLLVMFun()), E = inst_end((*F)->getLLVMFun()); II != E; ++II)
         {
             const Instruction *inst = &*II;
             if (SVFUtil::isa<LoadInst>(inst))
@@ -84,7 +83,7 @@ const Value* MTAAnnotator::getStoreOperand(const Instruction* inst)
     }
 
     assert(false);
-    return NULL;
+    return nullptr;
 }
 const Value* MTAAnnotator::getLoadOperand(const Instruction* inst)
 {
@@ -98,21 +97,21 @@ const Value* MTAAnnotator::getLoadOperand(const Instruction* inst)
     }
 
     assert(false);
-    return NULL;
+    return nullptr;
 }
 
 void MTAAnnotator::initialize(MHP* m, LockAnalysis* la)
 {
     mhp = m;
     lsa = la;
-    if (!AnnoFlag)
+    if (!Options::AnnoFlag)
         return;
     collectLoadStoreInst(mhp->getTCT()->getPTA()->getModule());
 }
 
 void MTAAnnotator::pruneThreadLocal(PointerAnalysis* pta)
 {
-    bool AnnoLocal = AnnoFlag & ANNO_LOCAL;
+    bool AnnoLocal = Options::AnnoFlag & ANNO_LOCAL;
     if (!AnnoLocal)
         return;
 
@@ -123,7 +122,7 @@ void MTAAnnotator::pruneThreadLocal(PointerAnalysis* pta)
 
     /// find fork arguments' objects
     const PAGEdge::PAGEdgeSetTy& forkedges = pag->getPTAEdgeSet(PAGEdge::ThreadFork);
-    for (PAGEdge::PAGEdgeSetTy::iterator it = forkedges.begin(), eit = forkedges.end(); it != eit; ++it)
+    for (PAGEdge::PAGEdgeSetTy::const_iterator it = forkedges.begin(), eit = forkedges.end(); it != eit; ++it)
     {
         PAGEdge* edge = *it;
         worklist |= pta->getPts(edge->getDstID());
@@ -132,7 +131,7 @@ void MTAAnnotator::pruneThreadLocal(PointerAnalysis* pta)
 
     /// find global pointer-to objects
     const PAG::PAGEdgeSet& globaledges = pag->getGlobalPAGEdgeSet();
-    for (PAG::PAGEdgeSet::iterator it = globaledges.begin(), eit = globaledges.end(); it != eit; ++it)
+    for (PAG::PAGEdgeSet::const_iterator it = globaledges.begin(), eit = globaledges.end(); it != eit; ++it)
     {
         const PAGEdge* edge = *it;
         if (edge->getEdgeKind() == PAGEdge::Addr)
@@ -199,8 +198,8 @@ void MTAAnnotator::pruneThreadLocal(PointerAnalysis* pta)
 void MTAAnnotator::pruneAliasMHP(PointerAnalysis* pta)
 {
 
-    bool AnnoMHP = AnnoFlag & ANNO_MHP;
-    bool AnnoAlias = AnnoFlag & ANNO_ALIAS;
+    bool AnnoMHP = Options::AnnoFlag & ANNO_MHP;
+    bool AnnoAlias = Options::AnnoFlag & ANNO_ALIAS;
 
     if (!AnnoMHP && !AnnoAlias)
         return;
@@ -268,7 +267,7 @@ void MTAAnnotator::pruneAliasMHP(PointerAnalysis* pta)
 }
 void MTAAnnotator::performAnnotate()
 {
-    if (!AnnoFlag)
+    if (!Options::AnnoFlag)
         return;
     for (InstSet::iterator it = storeset.begin(), eit = storeset.end(); it != eit; ++it)
     {

@@ -5,6 +5,7 @@
  *      Author: Yulei Sui
  */
 
+#include "Util/Options.h"
 #include "DDA/ContextDDA.h"
 #include "DDA/FlowDDA.h"
 #include "DDA/DDAClient.h"
@@ -12,8 +13,6 @@
 using namespace SVF;
 using namespace SVFUtil;
 
-static llvm::cl::opt<unsigned long long> cxtBudget("cxtbg",  llvm::cl::init(10000),
-        llvm::cl::desc("Maximum step budget of context-sensitive traversing"));
 /*!
  * Constructor
  */
@@ -31,7 +30,7 @@ ContextDDA::~ContextDDA()
 {
     if(flowDDA)
         delete flowDDA;
-    flowDDA = NULL;
+    flowDDA = nullptr;
 }
 
 /*!
@@ -54,7 +53,7 @@ const CxtPtSet& ContextDDA::computeDDAPts(const CxtVar& var)
 {
 
     resetQuery();
-    LocDPItem::setMaxBudget(cxtBudget);
+    LocDPItem::setMaxBudget(Options::CxtBudget);
 
     NodeID id = var.get_id();
     PAGNode* node = getPAG()->getPAGNode(id);
@@ -316,7 +315,17 @@ bool ContextDDA::isHeapCondMemObj(const CxtVar& var, const StoreSVFGNode*)
     assert(mem && "memory object is null??");
     if(mem->isHeap())
     {
-        if(const Instruction* mallocSite = SVFUtil::dyn_cast<Instruction>(mem->getRefVal()))
+        if (!mem->getRefVal()) {
+            PAGNode *pnode = _pag->getPAGNode(getPtrNodeID(var));
+            if(GepObjPN* gepobj = SVFUtil::dyn_cast<GepObjPN>(pnode)){
+                assert(SVFUtil::isa<DummyObjPN>(_pag->getPAGNode(gepobj->getBaseNode())) && "emtpy refVal in a gep object whose base is a non-dummy object");
+            }
+            else{
+                assert((SVFUtil::isa<DummyObjPN>(pnode) || SVFUtil::isa<DummyValPN>(pnode)) && "empty refVal in non-dummy object");
+            }
+            return true;
+        }
+        else if(const Instruction* mallocSite = SVFUtil::dyn_cast<Instruction>(mem->getRefVal()))
         {
             const Function* fun = mallocSite->getFunction();
             const SVFFunction* svfFun = LLVMModuleSet::getLLVMModuleSet()->getSVFFunction(fun);

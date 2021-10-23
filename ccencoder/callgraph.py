@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 class basegraph( object ):
     """
     An abstract class intended as a common ancestor to all graph classes.

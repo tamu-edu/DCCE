@@ -5,6 +5,7 @@
  *      Author: Yulei Sui, Peng Di
  */
 
+#include "Util/Options.h"
 #include "MTA/MTA.h"
 #include "MTA/MHP.h"
 #include "MTA/TCT.h"
@@ -13,24 +14,21 @@
 #include "WPA/Andersen.h"
 #include "MTA/FSMPTA.h"
 #include "Util/SVFUtil.h"
+#include "SVF-FE/PAGBuilder.h"
 
 using namespace SVF;
 using namespace SVFUtil;
 
-static llvm::RegisterPass<MTA> RACEDETECOR("pmhp", "May-Happen-in-Parallel Analysis");
-
-static llvm::cl::opt<bool> AndersenAnno("tsan-ander", llvm::cl::init(false), llvm::cl::desc("Add TSan annotation according to Andersen"));
-
-static llvm::cl::opt<bool> FSAnno("tsan-fs", llvm::cl::init(false), llvm::cl::desc("Add TSan annotation according to flow-sensitive analysis"));
+static llvm::RegisterPass<MTA> RACEDETECOR("mta", "May-Happen-in-Parallel Analysis");
 
 
 char MTA::ID = 0;
-ModulePass* MTA::modulePass = NULL;
+ModulePass* MTA::modulePass = nullptr;
 MTA::FunToSEMap MTA::func2ScevMap;
 MTA::FunToLoopInfoMap MTA::func2LoopInfoMap;
 
 MTA::MTA() :
-    ModulePass(ID), tcg(NULL), tct(NULL)
+    ModulePass(ID), tcg(nullptr), tct(nullptr)
 {
     stat = new MTAStat();
 }
@@ -45,8 +43,8 @@ MTA::~MTA()
 
 bool MTA::runOnModule(Module& module)
 {
-    SVFModule* m(module);
-    return runOnModule(m);
+    SVFModule mm(module.getName().str());
+    return runOnModule(&mm);
 }
 
 /*!
@@ -64,12 +62,12 @@ bool MTA::runOnModule(SVFModule* module)
 
 
     /*
-    if (AndersenAnno) {
+    if (Options::AndersenAnno) {
         pta = mhp->getTCT()->getPTA();
         if (pta->printStat())
             stat->performMHPPairStat(mhp,lsa);
         AndersenWaveDiff::releaseAndersenWaveDiff();
-    } else if (FSAnno) {
+    } else if (Options::FSAnno) {
 
         reportMemoryUsageKB("Mem before analysis");
         DBOUT(DGENERAL, outs() << pasMsg("FSMPTA analysis\n"));
@@ -122,7 +120,9 @@ MHP* MTA::computeMHP(SVFModule* module)
 
     DBOUT(DGENERAL, outs() << pasMsg("MTA analysis\n"));
     DBOUT(DMTA, outs() << pasMsg("MTA analysis\n"));
-    PointerAnalysis* pta = AndersenWaveDiff::createAndersenWaveDiff(module);
+    PAGBuilder builder;
+    PAG* pag = builder.build(module);
+    PointerAnalysis* pta = AndersenWaveDiff::createAndersenWaveDiff(pag);
     pta->getPTACallGraph()->dump("ptacg");
 
     DBOUT(DGENERAL, outs() << pasMsg("Build TCT\n"));
@@ -175,7 +175,7 @@ void MTA::detect(SVFModule* module)
     for (SVFModule::iterator F = module->begin(), E = module->end(); F != E; ++F)
     {
         // collect and create symbols inside the function body
-        for (inst_iterator II = inst_begin(*F), E = inst_end(*F); II != E; ++II)
+        for (inst_iterator II = inst_begin((*F)->getLLVMFun()), E = inst_end((*F)->getLLVMFun()); II != E; ++II)
         {
             const Instruction *inst = &*II;
             if (const LoadInst* load = SVFUtil::dyn_cast<LoadInst>(inst))

@@ -17,11 +17,12 @@ file (GLOB SOURCES
         MemoryModel/*.cpp
         MSSA/*.cpp
         WPA/*.cpp
+        MTA/*.cpp
         SABER/*.cpp
         DDA/*.cpp)
-add_llvm_library(Svf STATIC ${SOURCES} LINK_LIBS Cudd)
+add_llvm_library(Svf STATIC ${SOURCES} LINK_LIBS Cudd ${Z3_LIBRARIES})
 
-link_directories( ${CMAKE_BINARY_DIR}/lib/Cudd )
+link_directories(${CMAKE_BINARY_DIR}/lib/Cudd)
 
 
 if(DEFINED IN_SOURCE_BUILD)

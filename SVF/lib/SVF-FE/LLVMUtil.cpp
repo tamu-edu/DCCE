@@ -28,7 +28,6 @@
  */
 
 #include "SVF-FE/LLVMUtil.h"
-#include "llvm/Support/JSON.h"
 
 using namespace SVF;
 
@@ -207,7 +206,7 @@ Value * SVFUtil::stripAllCasts(Value *val)
             return val;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 /// Get the next instructions following control flow

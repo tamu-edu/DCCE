@@ -28,15 +28,14 @@
  */
 
 
+#include <Graphs/SVFGNode.h>
+#include "Util/Options.h"
 #include "Graphs/VFG.h"
 #include "Util/SVFModule.h"
 #include "SVF-FE/LLVMUtil.h"
 
 using namespace SVF;
 using namespace SVFUtil;
-
-static llvm::cl::opt<bool> DumpVFG("dump-VFG", llvm::cl::init(false),
-                                   llvm::cl::desc("Dump dot graph of VFG"));
 
 const std::string VFGNode::toString() const {
     std::string str;
@@ -88,8 +87,7 @@ const std::string CmpVFGNode::toString() const {
         rawstr << it->second->getId() << ", ";
     rawstr << ")]\n";
     if(res->hasValue()){
-        rawstr << " " << *res->getValue();
-        rawstr << SVFUtil::getSourceLoc(res->getValue());
+        rawstr << " " << value2String(res->getValue());
     }
     return rawstr.str();
 }
@@ -104,8 +102,7 @@ const std::string BinaryOPVFGNode::toString() const {
         rawstr << it->second->getId() << ", ";
     rawstr << ")]\t";
     if(res->hasValue()){
-        rawstr << " " << *res->getValue() << " ";
-        rawstr << SVFUtil::getSourceLoc(res->getValue());
+        rawstr << " " << value2String(res->getValue());
     }
     return rawstr.str();
 }
@@ -120,8 +117,7 @@ const std::string UnaryOPVFGNode::toString() const {
         rawstr << it->second->getId() << ", ";
     rawstr << ")]\t";
     if(res->hasValue()){
-        rawstr << " " << *res->getValue() << " ";
-        rawstr << SVFUtil::getSourceLoc(res->getValue());
+        rawstr << " " << value2String(res->getValue());
     }
     return rawstr.str();
 }
@@ -139,14 +135,13 @@ const std::string PHIVFGNode::toString() const {
     std::string str;
     raw_string_ostream rawstr(str);
     rawstr << "PHIVFGNode ID: " << getId() << " ";
-    rawstr << "PAGEdge: [" << res->getId() << " = PHI(";
+    rawstr << "PAGNode: [" << res->getId() << " = PHI(";
     for(PHIVFGNode::OPVers::const_iterator it = opVerBegin(), eit = opVerEnd();
             it != eit; it++)
         rawstr << it->second->getId() << ", ";
     rawstr << ")]\t";
     if(res->hasValue()){
-        rawstr << " " << *res->getValue();
-        rawstr << SVFUtil::getSourceLoc(res->getValue());
+        rawstr << " " << value2String(res->getValue());
     }
     return rawstr.str();
 }
@@ -156,14 +151,13 @@ const std::string IntraPHIVFGNode::toString() const {
     std::string str;
     raw_string_ostream rawstr(str);
     rawstr << "IntraPHIVFGNode ID: " << getId() << " ";
-    rawstr << "PAGEdge: [" << res->getId() << " = PHI(";
+    rawstr << "PAGNode: [" << res->getId() << " = PHI(";
     for(PHIVFGNode::OPVers::const_iterator it = opVerBegin(), eit = opVerEnd();
             it != eit; it++)
         rawstr << it->second->getId() << ", ";
     rawstr << ")]\t";
     if(res->hasValue()){
-        rawstr << " " << *res->getValue();
-        rawstr << SVFUtil::getSourceLoc(res->getValue());
+        rawstr << " " << value2String(res->getValue());
     }
     return rawstr.str();
 }
@@ -230,9 +224,9 @@ const std::string InterPHIVFGNode::toString() const {
     std::string str;
     raw_string_ostream rawstr(str);
     if(isFormalParmPHI())
-        rawstr << "FormalParmPHI ID: " << getId() << " PAGNode ID: " << res->getId() << "\n" << *res->getValue();
+        rawstr << "FormalParmPHI ID: " << getId() << " PAGNode ID: " << res->getId() << "\n" << value2String(res->getValue());
     else
-        rawstr << "ActualRetPHI ID: " << getId() << " PAGNode ID: " << res->getId() << "\n" << *res->getValue();
+        rawstr << "ActualRetPHI ID: " << getId() << " PAGNode ID: " << res->getId() << "\n" << value2String(res->getValue());
     return rawstr.str();
 }
 
@@ -302,7 +296,7 @@ PHIVFGNode::PHIVFGNode(NodeID id, const PAGNode* r,VFGNodeK k): VFGNode(id, k), 
  * 2) connect VFG edges
  *    between two statements (PAGEdges)
  */
-VFG::VFG(PTACallGraph* cg, VFGK k): totalVFGNode(0), callgraph(cg), pag(PAG::getPAG()), kind(k), dumpVFG(false)
+VFG::VFG(PTACallGraph* cg, VFGK k): totalVFGNode(0), callgraph(cg), pag(PAG::getPAG()), kind(k)
 {
 
     DBOUT(DGENERAL, outs() << pasMsg("\tCreate VFG Top Level Node\n"));
@@ -317,7 +311,7 @@ VFG::VFG(PTACallGraph* cg, VFGK k): totalVFGNode(0), callgraph(cg), pag(PAG::get
  */
 void VFG::destroy()
 {
-    pag = NULL;
+    pag = nullptr;
 }
 
 
@@ -525,12 +519,16 @@ VFGEdge* VFG::addIntraDirectVFEdge(NodeID srcId, NodeID dstId)
     if(VFGEdge* edge = hasIntraVFGEdge(srcNode,dstNode, VFGEdge::IntraDirectVF))
     {
         assert(edge->isDirectVFGEdge() && "this should be a direct value flow edge!");
-        return NULL;
+        return nullptr;
     }
     else
     {
-        IntraDirSVFGEdge* directEdge = new IntraDirSVFGEdge(srcNode,dstNode);
-        return (addVFGEdge(directEdge) ? directEdge : NULL);
+    	if(srcNode!=dstNode){
+    		IntraDirSVFGEdge* directEdge = new IntraDirSVFGEdge(srcNode,dstNode);
+    		return (addVFGEdge(directEdge) ? directEdge : nullptr);
+    	}
+    	else
+    		return nullptr;
     }
 }
 
@@ -544,12 +542,12 @@ VFGEdge* VFG::addCallEdge(NodeID srcId, NodeID dstId, CallSiteID csId)
     if(VFGEdge* edge = hasInterVFGEdge(srcNode,dstNode, VFGEdge::CallDirVF,csId))
     {
         assert(edge->isCallDirectVFGEdge() && "this should be a direct value flow edge!");
-        return NULL;
+        return nullptr;
     }
     else
     {
         CallDirSVFGEdge* callEdge = new CallDirSVFGEdge(srcNode,dstNode,csId);
-        return (addVFGEdge(callEdge) ? callEdge : NULL);
+        return (addVFGEdge(callEdge) ? callEdge : nullptr);
     }
 }
 
@@ -563,12 +561,12 @@ VFGEdge* VFG::addRetEdge(NodeID srcId, NodeID dstId, CallSiteID csId)
     if(VFGEdge* edge = hasInterVFGEdge(srcNode,dstNode, VFGEdge::RetDirVF,csId))
     {
         assert(edge->isRetDirectVFGEdge() && "this should be a direct value flow edge!");
-        return NULL;
+        return nullptr;
     }
     else
     {
         RetDirSVFGEdge* retEdge = new RetDirSVFGEdge(srcNode,dstNode,csId);
-        return (addVFGEdge(retEdge) ? retEdge : NULL);
+        return (addVFGEdge(retEdge) ? retEdge : nullptr);
     }
 }
 
@@ -666,25 +664,27 @@ void VFG::connectDirectVFGEdges()
     }
 
     /// connect direct value-flow edges (parameter passing) for thread fork/join
-    /// add fork edge
-    PAGEdge::PAGEdgeSetTy& forks = getPAGEdgeSet(PAGEdge::ThreadFork);
-    for (PAGEdge::PAGEdgeSetTy::iterator iter = forks.begin(), eiter =
+    if(Options::EnableThreadCallGraph){
+        /// add fork edge
+        PAGEdge::PAGEdgeSetTy& forks = getPAGEdgeSet(PAGEdge::ThreadFork);
+        for (PAGEdge::PAGEdgeSetTy::iterator iter = forks.begin(), eiter =
                 forks.end(); iter != eiter; ++iter)
-    {
-        TDForkPE* forkedge = SVFUtil::cast<TDForkPE>(*iter);
-        ActualParmVFGNode* acutalParm = getActualParmVFGNode(forkedge->getSrcNode(),forkedge->getCallSite());
-        FormalParmVFGNode* formalParm = getFormalParmVFGNode(forkedge->getDstNode());
-        addInterEdgeFromAPToFP(acutalParm,formalParm,getCallSiteID(forkedge->getCallSite(), formalParm->getFun()));
-    }
-    /// add join edge
-    PAGEdge::PAGEdgeSetTy& joins = getPAGEdgeSet(PAGEdge::ThreadJoin);
-    for (PAGEdge::PAGEdgeSetTy::iterator iter = joins.begin(), eiter =
+        {
+            TDForkPE* forkedge = SVFUtil::cast<TDForkPE>(*iter);
+            ActualParmVFGNode* acutalParm = getActualParmVFGNode(forkedge->getSrcNode(),forkedge->getCallSite());
+            FormalParmVFGNode* formalParm = getFormalParmVFGNode(forkedge->getDstNode());
+            addInterEdgeFromAPToFP(acutalParm,formalParm,getCallSiteID(forkedge->getCallSite(), formalParm->getFun()));
+        }
+        /// add join edge
+        PAGEdge::PAGEdgeSetTy& joins = getPAGEdgeSet(PAGEdge::ThreadJoin);
+        for (PAGEdge::PAGEdgeSetTy::iterator iter = joins.begin(), eiter =
                 joins.end(); iter != eiter; ++iter)
-    {
-        TDJoinPE* joinedge = SVFUtil::cast<TDJoinPE>(*iter);
-        NodeID callsiteRev = getDef(joinedge->getDstNode());
-        FormalRetVFGNode* calleeRet = getFormalRetVFGNode(joinedge->getSrcNode());
-        addRetEdge(calleeRet->getId(),callsiteRev, getCallSiteID(joinedge->getCallSite(), calleeRet->getFun()));
+        {
+            TDJoinPE* joinedge = SVFUtil::cast<TDJoinPE>(*iter);
+            NodeID callsiteRev = getDef(joinedge->getDstNode());
+            FormalRetVFGNode* calleeRet = getFormalRetVFGNode(joinedge->getSrcNode());
+            addRetEdge(calleeRet->getId(),callsiteRev, getCallSiteID(joinedge->getCallSite(), calleeRet->getFun()));
+        }
     }
 }
 
@@ -702,7 +702,7 @@ VFGEdge* VFG::hasIntraVFGEdge(VFGNode* src, VFGNode* dst, VFGEdge::VFGEdgeK kind
         return outEdge;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 
@@ -720,7 +720,7 @@ VFGEdge* VFG::hasThreadVFGEdge(VFGNode* src, VFGNode* dst, VFGEdge::VFGEdgeK kin
         return outEdge;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 /*!
@@ -737,30 +737,16 @@ VFGEdge* VFG::hasInterVFGEdge(VFGNode* src, VFGNode* dst, VFGEdge::VFGEdgeK kind
         return outEdge;
     }
     else
-        return NULL;
+        return nullptr;
 }
 
 
 /*!
  * Return the corresponding VFGEdge
  */
-VFGEdge* VFG::getVFGEdge(const VFGNode* src, const VFGNode* dst, VFGEdge::VFGEdgeK kind)
+VFGEdge* VFG::getIntraVFGEdge(const VFGNode* src, const VFGNode* dst, VFGEdge::VFGEdgeK kind)
 {
-
-    VFGEdge * edge = NULL;
-    Size_t counter = 0;
-    for (VFGEdge::VFGEdgeSetTy::iterator iter = src->OutEdgeBegin();
-            iter != src->OutEdgeEnd(); ++iter)
-    {
-        if ((*iter)->getDstID() == dst->getId() && (*iter)->getEdgeKind() == kind)
-        {
-            counter++;
-            edge = (*iter);
-        }
-    }
-    assert(counter <= 1 && "there's more than one edge between two VFG nodes");
-    return edge;
-
+    return hasIntraVFGEdge(const_cast<VFGNode*>(src),const_cast<VFGNode*>(dst),kind);
 }
 
 
@@ -770,6 +756,14 @@ VFGEdge* VFG::getVFGEdge(const VFGNode* src, const VFGNode* dst, VFGEdge::VFGEdg
 void VFG::dump(const std::string& file, bool simple)
 {
     GraphPrinter::WriteGraphToFile(outs(), file, this, simple);
+}
+
+/*!
+ * View VFG from the debugger.
+ */
+void VFG::view()
+{
+    llvm::ViewGraph(this, "Value Flow Graph");
 }
 
 
@@ -876,7 +870,7 @@ const PAGNode* VFG::getLHSTopLevPtr(const VFGNode* node) const
         return nullVFG->getPAGNode();
     else
         assert(false && "unexpected node kind!");
-    return NULL;
+    return nullptr;
 }
 
 /*!
@@ -893,7 +887,7 @@ const SVFFunction* VFG::isFunEntryVFGNode(const VFGNode* node) const
         if(phi->isFormalParmPHI())
             return phi->getFun();
     }
-    return NULL;
+    return nullptr;
 }
 
 
@@ -1025,6 +1019,10 @@ struct DOTGraphTraits<VFG*> : public DOTGraphTraits<PAG*>
         {
             rawstr << fr->toString();
         }
+        else if (MRSVFGNode* mr = SVFUtil::dyn_cast<MRSVFGNode>(node))
+        {
+            rawstr << mr->toString();
+        }
         else
             assert(false && "what else kinds of nodes do we have??");
 
@@ -1091,19 +1089,23 @@ struct DOTGraphTraits<VFG*> : public DOTGraphTraits<PAG*>
         }
         else if(SVFUtil::isa<FormalParmVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if(SVFUtil::isa<ActualParmVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if (SVFUtil::isa<ActualRetVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
         }
         else if (SVFUtil::isa<FormalRetVFGNode>(node))
         {
-            rawstr <<  "color=yellow,style=double";
+            rawstr <<  "color=yellow,penwidth=2";
+        }
+        else if (SVFUtil::isa<MRSVFGNode>(node))
+        {
+            rawstr <<  "color=orange,penwidth=2";
         }
         else
             assert(false && "no such kind of node!!");
@@ -1126,6 +1128,15 @@ struct DOTGraphTraits<VFG*> : public DOTGraphTraits<PAG*>
                 return "style=solid,color=blue";
             else
                 return "style=solid";
+        }
+        else if (SVFUtil::isa<IndirectSVFGEdge>(edge))
+        {
+            if (SVFUtil::isa<CallIndSVFGEdge>(edge))
+                return "style=dashed,color=red";
+            else if (SVFUtil::isa<RetIndSVFGEdge>(edge))
+                return "style=dashed,color=blue";
+            else
+                return "style=dashed";
         }
         else
         {

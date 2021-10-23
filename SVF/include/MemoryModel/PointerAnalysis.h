@@ -30,13 +30,16 @@
 #ifndef POINTERANALYSIS_H_
 #define POINTERANALYSIS_H_
 
+#include <unistd.h>
+#include <signal.h>
+
 #include "Graphs/PAG.h"
 #include "MemoryModel/ConditionalPT.h"
 #include "MemoryModel/AbstractPointsToDS.h"
 #include "MemoryModel/MutablePointsToDS.h"
+#include "MemoryModel/PersistentPointsToDS.h"
 #include "Graphs/PTACallGraph.h"
 #include "Util/SCC.h"
-#include "Util/PathCondAllocator.h"
 
 namespace SVF
 {
@@ -67,6 +70,7 @@ public:
         AndersenSFR_WPA,    ///< Stride-based field representation
         AndersenWaveDiff_WPA,	///< Diff wave propagation andersen-style WPA
         AndersenWaveDiffWithType_WPA,	///< Diff wave propagation with type info andersen-style WPA
+        Steensgaard_WPA,      ///< Steensgaard PTA
         CSCallString_WPA,	///< Call string based context sensitive WPA
         CSSummary_WPA,		///< Summary based context sensitive WPA
         FSDATAFLOW_WPA,	///< Traditional Dataflow-based flow sensitive WPA
@@ -160,6 +164,10 @@ protected:
     TypeSystem *typeSystem;
 
 public:
+	/// Get ICFG
+	inline ICFG* getICFG() const {
+		return pag->getICFG();
+	}
     /// Return number of resolved indirect call edges
     inline Size_t getNumOfResolvedIndCallEdge() const
     {
@@ -394,7 +402,7 @@ public:
     //@}
 
     /// Resolve indirect call edges
-    virtual void resolveIndCalls(const CallBlockNode* cs, const PointsTo& target, CallEdgeMap& newEdges,LLVMCallGraph* callgraph = NULL);
+    virtual void resolveIndCalls(const CallBlockNode* cs, const PointsTo& target, CallEdgeMap& newEdges,LLVMCallGraph* callgraph = nullptr);
     /// Match arguments for callsite at caller and callee
     bool matchArgs(const CallBlockNode* cs, const SVFFunction* callee);
 
@@ -403,7 +411,7 @@ public:
     /// CallGraph SCC detection
     inline void callGraphSCCDetection()
     {
-        if(callGraphSCC==NULL)
+        if(callGraphSCC==nullptr)
             callGraphSCC = new CallGraphSCC(ptaCallGraph);
 
         callGraphSCC->find();

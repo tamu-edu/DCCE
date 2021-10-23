@@ -24,7 +24,7 @@ class MTAAnnotator: public Annotator
 public:
     typedef Set<const Instruction*> InstSet;
     /// Constructor
-    MTAAnnotator(): mhp(NULL),lsa(NULL)
+    MTAAnnotator(): mhp(nullptr),lsa(nullptr)
     {
         numOfAllSt = 0;
         numOfAllLd = 0;
@@ -70,14 +70,14 @@ public:
     /// Check if Function "F" is memset
     inline bool isMemset(const Instruction *I)
     {
-        const Function* F =SVFUtil::getCallee(I);
+        const Function* F =SVFUtil::getCallee(I)->getLLVMFun();
         return F && F->getName().find("llvm.memset") != StringRef::npos;
     }
 
     /// Check if Function "F" is memcpy
     inline bool isMemcpy(const Instruction *I)
     {
-        const Function* F =SVFUtil::getCallee(I);
+        const SVFFunction* F =SVFUtil::getCallee(I);
         return F && ExtAPI::EFT_L_A0__A0R_A1R == ExtAPI::getExtAPI()->get_type(F);
     }
 

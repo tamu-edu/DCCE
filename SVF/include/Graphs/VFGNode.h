@@ -55,7 +55,7 @@ public:
     {
         Addr, Copy, Gep, Store, Load, Cmp, BinaryOp, UnaryOp, TPhi, TIntraPhi, TInterPhi,
         MPhi, MIntraPhi, MInterPhi, FRet, ARet, AParm, FParm,
-        FunRet, APIN, APOUT, FPIN, FPOUT, NPtr
+        FunRet, APIN, APOUT, FPIN, FPOUT, NPtr, DummyVProp
     };
 
     typedef VFGEdge::VFGEdgeSetTy::iterator iterator;
@@ -65,7 +65,7 @@ public:
 
 public:
     /// Constructor
-    VFGNode(NodeID i, VFGNodeK k): GenericVFGNodeTy(i,k), icfgNode(NULL)
+    VFGNode(NodeID i, VFGNodeK k): GenericVFGNodeTy(i,k), icfgNode(nullptr)
     {
 
     }
@@ -86,6 +86,12 @@ public:
     virtual const SVFFunction* getFun() const
     {
         return icfgNode->getFun();
+    }
+
+    /// Return the corresponding LLVM value, if possible, nullptr otherwise.
+    virtual const Value* getValue() const
+    {
+        return nullptr;
     }
 
     /// Overloading operator << for dumping ICFG node ID
@@ -182,7 +188,8 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const Value* getValue() const override;
+    const std::string toString() const override;
 };
 
 /*!
@@ -221,7 +228,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 /*!
@@ -260,7 +267,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 /*!
@@ -299,7 +306,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 
@@ -347,7 +354,7 @@ public:
     inline const PAGNode* getOpVer(u32_t pos) const
     {
         OPVers::const_iterator it = opVers.find(pos);
-        assert(it!=opVers.end() && "version is NULL, did not rename?");
+        assert(it!=opVers.end() && "version is nullptr, did not rename?");
         return it->second;
     }
     inline void setOpVer(u32_t pos, const PAGNode* node)
@@ -371,7 +378,8 @@ public:
         return opVers.end();
     }
     //@}
-    virtual const std::string toString() const;
+    const Value* getValue() const override;
+    const std::string toString() const override;
 };
 
 
@@ -418,7 +426,7 @@ public:
     inline const PAGNode* getOpVer(u32_t pos) const
     {
         OPVers::const_iterator it = opVers.find(pos);
-        assert(it!=opVers.end() && "version is NULL, did not rename?");
+        assert(it!=opVers.end() && "version is nullptr, did not rename?");
         return it->second;
     }
     inline void setOpVer(u32_t pos, const PAGNode* node)
@@ -443,7 +451,8 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const Value* getValue() const override;
+    const std::string toString() const override;
 };
 
 /*!
@@ -491,7 +500,7 @@ public:
     inline const PAGNode* getOpVer(u32_t pos) const
     {
         OPVers::const_iterator it = opVers.find(pos);
-        assert(it!=opVers.end() && "version is NULL, did not rename?");
+        assert(it!=opVers.end() && "version is nullptr, did not rename?");
         return it->second;
     }
     inline void setOpVer(u32_t pos, const PAGNode* node)
@@ -555,7 +564,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 /*
@@ -585,7 +594,7 @@ public:
     inline const PAGNode* getOpVer(u32_t pos) const
     {
         OPVers::const_iterator it = opVers.find(pos);
-        assert(it!=opVers.end() && "version is NULL, did not rename?");
+        assert(it!=opVers.end() && "version is nullptr, did not rename?");
         return it->second;
     }
     inline void setOpVer(u32_t pos, const PAGNode* node)
@@ -626,7 +635,8 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const Value* getValue() const override;
+    const std::string toString() const override;
 };
 
 
@@ -650,7 +660,7 @@ public:
     inline const ICFGNode* getOpIncomingBB(u32_t pos) const
     {
         OPIncomingBBs::const_iterator it = opIncomingBBs.find(pos);
-        assert(it!=opIncomingBBs.end() && "version is NULL, did not rename?");
+        assert(it!=opIncomingBBs.end() && "version is nullptr, did not rename?");
         return it->second;
     }
     inline void setOpVerAndBB(u32_t pos, const PAGNode* node, const ICFGNode* bb)
@@ -679,7 +689,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 
@@ -716,7 +726,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 
@@ -760,7 +770,8 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const Value* getValue() const override;
+    const std::string toString() const override;
 };
 
 /*
@@ -809,7 +820,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 
@@ -836,7 +847,7 @@ public:
     }
 
     /// Return function
-    inline const SVFFunction* getFun() const
+    inline const SVFFunction* getFun() const override
     {
         return fun;
     }
@@ -877,7 +888,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 /*!
@@ -933,7 +944,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 /*!
@@ -959,7 +970,7 @@ public:
         return param;
     }
     /// Function
-    inline const SVFFunction* getFun() const
+    inline const SVFFunction* getFun() const override
     {
         return fun;
     }
@@ -997,7 +1008,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 /*
@@ -1008,21 +1019,21 @@ class InterPHIVFGNode : public PHIVFGNode
 
 public:
     /// Constructor interPHI for formal parameter
-    InterPHIVFGNode(NodeID id, const FormalParmVFGNode* fp) : PHIVFGNode(id, fp->getParam(), TInterPhi),fun(fp->getFun()),callInst(NULL) {}
+    InterPHIVFGNode(NodeID id, const FormalParmVFGNode* fp) : PHIVFGNode(id, fp->getParam(), TInterPhi),fun(fp->getFun()),callInst(nullptr) {}
     /// Constructor interPHI for actual return
     InterPHIVFGNode(NodeID id, const ActualRetVFGNode* ar) : PHIVFGNode(id, ar->getRev(), TInterPhi), fun(ar->getCaller()),callInst(ar->getCallSite()) {}
 
     inline bool isFormalParmPHI() const
     {
-        return (fun!=NULL) && (callInst == NULL);
+        return (fun!=nullptr) && (callInst == nullptr);
     }
 
     inline bool isActualRetPHI() const
     {
-        return (fun!=NULL) && (callInst != NULL);
+        return (fun!=nullptr) && (callInst != nullptr);
     }
 
-    inline const SVFFunction* getFun() const
+    inline const SVFFunction* getFun() const override
     {
         assert((isFormalParmPHI() || isActualRetPHI())  && "expect a formal parameter phi");
         return fun;
@@ -1054,7 +1065,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 
 private:
     const SVFFunction* fun;
@@ -1102,7 +1113,7 @@ public:
     }
     //@}
 
-    virtual const std::string toString() const;
+    const std::string toString() const override;
 };
 
 } // End namespace SVF

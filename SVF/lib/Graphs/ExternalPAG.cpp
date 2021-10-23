@@ -74,7 +74,8 @@ bool ExternalPAG::connectCallsiteToExternalPAG(CallSite *cs)
     PAG *pag = PAG::getPAG();
 
     Function* function = cs->getCalledFunction();
-    std::string functionName = function->getName();
+    std::string functionName = function->getName().str();
+
     const SVFFunction* svfFun = LLVMModuleSet::getLLVMModuleSet()->getSVFFunction(function);
     if (!hasExternalPAG(svfFun)) return false;
 
@@ -89,7 +90,7 @@ bool ExternalPAG::connectCallsiteToExternalPAG(CallSite *cs)
         // Does it actually return a pointer?
         if (SVFUtil::isa<PointerType>(function->getReturnType()))
         {
-            if (retNode != NULL)
+            if (retNode != nullptr)
             {
                 CallBlockNode* icfgNode = pag->getICFG()->getCallBlockNode(cs->getInstruction());
                 pag->addRetPE(retNode->getId(), dstrec, icfgNode);
@@ -275,10 +276,10 @@ void ExternalPAG::dumpFunctions(std::vector<std::string> functions)
             :: Function* currFunction =
                 static_cast<const CallInst *>(inst)->getCalledFunction();
 
-            if (currFunction != NULL)
+            if (currFunction != nullptr)
             {
                 // Otherwise, it would be an indirect call which we don't want.
-                std::string currFunctionName = currFunction->getName();
+                std::string currFunctionName = currFunction->getName().str();
 
                 if (std::find(functions.begin(), functions.end(),
                               currFunctionName) != functions.end())
@@ -300,7 +301,7 @@ void ExternalPAG::dumpFunctions(std::vector<std::string> functions)
             ++it)
     {
         const SVFFunction* function = it->first;
-        std::string functionName = it->first->getName();
+        std::string functionName = it->first->getName().str();
 
         // The final nodes and edges we will print.
         Set<PAGNode *> nodes;
@@ -309,7 +310,7 @@ void ExternalPAG::dumpFunctions(std::vector<std::string> functions)
         std::stack<PAGNode *> todoNodes;
         // The arguments to the function.
         std::vector<PAGNode *> argNodes = it->second;
-        PAGNode *retNode = NULL;
+        PAGNode *retNode = nullptr;
 
 
         outs() << "PAG for function: " << functionName << "\n";
@@ -377,7 +378,7 @@ bool ExternalPAG::addExternalPAG(const SVFFunction* function)
 {
     // The function does not exist in the module - bad arg?
     // TODO: maybe some warning?
-    if (function == NULL) return false;
+    if (function == nullptr) return false;
 
     PAG *pag = PAG::getPAG();
     if (hasExternalPAG(function)) return false;
@@ -441,7 +442,7 @@ bool ExternalPAG::addExternalPAG(const SVFFunction* function)
         }
         else if (extEdgeType == "store")
         {
-            pag->addStorePE(srcId, dstId, NULL);
+            pag->addStorePE(srcId, dstId, nullptr);
         }
         else if (extEdgeType == "gep")
         {
@@ -453,11 +454,11 @@ bool ExternalPAG::addExternalPAG(const SVFFunction* function)
         }
         else if (extEdgeType == "call")
         {
-            pag->addEdge(srcNode, dstNode, new CallPE(srcNode, dstNode, NULL));
+            pag->addEdge(srcNode, dstNode, new CallPE(srcNode, dstNode, nullptr));
         }
         else if (extEdgeType == "ret")
         {
-            pag->addEdge(srcNode, dstNode, new RetPE(srcNode, dstNode, NULL));
+            pag->addEdge(srcNode, dstNode, new RetPE(srcNode, dstNode, nullptr));
         }
         else if (extEdgeType == "cmp")
         {

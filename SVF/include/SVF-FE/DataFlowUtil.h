@@ -44,12 +44,12 @@ class PTASCEV
 {
 
 public:
-    PTASCEV():scev(NULL), start(NULL), step(NULL),ptr(NULL),inloop(false),tripcount(0) {}
+    PTASCEV():scev(nullptr), start(nullptr), step(nullptr),ptr(nullptr),inloop(false),tripcount(0) {}
 
     /// Constructor
-    PTASCEV(const Value* p, const SCEV* s, ScalarEvolution* SE): scev(s),start(NULL), step(NULL), ptr(p), inloop(false), tripcount(0)
+    PTASCEV(const Value* p, const SCEV* s, ScalarEvolution* SE): scev(s),start(nullptr), step(nullptr), ptr(p), inloop(false), tripcount(0)
     {
-        if(const SCEVAddRecExpr* ar = SVFUtil::dyn_cast<SCEVAddRecExpr>(s))
+        /*if(const SCEVAddRecExpr* ar = SVFUtil::dyn_cast<SCEVAddRecExpr>(s))
         {
             if (const SCEVConstant *startExpr = SVFUtil::dyn_cast<SCEVConstant>(ar->getStart()))
                 start = startExpr->getValue();
@@ -57,7 +57,8 @@ public:
                 step = stepExpr->getValue();
             tripcount = SE->getSmallConstantTripCount(const_cast<Loop*>(ar->getLoop()));
             inloop = true;
-        }
+        }*/
+        inloop = false;
     }
     /// Copy Constructor
     PTASCEV(const PTASCEV& ptase): scev(ptase.scev), start(ptase.start), step(ptase.step), ptr(ptase.ptr), inloop(ptase.inloop),tripcount(ptase.tripcount)
@@ -160,7 +161,7 @@ public:
     static char ID;
 
     IteratedDominanceFrontier() :
-        DominanceFrontierBase(), DF(NULL)
+        DominanceFrontierBase(), DF(nullptr)
     {
     }
 

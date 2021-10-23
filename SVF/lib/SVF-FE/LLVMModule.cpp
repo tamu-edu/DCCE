@@ -27,11 +27,12 @@
  *      Author: Xiaokang Fan
  */
 
+#include "Util/Options.h"
 #include <queue>
 #include "Util/SVFModule.h"
 #include "Util/SVFUtil.h"
 #include "SVF-FE/LLVMUtil.h"
-#include "SVF-FE/SymbolTableInfo.h"
+#include "SVF-FE/BreakConstantExpr.h"
 
 using namespace std;
 using namespace SVF;
@@ -53,11 +54,7 @@ using namespace SVF;
 #define SVF_MAIN_FUNC_NAME           "svf.main"
 #define SVF_GLOBAL_SUB_I_XXX          "_GLOBAL__sub_I_"
 
-static llvm::cl::opt<std::string> Graphtxt("graphtxt", llvm::cl::value_desc("filename"),
-        llvm::cl::desc("graph txt file to build PAG"));
-static llvm::cl::opt<bool> SVFMain("svfmain", llvm::cl::init(false), llvm::cl::desc("add svf.main()"));
-
-LLVMModuleSet *LLVMModuleSet::llvmModuleSet = NULL;
+LLVMModuleSet *LLVMModuleSet::llvmModuleSet = nullptr;
 std::string SVFModule::pagReadFromTxt = "";
 
 SVFModule* LLVMModuleSet::buildSVFModule(Module &mod)
@@ -74,8 +71,84 @@ SVFModule* LLVMModuleSet::buildSVFModule(const std::vector<std::string> &moduleN
 {
     assert(llvmModuleSet && "LLVM Module set needs to be created!");
 
-    // We read PAG from LLVM IR
-    if(Graphtxt.getValue().empty())
+    loadModules(moduleNameVec);
+
+    if(!moduleNameVec.empty())
+        svfModule = new SVFModule(*moduleNameVec.begin());
+    else
+        svfModule = new SVFModule();
+
+    build();
+
+    return svfModule;
+}
+
+void LLVMModuleSet::preProcessBCs(std::vector<std::string> &moduleNameVec)
+{
+    loadModules(moduleNameVec);
+    prePassSchedule();
+
+    std::string preProcessSuffix = ".pre.bc";
+    // Get the existing module names, remove old extention, add preProcessSuffix
+    for (u32_t i = 0; i < moduleNameVec.size(); i++)
+    {
+        u32_t lastIndex = moduleNameVec[i].find_last_of("."); 
+        std::string rawName = moduleNameVec[i].substr(0, lastIndex);
+        moduleNameVec[i] = (rawName + preProcessSuffix);
+    }
+
+    dumpModulesToFile(preProcessSuffix);
+    preProcessed = true;
+
+    releaseLLVMModuleSet();
+}
+
+
+
+void LLVMModuleSet::build()
+{
+    initialize();
+    buildFunToFunMap();
+    buildGlobalDefToRepMap();
+    if(preProcessed==false)
+        prePassSchedule();
+}
+
+/*!
+ * Invoke llvm passes to modify module
+ */
+void LLVMModuleSet::prePassSchedule()
+{
+    /// BreakConstantGEPs Pass
+    std::unique_ptr<BreakConstantGEPs> p1 = std::make_unique<BreakConstantGEPs>();
+    for (u32_t i = 0; i < LLVMModuleSet::getLLVMModuleSet()->getModuleNum(); ++i)
+    {
+        Module *module = LLVMModuleSet::getLLVMModuleSet()->getModule(i);
+        p1->runOnModule(*module);
+    }
+
+    /// MergeFunctionRets Pass
+    std::unique_ptr<UnifyFunctionExitNodes> p2 =
+        std::make_unique<UnifyFunctionExitNodes>();
+    for (u32_t i = 0; i < LLVMModuleSet::getLLVMModuleSet()->getModuleNum(); ++i)
+    {
+        Module *module = LLVMModuleSet::getLLVMModuleSet()->getModule(i);
+        for (auto F = module->begin(), E = module->end(); F != E; ++F)
+        {
+            Function &fun = *F;
+            if (fun.isDeclaration())
+                continue;
+            p2->runOnFunction(fun);
+        }
+    }
+}
+
+
+void LLVMModuleSet::loadModules(const std::vector<std::string> &moduleNameVec)
+{
+
+        // We read PAG from LLVM IR
+    if(Options::Graphtxt.getValue().empty())
     {
         if(moduleNameVec.empty())
         {
@@ -86,36 +159,8 @@ SVFModule* LLVMModuleSet::buildSVFModule(const std::vector<std::string> &moduleN
     }
     // We read PAG from a user-defined txt instead of parsing PAG from LLVM IR
     else
-        SVFModule::setPagFromTXT(Graphtxt.getValue());
-
-    if(!moduleNameVec.empty())
-        svfModule = new SVFModule(*moduleNameVec.begin());
-    else
-        svfModule = new SVFModule();
-
-    loadModules(moduleNameVec);
-    build();
-
-    return svfModule;
-}
-
-void LLVMModuleSet::build()
-{
-    initialize();
-    buildFunToFunMap();
-    buildGlobalDefToRepMap();
-
-    if (!SVFModule::pagReadFromTXT()) {
-        /// building symbol table
-        DBOUT(DGENERAL,SVFUtil::outs() << SVFUtil::pasMsg("Building Symbol table ...\n"));
-        SymbolTableInfo *symInfo = SymbolTableInfo::Symbolnfo();
-        symInfo->buildMemModel(svfModule);
-    }
-
-}
-
-void LLVMModuleSet::loadModules(const std::vector<std::string> &moduleNameVec)
-{
+        SVFModule::setPagFromTXT(Options::Graphtxt.getValue());
+        
     //
     // To avoid the following type bugs (t1 != t3) when parsing multiple modules,
     // We should use only one LLVMContext object for multiple modules in the same thread.
@@ -149,7 +194,7 @@ void LLVMModuleSet::loadModules(const std::vector<std::string> &moduleNameVec)
 
 void LLVMModuleSet::initialize()
 {
-    if (SVFMain)
+    if (Options::SVFMain)
         addSVFMain();
 
     for (Module& mod : modules)
@@ -249,7 +294,7 @@ void LLVMModuleSet::addSVFMain()
 void LLVMModuleSet::buildFunToFunMap()
 {
     Set<Function*> funDecls, funDefs;
-    Set<string> declNames, defNames, intersectNames;
+    OrderedSet<string> declNames, defNames, intersectNames;
     typedef Map<string, Function*> NameToFunDefMapTy;
     typedef Map<string, Set<Function*>> NameToFunDeclsMapTy;
 
@@ -269,7 +314,7 @@ void LLVMModuleSet::buildFunToFunMap()
         }
     }
     // Find the intersectNames
-    Set<string>::iterator declIter, defIter;
+    OrderedSet<string>::iterator declIter, defIter;
     declIter = declNames.begin();
     defIter = defNames.begin();
     while (declIter != declNames.end() && defIter != defNames.end())

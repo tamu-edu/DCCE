@@ -276,7 +276,7 @@ public:
     inline const MRVer* getOpVer(u32_t pos) const
     {
         OPVers::const_iterator it = opVers.find(pos);
-        assert(it!=opVers.end() && "version is NULL, did not rename?");
+        assert(it!=opVers.end() && "version is nullptr, did not rename?");
         return it->second;
     }
     inline void setOpVer(u32_t pos, const MRVer* node)
@@ -372,18 +372,18 @@ class InterMSSAPHISVFGNode : public MSSAPHISVFGNode
 
 public:
     /// Constructor interPHI for formal parameter
-    InterMSSAPHISVFGNode(NodeID id, const FormalINSVFGNode* fi) : MSSAPHISVFGNode(id, fi->getEntryChi(), MInterPhi),fun(fi->getFun()),callInst(NULL) {}
+    InterMSSAPHISVFGNode(NodeID id, const FormalINSVFGNode* fi) : MSSAPHISVFGNode(id, fi->getEntryChi(), MInterPhi),fun(fi->getFun()),callInst(nullptr) {}
     /// Constructor interPHI for actual return
-    InterMSSAPHISVFGNode(NodeID id, const ActualOUTSVFGNode* ao) : MSSAPHISVFGNode(id, ao->getCallCHI(), MInterPhi), fun(NULL),callInst(ao->getCallSite()) {}
+    InterMSSAPHISVFGNode(NodeID id, const ActualOUTSVFGNode* ao) : MSSAPHISVFGNode(id, ao->getCallCHI(), MInterPhi), fun(nullptr),callInst(ao->getCallSite()) {}
 
     inline bool isFormalINPHI() const
     {
-        return (fun!=NULL) && (callInst == NULL);
+        return (fun!=nullptr) && (callInst == nullptr);
     }
 
     inline bool isActualOUTPHI() const
     {
-        return (fun==NULL) && (callInst != NULL);
+        return (fun==nullptr) && (callInst != nullptr);
     }
 
     inline const SVFFunction* getFun() const
@@ -428,6 +428,43 @@ private:
     const SVFFunction* fun;
     const CallBlockNode* callInst;
 };
+
+/*
+ * Dummy node which encodes propagation of an object/version pair.
+ */
+class DummyVersionPropSVFGNode : public VFGNode
+{
+public:
+    DummyVersionPropSVFGNode(NodeID id, NodeID object, Version version)
+        : VFGNode(id, DummyVProp), object(object), version(version)
+    { }
+
+    NodeID getObject(void) const { return object; }
+    Version getVersion(void) const { return version; }
+
+    /// Methods to support type inquiry through isa, cast, and dyn_cast:
+    //@{
+    static inline bool classof(const DummyVersionPropSVFGNode *)
+    {
+        return true;
+    }
+
+    static inline bool classof(const VFGNode *node)
+    {
+        return node->getNodeKind() == DummyVProp;
+    }
+
+    static inline bool classof(const GenericVFGNodeTy *node)
+    {
+        return node->getNodeKind() == DummyVProp;
+    }
+    //@}
+
+private:
+    const NodeID object;
+    const Version version;
+};
+
 
 } // End namespace SVF
 

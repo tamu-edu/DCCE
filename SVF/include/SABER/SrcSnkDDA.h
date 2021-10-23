@@ -74,29 +74,29 @@ protected:
 public:
 
     /// Constructor
-    SrcSnkDDA() : _curSlice(NULL), svfg(NULL), ptaCallGraph(NULL)
+    SrcSnkDDA() : _curSlice(nullptr), svfg(nullptr), ptaCallGraph(nullptr)
     {
         pathCondAllocator = new PathCondAllocator();
     }
     /// Destructor
     virtual ~SrcSnkDDA()
     {
-        if (svfg != NULL)
+        if (svfg != nullptr)
             delete svfg;
-        svfg = NULL;
+        svfg = nullptr;
 
-        if (_curSlice != NULL)
+        if (_curSlice != nullptr)
             delete _curSlice;
-        _curSlice = NULL;
+        _curSlice = nullptr;
 
         /// the following shared by multiple checkers, thus can not be released.
-        //if (ptaCallGraph != NULL)
+        //if (ptaCallGraph != nullptr)
         //    delete ptaCallGraph;
-        //ptaCallGraph = NULL;
+        //ptaCallGraph = nullptr;
 
         //if(pathCondAllocator)
         //    delete pathCondAllocator;
-        //pathCondAllocator = NULL;
+        //pathCondAllocator = nullptr;
     }
 
     /// Start analysis here
@@ -169,10 +169,21 @@ public:
     ///@{
     virtual void initSrcs() = 0;
     virtual void initSnks() = 0;
-    virtual bool isSourceLikeFun(const SVFFunction* fun) = 0;
-    virtual bool isSinkLikeFun(const SVFFunction* fun) = 0;
-    virtual bool isSource(const SVFGNode* node) = 0;
-    virtual bool isSink(const SVFGNode* node) = 0;
+    virtual bool isSourceLikeFun(const SVFFunction* fun) {
+        return false;
+    }
+
+    virtual bool isSinkLikeFun(const SVFFunction* fun) {
+        return false;
+    }
+
+    bool isSource(const SVFGNode* node) const {
+        return getSources().find(node)!=getSources().end();
+    }
+
+    bool isSink(const SVFGNode* node) const {
+        return getSinks().find(node)!=getSinks().end();
+    }
     ///@}
 
     /// Identify allocation wrappers

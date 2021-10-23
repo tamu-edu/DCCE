@@ -131,7 +131,7 @@ public:
     inline void clearMSSA()
     {
         delete mssa;
-        mssa = NULL;
+        mssa = nullptr;
     }
 
     /// Get SVFG memory SSA
@@ -158,12 +158,6 @@ public:
         return hasVFGNode(id);
     }
 
-    /// Get a SVFG edge according to src and dst
-    inline SVFGEdge* getSVFGEdge(const SVFGNode* src, const SVFGNode* dst, SVFGEdge::VFGEdgeK kind)
-    {
-        return getVFGEdge(src, dst, kind);
-    }
-
     /// Get all inter value flow edges of a indirect call site
     void getInterVFEdgesForIndirectCallSite(const CallBlockNode* cs, const SVFFunction* callee, SVFGEdgeSetTy& edges);
 
@@ -178,6 +172,11 @@ public:
     {
         return getSVFGNode(getDef(pagNode));
     }
+
+    /// Return the corresponding SVFGNodes to a given llvm::Value.
+    /// return an empty list, if the no mapping is possible
+    std::set<const SVFGNode*> fromValue(const llvm::Value* value) const;
+
 
     /// Perform statistics
     void performStat();
@@ -256,6 +255,17 @@ public:
         return nodeNum;
     }
 
+    /// Used *only* for Versioned FSPTA to encode propagation of versions
+    /// in the worklist (allowing for breadth-first propagation).
+    /// Returns the created node.
+    inline const DummyVersionPropSVFGNode *addDummyVersionPropSVFGNode(const NodeID object, const NodeID version)
+    {
+        DummyVersionPropSVFGNode *dvpNode = new DummyVersionPropSVFGNode(totalVFGNode++, object, version);
+        // Not going through add[S]VFGNode because we have no ICFG edge.
+        addGNode(dvpNode->getId(), dvpNode);
+        return dvpNode;
+    }
+
 protected:
     /// Add indirect def-use edges of a memory region between two statements,
     //@{
@@ -277,14 +287,14 @@ protected:
     virtual inline void connectAInAndFIn(const ActualINSVFGNode* actualIn, const FormalINSVFGNode* formalIn, CallSiteID csId, SVFGEdgeSetTy& edges)
     {
         SVFGEdge* edge = addInterIndirectVFCallEdge(actualIn, formalIn,csId);
-        if (edge != NULL)
+        if (edge != nullptr)
             edges.insert(edge);
     }
     /// Connect formal-out and actual-out
     virtual inline void connectFOutAndAOut(const FormalOUTSVFGNode* formalOut, const ActualOUTSVFGNode* actualOut, CallSiteID csId, SVFGEdgeSetTy& edges)
     {
         SVFGEdge* edge = addInterIndirectVFRetEdge(formalOut, actualOut,csId);
-        if (edge != NULL)
+        if (edge != nullptr)
             edges.insert(edge);
     }
     //@}
@@ -296,7 +306,7 @@ protected:
         SVFGNode* actualParam = getSVFGNode(getDef(cs_arg));
         SVFGNode* formalParam = getSVFGNode(getDef(fun_arg));
         SVFGEdge* edge = hasInterVFGEdge(actualParam, formalParam, SVFGEdge::CallDirVF, csId);
-        assert(edge != NULL && "Can not find inter value flow edge from aparam to fparam");
+        assert(edge != nullptr && "Can not find inter value flow edge from aparam to fparam");
         edges.insert(edge);
     }
 
@@ -305,7 +315,7 @@ protected:
         SVFGNode* formalRet = getSVFGNode(getDef(fun_ret));
         SVFGNode* actualRet = getSVFGNode(getDef(cs_ret));
         SVFGEdge* edge = hasInterVFGEdge(formalRet, actualRet, SVFGEdge::RetDirVF, csId);
-        assert(edge != NULL && "Can not find inter value flow edge from fret to aret");
+        assert(edge != nullptr && "Can not find inter value flow edge from fret to aret");
         edges.insert(edge);
     }
 
