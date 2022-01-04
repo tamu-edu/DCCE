@@ -6,11 +6,17 @@ export DCCE_ROOT=${PWD}
 export CPU2017_RUN_DIR=/data/share/whistle/cpu2017_run
 
 export SVF_ROOT=${DCCE_ROOT}/SVF
+export CCTLIB_ROOT=${DCCE_ROOT}/cctlib
 export CPU2017_ROOT=${DCCE_ROOT}/cpu2017
 export CCENC_ROOT=${DCCE_ROOT}/ccencoder
 export RTLIB_ROOT=${DCCE_ROOT}/runtime
 export ORG_BC_ROOT=${DCCE_ROOT}/bitcode
 export TEST_ROOT=${DCCE_ROOT}/tests
+
+##############
+# CCTLib
+##############
+export PIN_ROOT=${CCTLIB_ROOT}/pin-3.13-98189-g60a6ef199-gcc-linux
 
 ##############
 # SVF
