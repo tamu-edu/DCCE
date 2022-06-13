@@ -6,6 +6,9 @@
 
 cmake_minimum_required(VERSION 3.7)
 
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS on)
+
 include(../make/policies.cmake NO_POLICY_SCOPE)
 
 set(DynamoRIO_INTERNAL ON) # do not import dynamorio lib target

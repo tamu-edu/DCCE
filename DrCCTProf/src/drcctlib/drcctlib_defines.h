@@ -74,7 +74,8 @@
 
 #define THREAD_MAX_NUM 8192
 #define SPEEDUP_SUPPORT_THREAD_MAX_NUM 32
-// #define FOR_SPEC_TEST
+
+#define FOR_SPEC_TEST
 #ifdef FOR_SPEC_TEST
 #    define CONTEXT_HANDLE_MAX 2147483647L // max context handle num (1^31 - 1) cost 8GB()/16GB
 #else
@@ -143,5 +144,6 @@ typedef struct _inner_context_t {
      */
     struct _inner_context_t *pre_ctxt;
 } inner_context_t;
+
 
 #endif //_DRCCTLIB_GLOBAL_SHARE_H_

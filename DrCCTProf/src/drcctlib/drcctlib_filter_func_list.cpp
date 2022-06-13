@@ -23,3 +23,9 @@ drcctlib_filter_mem_access_instr(instr_t *instr)
 {
     return (instr_reads_memory(instr) || instr_writes_memory(instr));
 }
+
+bool
+drcctlib_filter_call_ret_instr(instr_t *instr)
+{
+    return (instr_is_call_direct(instr) || instr_is_call_indirect(instr) || instr_is_return(instr));
+}

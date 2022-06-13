@@ -41,6 +41,8 @@
 #include <mutex>
 #include <stack>
 #include <unordered_map>
+#include <memory>
+
 
 class invariant_checker_t : public analysis_tool_t {
 public:

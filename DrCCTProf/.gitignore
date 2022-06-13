@@ -18,3 +18,4 @@ proto/__pycache__
 .drcctprof/
 
 src/clients/drcctlib_standalone
+.cache
