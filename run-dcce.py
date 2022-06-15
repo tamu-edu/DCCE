@@ -7,18 +7,20 @@ import threading
 from subprocess import Popen, PIPE
 
 benches = [
-    #'600.perlbench_s',
-    #'605.mcf_s',
-    #'619.lbm_s',
-    #'620.omnetpp_s',
-    #'623.xalancbmk_s',
-    #'625.x264_s',
-    #'631.deepsjeng_s',
-    #'638.imagick_s',
-    #'641.leela_s',
-    #'644.nab_s',
-    #'657.xz_s',
-    '100.test',
+    '600.perlbench_s',
+    '605.mcf_s',
+    '619.lbm_s',
+    '620.omnetpp_s',
+    '623.xalancbmk_s',
+    '625.x264_s',
+    '631.deepsjeng_s',
+    '638.imagick_s',
+    '641.leela_s',
+    '644.nab_s',
+    '657.xz_s',
+    '100.test-pcce-fig-4',
+    '101.test-pcce-fig-5a',
+    '102.test-indirect-call',
     #'500.perlbench_r',
     ##'502.gcc_r',        # Link error
     #'505.mcf_r',
@@ -95,7 +97,9 @@ cmd_options = {
         '%s/644.nab_s/3j1n 20140317 220' % (os.getenv('CPU2017_RUN_DIR')),
         '657.xz_s': '%s/657.xz_s/cpu2006docs.tar.xz 6643 055ce243071129412e9dd0b3b69a21654033a9b723d874b2015c774fac1553d9713be561ca86f74e4f16f22e664fc17a79f30caa5ad2c04fbc447549c2810fae 1036078272 1111795472 4' % (os.getenv('CPU2017_RUN_DIR')),
         '998.specrand_is': '%s/998.specrans_is/1255432124 234923' % (os.getenv('CPU2017_RUN_DIR')),
-        '100.test': '',
+        '100.test-pcce-fig-4': '',
+        '101.test-pcce-fig-5a': '',
+        '102.test-indirect-call': '',
     }
 
 def run_cmd(cmd, log=None):
@@ -142,27 +146,9 @@ def run_ccenc(ccenc_dir, args):
     makedirs(ccenc_dir)
     threads = []
     for bench in benches:
-        cmd = 'python ccencoder/gen_calling_context.py %s/%s-final.cg ' \
-              '%s/%s.dot ' \
-              '%s/%s.cc ' \
-              '%s/%s.numcc ' \
-              '%s/%s.stats ' \
-              '%s/%s.conn ' \
-              '%s/%s.backedge ' \
-              '%s/%s.funcptr ' \
-              '%s %s %s' % \
-              (os.getenv('ORG_CG_DIR'), bench,
-              ccenc_dir, bench,
-              ccenc_dir, bench,
-              ccenc_dir, bench,
-              ccenc_dir, bench,
-              ccenc_dir, bench,
-              ccenc_dir, bench,
-              ccenc_dir, bench,
-              bench, 'main', args.ccenc)
-
-        log = '%s/%s.log' % (ccenc_dir, bench)
-
+        cmd = f'python ccencoder/gen_calling_context.py ' \
+            f'{os.getenv("ORG_CG_DIR")}/{bench}-final.cg {bench} main {args.ccenc} {ccenc_dir}'
+        log = f'{ccenc_dir}/{bench}.log'
         th = threading.Thread(target=run_cmd, args=(cmd, log))
         threads.append(th)
         th.start()
@@ -193,7 +179,14 @@ def run_make_exe(bin_dir, bc_dir, rtlib_dir):
     makedirs(bin_dir)
     threads = []
     for bench in benches:
-        if bench == '100.test':
+        #cmd = 'bash %s/common.clang++.make.out %s %s %s %s' % \
+        #        (os.getenv('CPU2017_MAKE_DIR'),
+        #        bc_dir,
+        #        bin_dir,
+        #        rtlib_dir,
+        #        bench)
+        #log = '%s/%s.log' % (bin_dir, bench)
+        if bench in ['100.test-pcce-fig-4', '101.test-pcce-fig-5a', '102.test-indirect-call',]:
             cmd = 'bash %s/test.make.out %s %s %s %s' % \
                     (os.getenv('CPU2017_MAKE_DIR'),
                     bc_dir,
@@ -319,7 +312,7 @@ if __name__== "__main__":
             help='clean all the output files.')
     parser.add_argument('-callgraph', action='store_true',
             help='run wpa to genrate callgph(.cg) file')
-    parser.add_argument('-ccenc', choices=['dcce', 'pcce', 'valence'],
+    parser.add_argument('-ccenc', choices=['dcce', 'pcce'],
             help='run calling context encoding with given method.')
     parser.add_argument('-instrument', choices=['base2', 'dcce', 'pcce', 'valence'],
             help='run wpa to instrument benchmarks.')

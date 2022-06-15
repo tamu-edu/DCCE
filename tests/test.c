@@ -19,7 +19,7 @@ void rec(int counter)
 void B()
 {
     rec(3);
-    D();
+    D(5);
     E();
 }
 

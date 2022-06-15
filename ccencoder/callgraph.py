@@ -1,3 +1,28 @@
+# https://github.com/pmatiello/python-graph
+# Copyright (c) 2008-2009 Pedro Matiello <pmatiello@gmail.com>
+#                         Salim Fadhley <sal@stodge.org>
+#
+# Permission is hereby granted, free of charge, to any person
+# obtaining a copy of this software and associated documentation
+# files (the "Software"), to deal in the Software without
+# restriction, including without limitation the rights to use,
+# copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following
+# conditions:
+
+# The above copyright notice and this permission notice shall be
+# included in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+# OTHER DEALINGS IN THE SOFTWARE.
+
 class basegraph( object ):
     """
     An abstract class intended as a common ancestor to all graph classes.
@@ -5,6 +30,7 @@ class basegraph( object ):
     if the object is one of any of the python-graph
     main classes.
     """
+
 class labeling( object ):
     """
     Generic labeling support for graphs
@@ -230,11 +256,109 @@ class labeling( object ):
 
         return nodes_eq() and edges_eq()
 
-class callgraph(basegraph, labeling):
+class common( object ):
+    """
+    Standard methods common to all graph classes.
+    
+    @sort: __eq__, __getitem__, __iter__, __len__, __repr__, __str__, add_graph, add_nodes,
+    add_spanning_tree, complete, inverse, order, reverse
+    """
+    
+    def __str__(self):
+        """
+        Return a string representing the graph when requested by str() (or print).
+
+        @rtype:  string
+        @return: String representing the graph.
+        """
+        str_nodes = repr( self.nodes() )
+        str_edges = repr( self.edges() )
+        return "%s %s" % ( str_nodes, str_edges )
+
+    def __repr__(self):
+        """
+        Return a string representing the graph when requested by repr()
+
+        @rtype:  string
+        @return: String representing the graph.
+        """
+        return "<%s.%s %s>" % ( self.__class__.__module__, self.__class__.__name__, str(self) )
+    
+    def __iter__(self):
+        """
+        Return a iterator passing through all nodes in the graph.
+        
+        @rtype:  iterator
+        @return: Iterator passing through all nodes in the graph.
+        """
+        for n in self.nodes():
+            yield n
+            
+    def __len__(self):
+        """
+        Return the order of self when requested by len().
+
+        @rtype:  number
+        @return: Size of the graph.
+        """
+        return self.order()
+    
+    def __getitem__(self, node):
+        """
+        Return a iterator passing through all neighbors of the given node.
+        
+        @rtype:  iterator
+        @return: Iterator passing through all neighbors of the given node.
+        """
+        for n in self.neighbors( node ):
+            yield n
+            
+    def order(self):
+        """
+        Return the order of self, this is defined as the number of nodes in the graph.
+
+        @rtype:  number
+        @return: Size of the graph.
+        """
+        return len(self.nodes())
+            
+            
+    def __eq__(self, other):
+        """
+        Return whether this graph is equal to another one.
+        
+        @type other: graph, digraph
+        @param other: Other graph or digraph
+        
+        @rtype: boolean
+        @return: Whether this graph and the other are equal.
+        """
+        
+        def nodes_eq():
+            for each in self:
+                if (not other.has_node(each)): return False
+            for each in other:
+                if (not self.has_node(each)): return False
+            return True
+        
+        def edges_eq():
+            for edge in self.edges():
+                if (not other.has_edge(edge)): return False
+            for edge in other.edges():
+                if (not self.has_edge(edge)): return False
+            return True
+        
+        try:
+            return nodes_eq() and edges_eq()
+        except AttributeError:
+            return False
+
+
+class callgraph(basegraph, common, labeling):
 
     DIRECTED = True
 
-    def __init__(self, root):
+    def __init__(self, root, node2id):
         """
         Initialize a digraph.
         """
@@ -244,6 +368,7 @@ class callgraph(basegraph, labeling):
         # Pairing: Node -> Incident nodes [ incident, callsite), ...]
         self.node_incidence = {}
         self.root = root
+        self.node2id = node2id
 
     def get_root(self):
         return self.root
@@ -420,7 +545,7 @@ class callgraph(basegraph, labeling):
         @rtype:  boolean
         @return: Truth-value for edge existence.
         """
-        tail, head, callsite = edge
+        tail, (head, callsite) = edge
         return (tail, head, callsite) in self.edge_properties
 
 
@@ -433,18 +558,109 @@ class callgraph(basegraph, labeling):
         """
         return len(self.neighbors(node))
 
+    def isBackEdge(self, e):
+        p, n, l = e
+        for u, v, cs in self.getBackEdges():
+            if (p == u) and (n == v) and (l == cs):
+                return True
+        return False
+
+    def getBackEdges(self):
+        try:
+            return self.back_edges
+        except AttributeError:
+            self.visited = {}
+            self.start_time = {}
+            self.end_time = {}
+            self.back_edges = []
+            self.time = 0
+
+            for n in self.nodes():
+                self.visited[n] = False
+                self.start_time[n] = 0
+                self.end_time[n] = 0
+
+            self.__getBackEdges(self.root)
+            return self.back_edges
+
+    def __getBackEdges(self, u):
+        self.visited[u] = True
+        self.start_time[u] = self.time
+        self.time += 1
+        #print(f'Visiting {u} {self.start_time[u]}/{self.end_time[u]}')
+
+        # edge (u,v)
+        for v, cs in self.neighbors(u):
+            if not self.visited[v]:
+                # Tree Edge
+                #print('Tree Edge:', str(u)+'-->'+str(v))
+                self.__getBackEdges(v)
+            else:
+                #print(f'Checking {u}({self.start_time[u]}/{self.end_time[u]})-->{v}({self.start_time[v]}/{self.end_time[v]}) ')
+
+                # Back Edge: It is an edge (u,v) such that v is an ancestor of node u but not part of DFS tree.
+                if self.start_time[u] > self.start_time[v] and self.end_time[v] == 0: 
+                    print('Back Edge:', str(u)+'-->'+str(v))
+                    self.back_edges.append((u, v, cs))
+                elif self.start_time[u] < self.start_time[v] and self.end_time[u] == 0:
+                    pass
+                    #print('Forward Edge:', str(u)+'-->'+str(v))
+                elif self.start_time[u] > self.start_time[v] and self.end_time[v] > 0:
+                    pass
+                    #print('Cross Edge:', str(u)+'-->'+str(v))
+                else:
+                    print('Unkwnon Type of Edge', str(u)+'-->'+str(v))
+            #print(f'Update end_time at {u} <-- {self.time}')
+            #self.end_time[u] = self.time
+        #print(f'Finished {u} at {self.time}')
+        self.end_time[u] = self.time
+        self.time += 1
+
+
+    def print_graph(self, msg):
+        print(f'---------------------------------')
+        print(f'Print graph {msg}')
+        print(f'---------------------------------')
+        for u in self.nodes():
+            for v, cs in self.neighbors(u):
+                wt = self.edge_weight((u,v,cs))
+                print(f'{u}:{v}:{cs}')
+
+    def get_node_with_max_neighbors(self):
+        max_neighbors = 0
+        node_with_max_neighbors = ''
+        for n in self.nodes():
+            num_neighbors = len(self.neighbors(n)) 
+            if num_neighbors > max_neighbors:
+                max_neighbors = num_neighbors
+                node_with_max_neighbors = n
+        return node_with_max_neighbors, max_neighbors
+            
+    def get_node_with_max_incidents(self):
+        max_incidents = 0
+        node_with_max_incidents = ''
+        for n in self.nodes():
+            num_incidents = len(self.incidents(n)) 
+            if num_incidents > max_incidents:
+                max_incidents = num_incidents
+                node_with_max_incidents = n
+        return node_with_max_incidents, max_incidents
+
+    def __eq__(self, other):
+        return common.__eq__(self, other) and labeling.__eq__(self, other)
+
+
 class pccegraph(callgraph):
 
-    def __init__(self, root):
+    def __init__(self, root, node2id):
         """
         Initialize a PCCEObj.
         """
-        callgraph.__init__(self, root)
+        callgraph.__init__(self, root, node2id)
         self.numCC = {}
-        self.visited = {}
-        self.stack = []
-        self.edgeList = []
-        self.dummyList = []
+        self.dummyNode = 'dummy-main'
+        self.dummyEdge = 'dummy-edge'
+        self.dummyEdgeID = 0
 
     def add_node(self, n):
         callgraph.add_node(self, n)
@@ -461,33 +677,51 @@ class pccegraph(callgraph):
             self.numCC[n] = 1
         else:
             self.numCC[n] = self.getnumCC(n) + self.getnumCC(p)
+        return self.numCC[n]
 
-    def sorted_nodes(self, N, E):
-        for tail in N:
-            self.visited[tail] = False
+    def sorted_nodes(self):
+        visited = {}
+        stack = []
+        for tail in self.nodes():
+            visited[tail] = False
 
-        for tail in N:
-            if tail != self.root:
-                continue
-            else:
-                if self.visited[tail] == False: 
-                    self.topoSort(tail, self.visited, self.stack)
-                    ### for dummy
-                    self.edgeList.append(tail)
-                    ####
-        return self.stack[::-1]
+        self.topoSort(self.root, visited, stack)
+        print(f'TopoSort: {stack[::-1]}')
+        return stack[::-1]
 
     def topoSort(self, n, visited, stack):
-        self.visited[n] = True
+        visited[n] = True
         for head, callsite in self.neighbors(n):
-            if self.visited[head] == False:
-                print("caller: %s -> callee: %s" %(n, head))
-                self.topoSort(head, self.visited, self.stack)
-            ### for dummy
-            elif head in self.edgeList:
-                self.dummyList.append([n, head, callsite])
-            ####
-                
+            if visited[head] == False:
+                self.topoSort(head, visited, stack)
+        stack.append(n)
 
-        self.stack.append(n)
-        
+    def getNextDummyEdge(self):
+        newDummyEdge = self.dummyEdge + str(self.dummyEdgeID)
+        self.dummyEdgeID += 1
+        return newDummyEdge
+
+    def addDummy(self):
+        self.add_node(self.dummyNode)
+        self.add_edge((self.dummyNode, self.root, self.getNextDummyEdge()))
+        self.numCC[self.root] = 0
+        self.root = self.dummyNode
+        self.numCC[self.root] = 1
+
+    def transform(self, edge):
+        u, v, cs = edge
+        # Get rid of edge from the graph
+        # Connect edge from dummy to v
+        self.del_edge(edge)
+        self.add_edge((self.dummyNode, v, self.getNextDummyEdge()))
+
+    def hasDummyEdge(self, v):
+        """Check if n has a dummy edge """
+        for u, cs in self.incidents(v):
+            #print(f'hasDummyEdge {u}--{cs}-->{v}')
+            if self.dummyEdge in cs:
+                return True
+        return False
+
+    def isDummyNode(self, n):
+        return n == self.dummyNode

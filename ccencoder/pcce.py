@@ -1,147 +1,92 @@
 from callgraph import callgraph as callgraph
+from callgraph import pccegraph as pccegraph
 import callgraph
 
 class pcce:
-    def __init__(self, c_cg):
-        self.pcceObj = c_cg
-        self.checkmain = 0
+    def __init__(self):
+        pass
 
-    def annotate_recursive(self, N, E):
-        NPrime = {}
-        EPrime = {}
-        for n in N:
-            NPrime[n].append(1)
-        for e in E:
-            EPrime[e].append((1, self.pcceObj.get_root(), 0))
-        for n in NPrime:
-            for e in EPrime:
-                if e in self.pcceObj.dummyList:
-            #for p, l in self.pcceObj.incidents(n):
-                    EPrime.remove(e)
-                    EPrime[e].append((1, n, 0))
-                    self.pcceObj.annotate(NPrime, EPrime)
+    def annotate_recursive(self, cg, dcg):
+        # make dummy node and edge
+        dcg.addDummy()
 
-    def instrument_recursive(self, N, E):
-        self.pcceObj.annotate_recursive(N, E)
-        for n in N:
-            Wt = 0
-            if NPrime[n] == True:
+        for e in cg.getBackEdges():
+            dcg.transform(e)
+        cg.print_graph('Original Graph')
+        dcg.print_graph('Transformed Graph')
+        self.annotate(dcg)
+
+    def instrument_recursive(self, cg, dcg):
+        """
+        cg: Original Graph
+        dcg: will be transformed. Must be equivalent to cg initially 
+        """
+        assert(cg == dcg)
+        self.annotate_recursive(cg, dcg)
+        print('----------------------------')
+        print('instrument_recursive')
+        print('----------------------------')
+        for n in cg.nodes():
+            if dcg.hasDummyEdge(n):
                 s = 1
             else:
                 s = 0
-            # edges should have a serial order to recognize backedges
             
-            for p, l in self.pcceObj.incidents(n):
-#                if e is not a backedge then:
-                if s is not 1:
-                    self.pcceObj.set_edge_weight((p, n, l), Wt)
-                    print("Weight: %d Caller: %s Callee: %s" % (Wt, p, n))
-                    Wt = Wt + self.pcceObj.numCC[p]                    
+            print(f'Checking {n} (has dummy edge: {s})')
+
+            for p, l in cg.incidents(n):
+                print(f'Checking ({p},{n},{l}) in {cg.getBackEdges()}')
+                if not cg.isBackEdge((p, n, l)):
+                    # insert id = id + s before l
+                    # insert id = id - s after l
+                    print(f'{p}--({s})--{n}')
+                    cg.set_edge_weight((p, n, l), s)
+                    s = s + dcg.getnumCC(p)
                 else:
-                    self.pcceObj.push(self.pcceObj.getnumCC(n), Wt)
-                    self.pcceObj.setnumCC(n, p, s)
-                    self.pcceObj.pop(self.pcceObj.getnumCC(n), Wt)
-#                    insert push(id, l) before l
-#                    insert id = 0 before l
-#                    insert id = pop().first after l
+                    cg.set_edge_weight((p, n, l), -1)
+                    print(f'{p}--(-1)--{n}')
+                    # insert push(<id, l>) before l
+                    # insert id = 0 before l
+                    # insert id = pop().first after l
 
-    def annotate(self, N, E):
+    def annotate(self, cg):
+        N = cg.sorted_nodes()
         for n in N:
-            for p, l in self.pcceObj.incidents(n):
-#               print("p: %s, s: %s" % (p, l))
-                self.pcceObj.setnumCC(n, p)
-                print("numCC: %d Caller: %s Callee: %s" % (self.pcceObj.getnumCC(n), p, n))
+            for p, l in cg.incidents(n):
+                cg.setnumCC(n, p)
 
-    def instrument(self, N, E):
-        N = self.pcceObj.sorted_nodes(N, E)
-        self.annotate(N, E)
-        for n in N:
-            Wt = 0
-            for p, l in self.pcceObj.incidents(n):
-                self.pcceObj.set_edge_weight((p, n, l), Wt)
-                print("Weight: %d Caller: %s Callee: %s" % (Wt, p, n))
-                Wt = Wt + self.pcceObj.numCC[p]
-#            id = id + getValueS()
-#                
-#            id = id - getValueS()
-#            insert id = id + s before l
-#            insert id = id - s after l
+    def instrument(self, cg):
+        self.annotate(cg)
+        for n in cg.nodes():
+            s = 0
+            for p, l in cg.incidents(n):
+                cg.set_edge_weight((p, n, l), s)
+                s = s + cg.numCC[p]
 
-#    def maxid(self, g, p):
-#        # node(unicode) -> max_id (int)
-#        self.max_id = {}
-#        # node(unicode) -> T/F (bool)
-#        self.visited = {}
-#        # stack to trace stack frame so as to eliminate recursive call
-#        self.call_stack = []
-#        self.call_stack2 = []
-#        self.back_edge = []
-#        self.back_edge_id = 0
-#        self.max_neighbors = 0
-#
-#        for n in g.nodes():
-#            self.max_id[n] = 0
-#            self.visited[n] = False
-#
-#
-#        n_not_visited = 0
-#        for n in g.nodes():
-#            g.add_node_attribute(n, ('label', n+':'+str(self.max_id[n])))
-#            if self.visited[n] == False:
-#                n_not_visited += 1
-#      
-#        print('not visited nodes: %d' % n_not_visited)
-#        self.__maxID(g, None, p, None)
-#        return self.max_id, self.back_edge, self.back_edge_id, self.max_neighbors
-#
-#
-#    # p: current node
-#    # n: one of neighbor nodes
-#    # l: edge from p to n
-#    def __maxID(self, g, q, p, r):
-#
-#        print("\nvisiting %s" % (p))
-#        self.call_stack.append(p)
-#        self.call_stack2.append((p, q, r))
-#
-#        self.max_id[p] = 0
-#        print("update0 %s.maxid=%d" %(p, self.max_id[p]))
-#        self.visited[p] = True
-#
-#        #print("num_neighbors of %s: %d" % (p, len(g.neighbors(p))))
-#        n_neighbors = len(g.neighbors(p))
-#        if n_neighbors > self.max_neighbors:
-#            self.max_neighbors = n_neighbors
-#        for n, cs in g.neighbors(p):
-#            if n in self.call_stack:
-#                str = ''
-#                add_id = False
-#                for caller, callee, callsite in self.call_stack2:
-#                    str += '%s -> ' % (caller)
-#                    if caller == p or add_id:
-#                        w = g.edge_weight((caller,callee,callsite))
-#                        self.back_edge_id += w
-#                        #print('add_id : %s:%s:%s:%d' %\
-#                        #        (caller,callee,callsite,w))
-#                        add_id = True
-#
-#                str = '%s%s' % (str, n)
-#                self.back_edge.append(str)
-#                continue
-#
-#            self.max_id[p] += 1
-#            print("update1 %s.maxid=%d" %(p, self.max_id[p]))
-#            print("insert %d on edge %s->%s" %(self.max_id[p], p, n))
-#
-#            g.set_edge_weight((p,n,cs), self.max_id[p])
-#            if not self.visited[n]:
-#                self.max_id[p] = self.__maxID(g, p,n,cs) + self.max_id[p]
-#                print("update2 %s.maxid=%d" %(p, self.max_id[p]))
-#            else:
-#                self.max_id[p] = self.max_id[p] + self.max_id[n]
-#                print("update3 %s.maxid=%d" %(p, self.max_id[p]))
-#
-#        print("poping %s ...\n" % p)
-#        self.call_stack.pop()
-#        self.call_stack2.pop()
-#        return self.max_id[p]
+    def write_cc(self, cg, filename):
+        print(f'---------------------------------')
+        print(f'Writing calling context file')
+        print(f'---------------------------------')
+        f = open(filename, 'w')
+        for u in cg.nodes():
+            if cg.isDummyNode(u): continue
+            for v, cs in cg.neighbors(u):
+                wt = cg.edge_weight((u,v,cs))
+                f.write(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
+                print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}')
+        f.close()
+
+    def write_numcc(self, cg, filename):
+        print(f'---------------------------------')
+        print(f'Writing ccnum')
+        print(f'---------------------------------')
+        max_id = 0
+        f = open(filename, 'w')
+        for n in cg.nodes():
+            numcc = cg.getnumCC(n)
+            f.write(f'{n}:{numcc}\n')
+            print(f'{n}:{numcc}')
+            if not cg.isDummyNode(n):
+                max_id += numcc
+        f.close()
+        return max_id

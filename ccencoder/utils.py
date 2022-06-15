@@ -28,17 +28,25 @@ def make_callgraph(input_cg, scheme, root):
             node2id[caller] = caller_id
             node2id[callee] = callee_id
 
-    if scheme == 'pcce':
-        c_cg = pccegraph(root)
+    c_cg = None
+    c_dcg = None
+    if scheme == 'pcce' or scheme == 'pcce-rec':
+        c_cg = pccegraph(root, node2id)
+        c_dcg = pccegraph(root, node2id)
     else:
-        c_cg = callgraph(root)
+        c_cg = callgraph(root, node2id)
+        c_dcg = callgraph(root, node2id)
+
     for node in c_nodes:
         c_cg.add_node(node)
+        c_dcg.add_node(node)
     for caller, callee, callsite in c_calls:
         c_cg.add_edge((caller,callee,callsite),
+                wt=0,label=callsite)
+        c_dcg.add_edge((caller,callee,callsite),
                 wt=0,label=callsite)
 
     #if remove_not_visited_node:
     #    utils.remove_not_visited_node(c_cg, args.root)
 
-    return c_cg, node2id
+    return c_cg, c_dcg, node2id

@@ -84,3 +84,8 @@ export VALENCE_RTLIB_BUILD_DIR=${VALENCE_RTLIB_DIR}/build
 export TEST_BUILD_DIR=${TEST_BUILD_DIR}/build
 
 #export CPU2017_BUILD_PATH=benchspec/CPU/${bench}/build/build_base_dcce-bitcode-m64.0000/
+
+##############
+# DrCCTLibProf
+#############
+export drrun=$PWD/DrCCTProf/build/bin64/drrun
