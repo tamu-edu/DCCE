@@ -30,7 +30,7 @@ def make_callgraph(input_cg, scheme, root):
 
     c_cg = None
     c_dcg = None
-    if scheme == 'pcce' or scheme == 'pcce-rec':
+    if scheme == 'pcce':
         c_cg = pccegraph(root, node2id)
         c_dcg = pccegraph(root, node2id)
     else:

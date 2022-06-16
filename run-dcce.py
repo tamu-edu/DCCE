@@ -33,9 +33,9 @@ benches = [
     #'557.xz_r',
     ##'503.bwaves_r',     # Fortran
     ##'507.cactuBSSN_r',  # Link error
-    #'508.namd_r',
+    '508.namd_r',
     ##'510.parest_r',     # Compile error
-    #'511.povray_r',
+    '511.povray_r',
     #'519.lbm_r',
     ##'521.wrf_r',        # Fortran
     ##'526.blender_r',
@@ -130,8 +130,19 @@ def run_callgraph():
     makedirs(os.getenv('ORG_CG_DIR'))
     threads = []
     for bench in benches:
-        cmd = 'wpa -ander -dump-callgraph %s/%s %s/%s.bc' \
-                % (os.getenv('ORG_CG_DIR'), bench, os.getenv('ORG_BC_ROOT'), bench)
+        cmd = f'wpa -ander -dump-callgraph {os.getenv("ORG_CG_DIR")}/{bench} {os.getenv("ORG_BC_ROOT")}/{bench}.bc'
+        log = '%s/%s.log' % (os.getenv('ORG_CG_DIR'), bench)
+
+        th = threading.Thread(target=run_cmd, args=(cmd, log))
+        threads.append(th)
+        th.start()
+
+    for th in threads:
+        th.join()
+
+    threads = []
+    for bench in benches:
+        cmd = f'python ccencoder/callgraph-stats.py {os.getenv("ORG_CG_DIR")}/{bench}-final.cg {bench} main {os.getenv("ORG_CG_DIR")}'
         log = '%s/%s.log' % (os.getenv('ORG_CG_DIR'), bench)
 
         th = threading.Thread(target=run_cmd, args=(cmd, log))

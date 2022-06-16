@@ -321,6 +321,9 @@ bool PTACallGraph::isReachableBetweenFunctions(const SVFFunction* srcFn, const S
  */
 void PTACallGraph::dump(const std::string& filename)
 {
+    //-----------------------------------------------------
+    // Call graph
+    //-----------------------------------------------------
     std::ofstream fout;
     fout.open(filename + ".cg");
 
@@ -335,7 +338,7 @@ void PTACallGraph::dump(const std::string& filename)
         PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
         PTACallGraphNode* calleeNode = getCallGraphNode(calleeFunc);
 
-        if (cbnode->isIndirectCall()) { continue; }  // indirect call
+        //if (cbnode->isIndirectCall()) { continue; }  // indirect call
         if (callerFunc == NULL) { printf("Caller of CSID:%d is null\n", csID); continue; }
         if (calleeFunc == NULL) { printf("Callee of CSID:%d is null\n", csID); continue; }
         if (callerFunc->isIntrinsic()) { continue; }
@@ -346,8 +349,44 @@ void PTACallGraph::dump(const std::string& filename)
         rawstr << callerNode->getId() << "-" << callerNode->getFunction()->getName()
             << ":" << calleeNode->getId() << "-" << calleeNode->getFunction()->getName()
             << ":" << csID;
+        if (cbnode->isIndirectCall()) {
+            rawstr << "-i";
+        } else {
+            rawstr << "-d";
+        }
         fout << rawstr.str() << "\n";
     }
+    fout.close();
+    //-----------------------------------------------------
+    // Indirect Call
+    //-----------------------------------------------------
+    fout.open(filename + ".indcall");
+    std::string str;
+    raw_string_ostream rawstr(str);
+
+    unsigned long max_callees = 0;
+    rawstr << "callsite --> {Set of possible callees} #of callees\n";
+    for (auto it : indirectCallMap) {
+        const CallBlockNode* cbnode = it.first;
+        CSInstToID::const_iterator itcs = csInstToID.find(cbnode->getCallSite());
+        assert(itcs != csInstToID.end());
+        unsigned long long int csid = itcs->second;
+
+        rawstr << csid << " --> {";
+        const FunctionSet& callees = getIndCSCallees(cbnode);
+        for (auto it_callees : callees) {
+            const SVFFunction* callee = it_callees;
+            PTACallGraphNode* calleeNode = getCallGraphNode(callee);
+            rawstr << calleeNode->getId() << '-' << calleeNode->getFunction()->getName() << ",";
+        }
+        unsigned long num_callees = callees.size();
+        rawstr << "} " << num_callees << "\n";
+        if (max_callees < num_callees) {
+            max_callees = num_callees;
+        }
+    }
+    rawstr << "max_num_callees: " << max_callees << "\n";
+    fout << rawstr.str();
     fout.close();
     GraphPrinter::WriteGraphToFile(outs(), filename, this);
 }
