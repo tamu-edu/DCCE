@@ -82,7 +82,7 @@ class pcce:
         print(f'---------------------------------')
         max_id = 0
         f = open(filename, 'w')
-        for n in cg.nodes():
+        for n in cg.reachable_nodes():
             numcc = cg.getnumCC(n)
             f.write(f'{n}:{numcc}\n')
             print(f'{n}:{numcc}')

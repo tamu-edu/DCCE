@@ -4,4 +4,4 @@ RTLIB_DIR=$3
 BENCH=$4
 
 llvm-dis ${BC_DIR}/${BENCH}.bc
-clang++ ${BC_DIR}/${BENCH}.ll -pg -o ${BIN_DIR}/${BENCH} -l rtlib -L ${RTLIB_DIR}/build
+clang++ ${BC_DIR}/${BENCH}.ll -pg -o ${BIN_DIR}/${BENCH} -l rtlib -L ${RTLIB_DIR}/build -static

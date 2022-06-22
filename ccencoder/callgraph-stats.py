@@ -16,8 +16,10 @@ def main(args):
 
     # number of nodes
     num_nodes = len(c_cg.nodes())
+    num_reachable_nodes = len(c_cg.reachable_nodes())
     # number of edges
     num_edges = len(c_cg.edges())
+    num_reachable_edges = len(c_cg.reachable_edges())
     # number of indirect calls
     num_indirect_call = 0
     for u, (v, cs) in c_cg.edges():
@@ -25,7 +27,9 @@ def main(args):
             num_indirect_call += 1
 
     f.write(f'no. nodes: {num_nodes}\n')
+    f.write(f'no. reachable nodes: {num_reachable_nodes}\n')
     f.write(f'no. edges: {num_edges}\n')
+    f.write(f'no. reachable edges: {num_reachable_edges}\n')
     f.write(f'no. indirect calls: {num_indirect_call}\n')
     f.write(f'no. back edges: {len(c_cg.getBackEdges())}\n')
     f.write(f'----------- Back Edges ----------\n')

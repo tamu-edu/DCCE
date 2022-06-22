@@ -5,7 +5,7 @@
  */
 
 /* DrCCTProf Client Sample:
- * max_ccid.cpp
+ * functionname_test.cpp
  *
  * This sample client will display the top 200 instructions with their execution times and
  * calling paths in the output file.
@@ -31,9 +31,9 @@
 #include "drcctlib.h"
 
 #define DRCCTLIB_PRINTF(_FORMAT, _ARGS...) \
-    DRCCTLIB_PRINTF_TEMPLATE("max_ccid", _FORMAT, ##_ARGS)
+    DRCCTLIB_PRINTF_TEMPLATE("functionname_test", _FORMAT, ##_ARGS)
 #define DRCCTLIB_EXIT_PROCESS(_FORMAT, _ARGS...) \
-    DRCCTLIB_CLIENT_EXIT_PROCESS_TEMPLATE("max_ccid", _FORMAT, ##_ARGS)
+    DRCCTLIB_CLIENT_EXIT_PROCESS_TEMPLATE("functionname_test", _FORMAT, ##_ARGS)
 
 #ifdef ARM_CCTLIB
 #    define OPND_CREATE_CCT_INT OPND_CREATE_INT
@@ -54,30 +54,52 @@ uint64_t process_end_time;
 void
 CallBackOnCall(int32_t slot, app_pc instr_addr)
 {
-    void *drcontext = dr_get_current_drcontext();
-    context_handle_t id1 = drcctlib_get_context_handle(drcontext);
-    context_handle_t id2 = drcctlib_get_context_handle(drcontext, slot);
-    dr_fprintf(gTraceFile,
-               "Call - ip: %#x id1: %d id2: %d\n", instr_addr, id1, id2);
-    printf("Call - ip: %#x id1: %d id2: %d\n", instr_addr, id1, id2);
+    //void *drcontext = dr_get_current_drcontext();
+    //context_handle_t context_handle = drcctlib_get_context_handle(drcontext, slot);
+    //dr_fprintf(gTraceFile,
+    //           "%s--%#x(%d)-->%s\n",
+    //           drcctlib_get_caller(drcontext, slot),
+    //           context_handle,
+    //           drcctlib_get_callee(drcontext, slot));
+    //printf("Call - ip: %#x id1: %d id2: %d\n", instr_addr, id1, id2);
 }
 
 void
 CallBackOnRet(int32_t slot, app_pc instr_addr)
 {
+    void *drcontext = dr_get_current_drcontext();
+    context_handle_t ctxt_hndl = drcctlib_get_context_handle(drcontext, slot);
+    inner_context_t* callee_ctxt = drcctlib_get_cct(ctxt_hndl, 1);
+    inner_context_t* caller_ctxt = callee_ctxt->pre_ctxt;
+    
+    if (caller_ctxt != NULL && callee_ctxt != NULL) {
+        dr_fprintf(gTraceFile,
+                   "%s--%p-->%s\n",
+                   caller_ctxt->func_name,
+                   caller_ctxt->ip,
+                   callee_ctxt->func_name);
+
+    } else if (caller_ctxt == NULL && callee_ctxt != NULL) {
+        dr_fprintf(gTraceFile,
+                   "%s\n",
+                   callee_ctxt->func_name);
+    } else {
+        dr_fprintf(gTraceFile,
+                   "Can't print Caller-Callee for return : %#x\n", instr_addr);
+    }
 }
 
 
 void
 InsTransEventCallback(void *drcontext, instr_instrument_msg_t *instrument_msg)
 {
-    //dr_fprintf(gTraceFile, "Calling InsTransEventCallback\n");
     instrlist_t *bb = instrument_msg->bb;
     instr_t *instr = instrument_msg->instr;
     int32_t slot = instrument_msg->slot;
     app_pc address = instr_get_app_pc(instr);
 
     if (instr_is_call_direct(instr) || instr_is_call_indirect(instr)) {
+        dr_fprintf(gTraceFile, "Inserting Call %p\n", address);
         dr_insert_clean_call(
                 drcontext, bb, instr,
                 (void *)CallBackOnCall, false,
@@ -86,6 +108,7 @@ InsTransEventCallback(void *drcontext, instr_instrument_msg_t *instrument_msg)
     }
 
     if (instr_is_return(instr)) {
+        dr_fprintf(gTraceFile, "Inserting Ret %p\n", address);
         dr_insert_clean_call(
                 drcontext, bb, instr,
                 (void *)CallBackOnRet, false,
@@ -99,7 +122,7 @@ static void
 ClientInit(int argc, const char *argv[])
 {
     char name[MAXIMUM_FILEPATH] = "";
-    DRCCTLIB_INIT_LOG_FILE_NAME(name, "max_ccid", "out");
+    DRCCTLIB_INIT_LOG_FILE_NAME(name, "functionname_test", "out");
     DRCCTLIB_PRINTF("Creating log file at:%s", name);
 
     gTraceFile = dr_open_file(name, DR_FILE_WRITE_OVERWRITE | DR_FILE_ALLOW_LARGE);
@@ -146,7 +169,7 @@ extern "C" {
 DR_EXPORT void
 dr_client_main(client_id_t id, int argc, const char *argv[])
 {
-    dr_set_client_name("DynamoRIO Client 'max_ccid'",
+    dr_set_client_name("DynamoRIO Client 'functionname_test'",
                        "http://dynamorio.org/issues");
 
     ClientInit(argc, argv);

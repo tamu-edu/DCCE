@@ -7,6 +7,9 @@ import threading
 from subprocess import Popen, PIPE
 
 benches = [
+    '508.namd_r',
+    #'510.parest_r',     # Compile error
+    '511.povray_r',
     '600.perlbench_s',
     '605.mcf_s',
     '619.lbm_s',
@@ -21,6 +24,11 @@ benches = [
     '100.test-pcce-fig-4',
     '101.test-pcce-fig-5a',
     '102.test-indirect-call',
+    '103.test-libc-nostatic-nodebug',
+    '103.test-libc-static-nodebug',
+    '103.test-libc-static-debug',
+    '104.test-backedge',
+    '105.test-functionname',
     #'500.perlbench_r',
     ##'502.gcc_r',        # Link error
     #'505.mcf_r',
@@ -33,9 +41,6 @@ benches = [
     #'557.xz_r',
     ##'503.bwaves_r',     # Fortran
     ##'507.cactuBSSN_r',  # Link error
-    '508.namd_r',
-    ##'510.parest_r',     # Compile error
-    '511.povray_r',
     #'519.lbm_r',
     ##'521.wrf_r',        # Fortran
     ##'526.blender_r',
@@ -100,6 +105,11 @@ cmd_options = {
         '100.test-pcce-fig-4': '',
         '101.test-pcce-fig-5a': '',
         '102.test-indirect-call': '',
+        '103.test-libc-nostatic-nodebug': '',
+        '103.test-libc-static-nodebug': '',
+        '103.test-libc-static-debug': '',
+        '104.test-backedge': '10',
+        '105.test-functionname': '10',
     }
 
 def run_cmd(cmd, log=None):
@@ -197,7 +207,7 @@ def run_make_exe(bin_dir, bc_dir, rtlib_dir):
         #        rtlib_dir,
         #        bench)
         #log = '%s/%s.log' % (bin_dir, bench)
-        if bench in ['100.test-pcce-fig-4', '101.test-pcce-fig-5a', '102.test-indirect-call',]:
+        if bench in ['100.test-pcce-fig-4', '101.test-pcce-fig-5a', '102.test-indirect-call', '103.test-libc-nostatic-nodebug', '103.test-libc-static-debug', '103.test-libc-static-debug', '104.test-backedge']:
             cmd = 'bash %s/test.make.out %s %s %s %s' % \
                     (os.getenv('CPU2017_MAKE_DIR'),
                     bc_dir,

@@ -373,6 +373,7 @@ bb_node_caller_ctxt_hndl(cct_bb_node_t *bb_node)
 static inline context_handle_t
 cur_child_ctxt_start_idx(slot_t num)
 {
+    //printf("before cur_child_ctxt_start_id: cur_id: %d, num: %d\n", global_ip_node_buff_idle_idx, num);
     context_handle_t next_start_idx =
         ATOMIC_ADD_CTXT_HNDL(global_ip_node_buff_idle_idx, num);
     if (next_start_idx >= CONTEXT_HANDLE_MAX) {
@@ -380,6 +381,7 @@ cur_child_ctxt_start_idx(slot_t num)
                               "application in its memory. Try a smaller program.");
     }
 
+    //printf("after cur_child_ctxt_start_id: cur_id: %d, num: %d next_start_id: %d\n", global_ip_node_buff_idle_idx, num, next_start_idx);
     return next_start_idx - num;
 }
 
@@ -1531,6 +1533,7 @@ instrument_before_bb_first_instr(bb_shadow_t *cur_bb_shadow)
     cct_bb_node_t *new_caller_bb_node = NULL;
     if (instr_state_contain(pt->pre_instr_state, INSTR_STATE_THREAD_ROOT_VIRTUAL)) {
         new_caller_bb_node = pt->root_bb_node;
+        printf("Caller is root id: %d\n", pt->cur_bb_node->child_ctxt_start_idx);
     } else if (instr_state_contain(pt->pre_instr_state, INSTR_STATE_CALL_DIRECT) ||
                instr_state_contain(pt->pre_instr_state, INSTR_STATE_CALL_IN_DIRECT)) {
         new_caller_bb_node = pt->cur_bb_node;
@@ -2738,7 +2741,8 @@ ctxt_get_from_ctxt_hndl(context_handle_t ctxt_hndl)
     sym.file = file;
     sym.file_size = MAXIMUM_FILEPATH;
     symres = drsym_lookup_address(data->full_path, addr - data->start, &sym,
-                                  DRSYM_DEFAULT_FLAGS);
+                                  DRSYM_LEAVE_MANGLED);
+                                  //DRSYM_DEFAULT_FLAGS);
     inner_context_t *ctxt;
     if (symres == DRSYM_SUCCESS || symres == DRSYM_ERROR_LINE_NOT_AVAILABLE) {
         if (symres == DRSYM_ERROR_LINE_NOT_AVAILABLE) {

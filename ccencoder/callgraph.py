@@ -381,6 +381,59 @@ class callgraph(basegraph, common, labeling):
         """
         return list(self.node_neighbors.keys())
 
+    def not_reachable_nodes(self):
+        visited = {}
+
+        for n in self.nodes():
+            visited[n] = False
+
+        def __maxID(p):
+            visited[p] = True
+
+            for n, _ in self.neighbors(p):
+                if not visited[n]:
+                    __maxID(n)
+        __maxID(self.root)
+
+        not_reachable_nodes = []
+        for n in self.nodes():
+            if not visited[n]:
+                not_reachable_nodes.append(n)
+
+        return not_reachable_nodes
+
+    def reachable_nodes(self):
+        visited = {}
+
+        for n in self.nodes():
+            visited[n] = False
+
+        def __maxID(p):
+            visited[p] = True
+
+            for n, _ in self.neighbors(p):
+                if not visited[n]:
+                    __maxID(n)
+        __maxID(self.root)
+
+        reachable_nodes = []
+        for n in self.nodes():
+            if visited[n]:
+                reachable_nodes.append(n)
+
+        return reachable_nodes
+
+    def reachable_edges(self):
+        reachable_edges = []
+        edges = self.edges()
+        for u in self.reachable_nodes():
+            for v, cs in self.neighbors(u):
+                e = (u, (v, cs))
+                assert(e in edges)
+                reachable_edges.append(e)
+        return reachable_edges
+                
+
 
     def neighbors(self, node):
         """
@@ -596,10 +649,10 @@ class callgraph(basegraph, common, labeling):
                 #print('Tree Edge:', str(u)+'-->'+str(v))
                 self.__getBackEdges(v)
             else:
-                #print(f'Checking {u}({self.start_time[u]}/{self.end_time[u]})-->{v}({self.start_time[v]}/{self.end_time[v]}) ')
+                print(f'Checking {u}({self.start_time[u]}/{self.end_time[u]})-->{v}({self.start_time[v]}/{self.end_time[v]}) ')
 
                 # Back Edge: It is an edge (u,v) such that v is an ancestor of node u but not part of DFS tree.
-                if self.start_time[u] > self.start_time[v] and self.end_time[v] == 0: 
+                if self.start_time[u] >= self.start_time[v] and self.end_time[v] == 0: 
                     print('Back Edge:', str(u)+'-->'+str(v))
                     self.back_edges.append((u, v, cs))
                 elif self.start_time[u] < self.start_time[v] and self.end_time[u] == 0:
@@ -609,7 +662,8 @@ class callgraph(basegraph, common, labeling):
                     pass
                     #print('Cross Edge:', str(u)+'-->'+str(v))
                 else:
-                    print('Unkwnon Type of Edge', str(u)+'-->'+str(v))
+                    print('Unknown Type of Edge', str(u)+'-->'+str(v))
+                    exit(1)
             #print(f'Update end_time at {u} <-- {self.time}')
             #self.end_time[u] = self.time
         #print(f'Finished {u} at {self.time}')
