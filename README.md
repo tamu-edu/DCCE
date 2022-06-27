@@ -1,7 +1,10 @@
 # Distinguishable Calling Context Encoding (DCCE)
 
 ## Development Environment
-Every experiment in DCCE is done on top of the docker based development environment by Sungkeun. Please setup [dev-env](https://github.com/ksungkeun84/dev-env.git) first and clone this repository inside the docker container.
+Every experiment in DCCE is done on top of the [spack](https://spack.readthedocs.io/en/latest/) based development environment. Followins are my spec information.
+<img width="1447" alt="Screen Shot 2022-06-27 at 4 45 13 PM" src="https://user-images.githubusercontent.com/1031755/176041944-00c37bb5-212e-427e-aa87-d7522ac7af95.png">
+
+
 
 Once you log in the dev-env docker container, activate conda with the following command
     $ conda activate dcce
