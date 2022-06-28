@@ -16,7 +16,7 @@ MacZ3="https://github.com/Z3Prover/z3/releases/download/z3-4.8.8/z3-4.8.8-x64-os
 UbuntuZ3="https://github.com/Z3Prover/z3/releases/download/z3-4.8.8/z3-4.8.8-x64-ubuntu-16.04.zip"
 MacCTIR="https://github.com/mbarbar/ctir/releases/download/ctir-10.c3/ctir-clang-v10.c3-macos10.15.zip"
 UbuntuCTIR="https://github.com/mbarbar/ctir/releases/download/ctir-10.c3/ctir-clang-v10.c3-ubuntu18.04.zip"
-LLVMHome="llvm-12.0.0.obj"
+LLVMHome="llvm-12.0.0"
 Z3Home="z3.obj"
 CTIRHome="ctir.obj"
 
@@ -67,16 +67,14 @@ else
 fi
 
 ########
-# Download LLVM if need be.
+# Check if LLVM exits.
 #######
 if [ ! -d "$LLVM_DIR" ]
 then
     if [ ! -d "$LLVMHome" ]
     then
-        echo "Downloading LLVM binary for $OSDisplayName"
-        generic_download_file "$urlLLVM" llvm.tar.xz
-        mkdir -p "./$LLVMHome" && tar -xf llvm.tar.xz -C "./$LLVMHome" --strip-components 1
-        rm llvm.tar.xz
+        echo "llvm-12.0.0 is not included in the repo."
+        exit 1
     fi
 
     export LLVM_DIR="$SVFHOME/$LLVMHome"
