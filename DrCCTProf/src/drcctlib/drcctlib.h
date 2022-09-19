@@ -254,4 +254,8 @@ DR_EXPORT
 inner_context_t *
 drcctlib_get_full_cct_of_static_datacentric_nodes(int index);
 
+DR_EXPORT
+app_pc
+drcctlib_get_func_entry(app_pc addr, const char* func);
+
 #endif // _DRCCTLIB_H_

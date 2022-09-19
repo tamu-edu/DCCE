@@ -1,17 +1,29 @@
 #!/bin/bash
 
+spack env activate dcce
+
+hpcserver="hpcserver.cse.tamu.edu"
+host_name=`uname -a`
+if [[ "$host_name" == *"$hpcserver"* ]]; then
+    echo "Activating spack environment dcce..."
+    module load gcc-12.1.0-gcc-4.8.5-rw6672f
+    module load llvm-openmp-12.0.1-gcc-12.1.0-e5sxuwh
+else
+    echo "This is ksungkeun84"
+fi
 export DCCE_ENV_SETUP=YES
 
 export DCCE_ROOT=${PWD}
-export CPU2017_RUN_DIR=/data/share/whistle/cpu2017_run
+export CPU2017_RUN_DIR=/home/ksungkeun84/SPEC2017_INPUTS
+#export CPU2017_RUN_DIR=/data/share/whistle/cpu2017_run /data/share/SPEC2017_INPUTS/
 
 export SVF_ROOT=${DCCE_ROOT}/SVF
 export CCTLIB_ROOT=${DCCE_ROOT}/cctlib
 export CPU2017_ROOT=${DCCE_ROOT}/cpu2017
 export CCENC_ROOT=${DCCE_ROOT}/ccencoder
 export RTLIB_ROOT=${DCCE_ROOT}/runtime
-export ORG_BC_ROOT=${DCCE_ROOT}/bitcode
-export TEST_ROOT=${DCCE_ROOT}/tests
+export BC_ROOT=${DCCE_ROOT}/bitcode
+export BIN_ROOT=${DCCE_ROOT}/bin
 
 ##############
 # CCTLib
@@ -19,13 +31,13 @@ export TEST_ROOT=${DCCE_ROOT}/tests
 export PIN_ROOT=${CCTLIB_ROOT}/pin-3.13-98189-g60a6ef199-gcc-linux
 
 ##############
-# SVF
+# SVF and LLVM
 ##############
 export SVF_BIN_DIR=${SVF_ROOT}/Release-build/bin
+export LLVM_ROOT=${SVF_ROOT}/llvm-12.0.0
 cd ${SVF_ROOT}
 source ${SVF_ROOT}/setup.sh
 cd ${DCCE_ROOT}
-
 ##############
 # cpu2017
 ##############
@@ -36,12 +48,15 @@ export CPU2017_BIN_DIR=${CPU2017_ROOT}/bin
 # output
 ##############
 export OUTPUT_ROOT=${DCCE_ROOT}/output
-export ORG_CG_DIR=${OUTPUT_ROOT}/callgraph
+export CG_DIR=${OUTPUT_ROOT}/callgraph
+export RUNTIME_WITHOUT_CLIENT=${OUTPUT_ROOT}/runtime_without_client
 export BASE_OUT_DIR=${OUTPUT_ROOT}/base
 export BASE2_OUT_DIR=${OUTPUT_ROOT}/base2
 export DCCE_OUT_DIR=${OUTPUT_ROOT}/dcce
 export PCCE_OUT_DIR=${OUTPUT_ROOT}/pcce
 export VALENCE_OUT_DIR=${OUTPUT_ROOT}/valence
+export DRCCTLIB_OUT_DIR=${OUTPUT_ROOT}/drcctlib
+export DRCCTLIB_CCUPDATE_TEST=${DRCCTLIB_OUT_DIR}/ccupdate_test
 
 export DCCE_CCENC_DIR=${DCCE_OUT_DIR}/ccenc
 export PCCE_CCENC_DIR=${PCCE_OUT_DIR}/ccenc
@@ -68,6 +83,10 @@ export DCCE_STATS_DIR=${DCCE_OUT_DIR}/stats
 export PCCE_STATS_DIR=${PCCE_OUT_DIR}/stats
 export VALENCE_STATS_DIR=${VALENCE_OUT_DIR}/stats
 
+export DCCE_CCWEIGHT_DIR=${DCCE_OUT_DIR}/ccweight
+export PCCE_CCWEIGHT_DIR=${PCCE_OUT_DIR}/ccweight
+export VALENCE_CCWEIGHT_DIR=${VALENCE_OUT_DIR}/ccweight
+
 
 
 ##############
@@ -81,7 +100,7 @@ export VALENCE_RTLIB_BUILD_DIR=${VALENCE_RTLIB_DIR}/build
 ##############
 # test
 ##############
-export TEST_BUILD_DIR=${TEST_BUILD_DIR}/build
+export TEST_ROOT=${DCCE_ROOT}/tests
 
 #export CPU2017_BUILD_PATH=benchspec/CPU/${bench}/build/build_base_dcce-bitcode-m64.0000/
 

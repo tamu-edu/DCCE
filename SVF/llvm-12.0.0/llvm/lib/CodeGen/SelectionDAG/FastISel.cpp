@@ -316,6 +316,7 @@ Register FastISel::getRegForValue(const Value *V) {
 }
 
 Register FastISel::materializeConstant(const Value *V, MVT VT) {
+  LLVM_DEBUG(dbgs() << "[danguria] FastISel::materializeConstant\n");
   Register Reg;
   if (const auto *CI = dyn_cast<ConstantInt>(V)) {
     if (CI->getValue().getActiveBits() <= 64)
@@ -782,6 +783,7 @@ bool FastISel::selectStackmap(const CallInst *I) {
 bool FastISel::lowerCallOperands(const CallInst *CI, unsigned ArgIdx,
                                  unsigned NumArgs, const Value *Callee,
                                  bool ForceRetVoidTy, CallLoweringInfo &CLI) {
+  LLVM_DEBUG(dbgs() << "[danguria] FastISel::lowerCallOperands " << *CI << "\n");
   ArgListTy Args;
   Args.reserve(NumArgs);
 
@@ -821,6 +823,7 @@ bool FastISel::selectPatchpoint(const CallInst *I) {
   //                                                 i32 <numArgs>,
   //                                                 [Args...],
   //                                                 [live variables...])
+  LLVM_DEBUG(dbgs() << "[danguria] FastISel::selectPatchpoint " << *I << "\n");
   CallingConv::ID CC = I->getCallingConv();
   bool IsAnyRegCC = CC == CallingConv::AnyReg;
   bool HasDef = !I->getType()->isVoidTy();
@@ -1018,6 +1021,7 @@ bool FastISel::lowerCallTo(const CallInst *CI, const char *SymName,
 
 bool FastISel::lowerCallTo(const CallInst *CI, MCSymbol *Symbol,
                            unsigned NumArgs) {
+  LLVM_DEBUG(dbgs() << "[danguria] FastISel::lowerCallTo " << *CI << "\n");
   FunctionType *FTy = CI->getFunctionType();
   Type *RetTy = CI->getType();
 
@@ -1046,6 +1050,10 @@ bool FastISel::lowerCallTo(const CallInst *CI, MCSymbol *Symbol,
 }
 
 bool FastISel::lowerCallTo(CallLoweringInfo &CLI) {
+  if (CLI.CB)
+    LLVM_DEBUG(dbgs() << "[danguria] FastISel::lowerCallTo(CallLoweringInfo) " << *(CLI.CB) << "\n");
+  else
+    LLVM_DEBUG(dbgs() << "[danguria] FastISel::lowerCallTo(CallLoweringInfo) " << "NULL" << "\n");
   // Handle the incoming return values from the call.
   CLI.clearIns();
   SmallVector<EVT, 4> RetTys;
@@ -1167,6 +1175,7 @@ bool FastISel::lowerCallTo(CallLoweringInfo &CLI) {
 }
 
 bool FastISel::lowerCall(const CallInst *CI) {
+  LLVM_DEBUG(dbgs() << "[danguria] FastISel::lowerCall(const CallInst) " << *CI << "\n");
   FunctionType *FuncTy = CI->getFunctionType();
   Type *RetTy = CI->getType();
 
@@ -1209,6 +1218,8 @@ bool FastISel::lowerCall(const CallInst *CI) {
 bool FastISel::selectCall(const User *I) {
   const CallInst *Call = cast<CallInst>(I);
 
+  LLVM_DEBUG(dbgs() << "[danguria] FastISel::selectCall(const User) " << *Call << "\n");
+
   // Handle simple inline asms.
   if (const InlineAsm *IA = dyn_cast<InlineAsm>(Call->getCalledOperand())) {
     // Don't attempt to handle constraints.
@@ -1225,7 +1236,7 @@ bool FastISel::selectCall(const User *I) {
     ExtraInfo |= IA->getDialect() * InlineAsm::Extra_AsmDialect;
 
     MachineInstrBuilder MIB = BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc,
-                                      TII.get(TargetOpcode::INLINEASM));
+                                      TII.get(TargetOpcode::INLINEASM), Call);
     MIB.addExternalSymbol(IA->getAsmString().c_str());
     MIB.addImm(ExtraInfo);
 
@@ -1526,6 +1537,7 @@ void FastISel::removeDeadLocalValueCode(MachineInstr *SavedLastLocalValue)
 }
 
 bool FastISel::selectInstruction(const Instruction *I) {
+  LLVM_DEBUG(dbgs() << "[danguria] FastISel::selectInstruction " << *I << "\n");
   // Flush the local value map before starting each instruction.
   // This improves locality and debugging, and can reduce spills.
   // Reuse of values across IR instructions is relatively uncommon.
@@ -1813,6 +1825,7 @@ bool FastISel::selectOperator(const User *I, unsigned Opcode) {
     // name is the C-linkage name of the source level function.
     if (TM.getTargetTriple().isOSAIX())
       return false;
+    LLVM_DEBUG(dbgs() << "[danguria] Calling selectCall " << *I << "\n");
     return selectCall(I);
 
   case Instruction::BitCast:

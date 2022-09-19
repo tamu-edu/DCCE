@@ -32,19 +32,19 @@ class pcce:
             else:
                 s = 0
             
-            print(f'Checking {n} (has dummy edge: {s})')
+            #print(f'Checking {n} (has dummy edge: {s})')
 
             for p, l in cg.incidents(n):
-                print(f'Checking ({p},{n},{l}) in {cg.getBackEdges()}')
+                #print(f'Checking ({p},{n},{l}) in {cg.getBackEdges()}')
                 if not cg.isBackEdge((p, n, l)):
                     # insert id = id + s before l
                     # insert id = id - s after l
-                    print(f'{p}--({s})--{n}')
+                    #print(f'{p}--({s})--{n}')
                     cg.set_edge_weight((p, n, l), s)
                     s = s + dcg.getnumCC(p)
                 else:
                     cg.set_edge_weight((p, n, l), -1)
-                    print(f'{p}--(-1)--{n}')
+                    #print(f'{p}--(-1)--{n}')
                     # insert push(<id, l>) before l
                     # insert id = 0 before l
                     # insert id = pop().first after l

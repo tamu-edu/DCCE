@@ -418,6 +418,7 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
          "-fast-isel-abort > 0 requires -fast-isel");
 
   const Function &Fn = mf.getFunction();
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGISel::runOnMachineFunction - " << Fn.getName() << "\n");
   MF = &mf;
 
   // Reset the target options before resetting the optimization
@@ -502,7 +503,9 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
     // This performs initialization so lowering for SplitCSR will be correct.
     TLI->initializeSplitCSR(EntryMBB);
 
+  LLVM_DEBUG(dbgs() << "[danguria] Calling SelectAllBasicBlocks " << Fn.getName() << "\n");
   SelectAllBasicBlocks(Fn);
+  LLVM_DEBUG(dbgs() << "[danguria] Done SelectAllBasicBlocks " << Fn.getName() << "\n");
   if (FastISelFailed && EnableFastISelFallbackReport) {
     DiagnosticInfoISelFallback DiagFallback(Fn);
     Fn.getContext().diagnose(DiagFallback);
@@ -606,8 +609,14 @@ bool SelectionDAGISel::runOnMachineFunction(MachineFunction &mf) {
       assert(cast<DILocalVariable>(Variable)->isValidLocationForIntrinsic(DL) &&
              "Expected inlined-at fields to agree");
       // Def is never a terminator here, so it is ok to increment InsertPos.
-      BuildMI(*EntryMBB, ++InsertPos, DL, TII->get(TargetOpcode::DBG_VALUE),
+      if (MI->isCall()) {
+        LLVM_DEBUG(dbgs() << "[danguria] Create MI here " << *MI << "\n");
+        BuildMI(*EntryMBB, ++InsertPos, DL, TII->get(TargetOpcode::DBG_VALUE),
+              IsIndirect, LDI->second, Variable, Expr).addCCWeight(MI->getCCWeight());
+      } else {
+        BuildMI(*EntryMBB, ++InsertPos, DL, TII->get(TargetOpcode::DBG_VALUE),
               IsIndirect, LDI->second, Variable, Expr);
+      }
 
       // If this vreg is directly copied into an exported register then
       // that COPY instructions also need DBG_VALUE, if it is the only
@@ -690,6 +699,7 @@ static void reportFastISelFailure(MachineFunction &MF,
 void SelectionDAGISel::SelectBasicBlock(BasicBlock::const_iterator Begin,
                                         BasicBlock::const_iterator End,
                                         bool &HadTailCall) {
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGISel::SelectBasicBlock\n");
   // Allow creating illegal types during DAG building for the basic block.
   CurDAG->NewNodesMustHaveLegalTypes = false;
 
@@ -748,6 +758,7 @@ void SelectionDAGISel::ComputeLiveOutVRegInfo() {
 }
 
 void SelectionDAGISel::CodeGenAndEmitDAG() {
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGISel::CodeGenAndEmitDAG\n");
   StringRef GroupName = "sdag";
   StringRef GroupDescription = "Instruction Selection and Scheduling";
   std::string BlockName;
@@ -1353,11 +1364,11 @@ static void processDbgDeclares(FunctionLoweringInfo &FuncInfo) {
 }
 
 void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGISel::SelectAllBasicBlocks - EnableFastISel: " << TM.Options.EnableFastISel << " function: " << Fn.getName() << "\n");
   FastISelFailed = false;
   // Initialize the Fast-ISel state, if needed.
   FastISel *FastIS = nullptr;
   if (TM.Options.EnableFastISel) {
-    LLVM_DEBUG(dbgs() << "Enabling fast-isel\n");
     FastIS = TLI->createFastISel(*FuncInfo, LibInfo);
   }
 
@@ -1375,6 +1386,7 @@ void SelectionDAGISel::SelectAllBasicBlocks(const Function &Fn) {
   CurDAG->setFunctionLoweringInfo(FuncInfo.get());
 
   if (!FastIS) {
+    LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGISel::SelectAllBasicBlocks - Calling LowerArguments because FastIS is null\n");
     LowerArguments(Fn);
   } else {
     // See if fast isel can lower the arguments.

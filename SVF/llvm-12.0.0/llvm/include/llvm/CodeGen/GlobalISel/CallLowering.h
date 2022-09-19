@@ -121,6 +121,8 @@ public:
 
     /// The stack index for sret demotion.
     int DemoteStackIndex;
+
+    std::string CCWeight = "empty";
   };
 
   /// Argument handling is mostly uniform between the four places that

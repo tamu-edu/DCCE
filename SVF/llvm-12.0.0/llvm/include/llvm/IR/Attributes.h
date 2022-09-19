@@ -102,6 +102,8 @@ public:
   static Attribute getWithStackAlignment(LLVMContext &Context, Align Alignment);
   static Attribute getWithDereferenceableBytes(LLVMContext &Context,
                                               uint64_t Bytes);
+  static Attribute getCallingContextWeight(LLVMContext &Context,
+                                              uint64_t Bytes);
   static Attribute getWithDereferenceableOrNullBytes(LLVMContext &Context,
                                                      uint64_t Bytes);
   static Attribute getWithAllocSizeArgs(LLVMContext &Context,
@@ -187,6 +189,8 @@ public:
   /// Returns the number of dereferenceable bytes from the
   /// dereferenceable attribute.
   uint64_t getDereferenceableBytes() const;
+
+  uint64_t getCallingContextWeight() const;
 
   /// Returns the number of dereferenceable_or_null bytes from the
   /// dereferenceable_or_null attribute.
@@ -537,6 +541,10 @@ public:
                                                       unsigned Index,
                                                       uint64_t Bytes) const;
 
+    LLVM_NODISCARD AttributeList addCallingContextWeight(LLVMContext &C,
+                                                      unsigned Index,
+                                                      uint64_t Bytes) const;
+
   /// \brief Add the dereferenceable attribute to the attribute set at the given
   /// arg index. Returns a new list because attribute lists are immutable.
   LLVM_NODISCARD AttributeList addDereferenceableParamAttr(
@@ -760,6 +768,7 @@ class AttrBuilder {
   MaybeAlign Alignment;
   MaybeAlign StackAlignment;
   uint64_t DerefBytes = 0;
+  uint64_t CCWeight = 0;
   uint64_t DerefOrNullBytes = 0;
   uint64_t AllocSizeArgs = 0;
   Type *ByValType = nullptr;
@@ -843,6 +852,7 @@ public:
   /// Retrieve the number of dereferenceable bytes, if the
   /// dereferenceable attribute exists (zero is returned otherwise).
   uint64_t getDereferenceableBytes() const { return DerefBytes; }
+  uint64_t getCallingContextWeight() const { return CCWeight; }
 
   /// Retrieve the number of dereferenceable_or_null bytes, if the
   /// dereferenceable_or_null attribute exists (zero is returned otherwise).
@@ -891,6 +901,7 @@ public:
   /// This turns the number of dereferenceable bytes into the form used
   /// internally in Attribute.
   AttrBuilder &addDereferenceableAttr(uint64_t Bytes);
+  AttrBuilder &addCallingContextWeight(uint64_t Bytes);
 
   /// This turns the number of dereferenceable_or_null bytes into the
   /// form used internally in Attribute.

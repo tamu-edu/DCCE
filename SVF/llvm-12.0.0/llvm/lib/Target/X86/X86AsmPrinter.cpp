@@ -44,7 +44,7 @@
 #include "llvm/Target/TargetMachine.h"
 
 using namespace llvm;
-
+#define DEBUG_TYPE "danguria-x86asmprinter"
 X86AsmPrinter::X86AsmPrinter(TargetMachine &TM,
                              std::unique_ptr<MCStreamer> Streamer)
     : AsmPrinter(TM, std::move(Streamer)), SM(*this), FM(*this) {}
@@ -56,6 +56,8 @@ X86AsmPrinter::X86AsmPrinter(TargetMachine &TM,
 /// runOnMachineFunction - Emit the function body.
 ///
 bool X86AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
+  //dbgs() << "[danguria] X86AsmPrinter::runOnMachineFunction MF: " << MF.getName() << " &MF: " << &MF << "\n";
+  dbgs() << MF.getName() << "\n";
   Subtarget = &MF.getSubtarget<X86Subtarget>();
 
   SMShadowTracker.startFunction(MF);
@@ -79,6 +81,7 @@ bool X86AsmPrinter::runOnMachineFunction(MachineFunction &MF) {
   }
 
   // Emit the rest of the function body.
+  OutStreamer->InstOffset = 0;
   emitFunctionBody();
 
   // Emit the XRay table for this function.

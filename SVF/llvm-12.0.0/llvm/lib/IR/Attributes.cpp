@@ -162,6 +162,12 @@ Attribute Attribute::getWithDereferenceableBytes(LLVMContext &Context,
   return get(Context, Dereferenceable, Bytes);
 }
 
+Attribute Attribute::getCallingContextWeight(LLVMContext &Context,
+                                                uint64_t Bytes) {
+  assert(Bytes && "Bytes must be non-zero.");
+  return get(Context, CCWeight, Bytes);
+}
+
 Attribute Attribute::getWithDereferenceableOrNullBytes(LLVMContext &Context,
                                                        uint64_t Bytes) {
   assert(Bytes && "Bytes must be non-zero.");
@@ -219,6 +225,7 @@ bool Attribute::doesAttrKindHaveArgument(Attribute::AttrKind AttrKind) {
   return AttrKind == Attribute::Alignment ||
          AttrKind == Attribute::StackAlignment ||
          AttrKind == Attribute::Dereferenceable ||
+         AttrKind == Attribute::CCWeight ||
          AttrKind == Attribute::AllocSize ||
          AttrKind == Attribute::DereferenceableOrNull;
 }
@@ -312,6 +319,13 @@ uint64_t Attribute::getDereferenceableBytes() const {
   assert(hasAttribute(Attribute::Dereferenceable) &&
          "Trying to get dereferenceable bytes from "
          "non-dereferenceable attribute!");
+  return pImpl->getValueAsInt();
+}
+
+uint64_t Attribute::getCallingContextWeight() const {
+  assert(hasAttribute(Attribute::CCWeight) &&
+         "Trying to get ccweight bytes from "
+         "non-ccweight attribute!");
   return pImpl->getValueAsInt();
 }
 
@@ -517,6 +531,9 @@ std::string Attribute::getAsString(bool InAttrGrp) const {
 
   if (hasAttribute(Attribute::Dereferenceable))
     return AttrWithBytesToString("dereferenceable");
+
+  if (hasAttribute(Attribute::CCWeight))
+    return AttrWithBytesToString("ccweight");
 
   if (hasAttribute(Attribute::DereferenceableOrNull))
     return AttrWithBytesToString("dereferenceable_or_null");
@@ -885,6 +902,10 @@ AttributeSetNode *AttributeSetNode::get(LLVMContext &C, const AttrBuilder &B) {
     case Attribute::Dereferenceable:
       Attr = Attribute::getWithDereferenceableBytes(
           C, B.getDereferenceableBytes());
+      break;
+    case Attribute::CCWeight:
+      Attr = Attribute::getCallingContextWeight(
+          C, B.getCallingContextWeight());
       break;
     case Attribute::DereferenceableOrNull:
       Attr = Attribute::getWithDereferenceableOrNullBytes(
@@ -1410,6 +1431,14 @@ AttributeList AttributeList::addDereferenceableAttr(LLVMContext &C,
   return addAttributes(C, Index, B);
 }
 
+AttributeList AttributeList::addCallingContextWeight(LLVMContext &C,
+                                                    unsigned Index,
+                                                    uint64_t Bytes) const {
+  AttrBuilder B;
+  B.addCallingContextWeight(Bytes);
+  return addAttributes(C, Index, B);
+}
+
 AttributeList
 AttributeList::addDereferenceableOrNullAttr(LLVMContext &C, unsigned Index,
                                             uint64_t Bytes) const {
@@ -1585,7 +1614,7 @@ void AttrBuilder::clear() {
   TargetDepAttrs.clear();
   Alignment.reset();
   StackAlignment.reset();
-  DerefBytes = DerefOrNullBytes = 0;
+  DerefBytes = DerefOrNullBytes = CCWeight = 0;
   AllocSizeArgs = 0;
   ByValType = nullptr;
   StructRetType = nullptr;
@@ -1616,6 +1645,8 @@ AttrBuilder &AttrBuilder::addAttribute(Attribute Attr) {
     PreallocatedType = Attr.getValueAsType();
   else if (Kind == Attribute::Dereferenceable)
     DerefBytes = Attr.getDereferenceableBytes();
+  else if (Kind == Attribute::CCWeight)
+    CCWeight = Attr.getCallingContextWeight();
   else if (Kind == Attribute::DereferenceableOrNull)
     DerefOrNullBytes = Attr.getDereferenceableOrNullBytes();
   else if (Kind == Attribute::AllocSize)
@@ -1646,6 +1677,8 @@ AttrBuilder &AttrBuilder::removeAttribute(Attribute::AttrKind Val) {
     PreallocatedType = nullptr;
   else if (Val == Attribute::Dereferenceable)
     DerefBytes = 0;
+  else if (Val == Attribute::CCWeight)
+    CCWeight = 0;
   else if (Val == Attribute::DereferenceableOrNull)
     DerefOrNullBytes = 0;
   else if (Val == Attribute::AllocSize)
@@ -1698,6 +1731,12 @@ AttrBuilder &AttrBuilder::addDereferenceableAttr(uint64_t Bytes) {
 
   Attrs[Attribute::Dereferenceable] = true;
   DerefBytes = Bytes;
+  return *this;
+}
+
+AttrBuilder &AttrBuilder::addCallingContextWeight(uint64_t Bytes) {
+  Attrs[Attribute::CCWeight] = true;
+  CCWeight = Bytes;
   return *this;
 }
 
@@ -1761,6 +1800,9 @@ AttrBuilder &AttrBuilder::merge(const AttrBuilder &B) {
   if (!DerefBytes)
     DerefBytes = B.DerefBytes;
 
+  if (!CCWeight)
+    CCWeight = B.CCWeight;
+
   if (!DerefOrNullBytes)
     DerefOrNullBytes = B.DerefOrNullBytes;
 
@@ -1797,6 +1839,9 @@ AttrBuilder &AttrBuilder::remove(const AttrBuilder &B) {
 
   if (B.DerefBytes)
     DerefBytes = 0;
+
+  if (B.CCWeight)
+    CCWeight = 0;
 
   if (B.DerefOrNullBytes)
     DerefOrNullBytes = 0;
@@ -1877,7 +1922,8 @@ bool AttrBuilder::operator==(const AttrBuilder &B) const {
   return Alignment == B.Alignment && StackAlignment == B.StackAlignment &&
          DerefBytes == B.DerefBytes && ByValType == B.ByValType &&
          StructRetType == B.StructRetType && ByRefType == B.ByRefType &&
-         PreallocatedType == B.PreallocatedType;
+         PreallocatedType == B.PreallocatedType &&
+         CCWeight == B.CCWeight;
 }
 
 //===----------------------------------------------------------------------===//

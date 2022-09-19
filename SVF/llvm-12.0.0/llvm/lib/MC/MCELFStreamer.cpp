@@ -30,6 +30,7 @@
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/MC/MCSymbolELF.h"
 #include "llvm/Support/Casting.h"
+#include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/raw_ostream.h"
@@ -37,6 +38,7 @@
 #include <cstdint>
 
 using namespace llvm;
+#define DEBUG_TYPE "danguria-mcelfstreamer"
 
 MCELFStreamer::MCELFStreamer(MCContext &Context,
                              std::unique_ptr<MCAsmBackend> TAB,
@@ -523,6 +525,8 @@ static void CheckBundleSubtargets(const MCSubtargetInfo *OldSTI,
 
 void MCELFStreamer::emitInstToData(const MCInst &Inst,
                                    const MCSubtargetInfo &STI) {
+  LLVM_DEBUG(dbgs() << "[danguria] MCELFStreamer::emitInstToData - MI: "
+             << Inst << " &MI: " << &Inst << "\n");
   MCAssembler &Assembler = getAssembler();
   SmallVector<MCFixup, 4> Fixups;
   SmallString<256> Code;
@@ -556,17 +560,21 @@ void MCELFStreamer::emitInstToData(const MCInst &Inst,
       // the current bundle group.
       DF = BundleGroups.back();
       CheckBundleSubtargets(DF->getSubtargetInfo(), &STI);
+      LLVM_DEBUG(dbgs() << "[danguria] MCELFStreamer::emitInstToData - We re-use the current bundle group\n");
     }
-    else if (Assembler.getRelaxAll() && !isBundleLocked())
+    else if (Assembler.getRelaxAll() && !isBundleLocked()) {
       // When not in a bundle-locked group and the -mc-relax-all flag is used,
       // we create a new temporary fragment which will be later merged into
       // the current fragment.
       DF = new MCDataFragment();
+      LLVM_DEBUG(dbgs() << "[danguria] MCELFStreamer::emitInstToData - We create a new temporary fragment which will be later merged into the current fragment\n");
+    }
     else if (isBundleLocked() && !Sec.isBundleGroupBeforeFirstInst()) {
       // If we are bundle-locked, we re-use the current fragment.
       // The bundle-locking directive ensures this is a new data fragment.
       DF = cast<MCDataFragment>(getCurrentFragment());
       CheckBundleSubtargets(DF->getSubtargetInfo(), &STI);
+      LLVM_DEBUG(dbgs() << "[danguria] MCELFStreamer::emitInstToData - We re-use the current fragment\n");
     }
     else if (!isBundleLocked() && Fixups.size() == 0) {
       // Optimize memory usage by emitting the instruction to a
@@ -576,10 +584,26 @@ void MCELFStreamer::emitInstToData(const MCInst &Inst,
       insert(CEIF);
       CEIF->getContents().append(Code.begin(), Code.end());
       CEIF->setHasInstructions(STI);
+      LLVM_DEBUG(dbgs() << "[danguria] MCELFStreamer::emitInstToData - Use CEIF\n");
+      if (Inst.isCall()) {
+        unsigned CallOP = Inst.getOpcode();
+        if (652 <= CallOP && CallOP <=666) { // FIXME: only work with X86
+          dbgs() << InstOffset << ":" << Inst.getCCWeight() << "\n";
+        } else {
+          //dbgs() << Inst << " skipped due to not explicit call\n"; //[dcce]
+        }
+        //dbgs() << Inst
+        //       << ", offset: " << InstOffset
+        //       << ", ccw: " << Inst.getCCWeight()
+        //       << ", code: " << Code.c_str() << "(" << Code.size() << ")"
+        //       << " by MCELFStreamer(1)\n";
+      }
+      InstOffset += Code.size();
       return;
     } else {
       DF = new MCDataFragment();
       insert(DF);
+      LLVM_DEBUG(dbgs() << "[danguria] MCELFStreamer::emitInstToData - Create a new Datafragment\n");
     }
     if (Sec.getBundleLockState() == MCSection::BundleLockedAlignToEnd) {
       // If this fragment is for a group marked "align_to_end", set a flag
@@ -594,6 +618,7 @@ void MCELFStreamer::emitInstToData(const MCInst &Inst,
     Sec.setBundleGroupBeforeFirstInst(false);
   } else {
     DF = getOrCreateDataFragment(&STI);
+    LLVM_DEBUG(dbgs() << "[danguria] MCELFStreamer::emitInstToData - Create a new Datafragment or get a current Datafragment\n");
   }
 
   // Add the fixups and data.
@@ -603,6 +628,15 @@ void MCELFStreamer::emitInstToData(const MCInst &Inst,
   }
   DF->setHasInstructions(STI);
   DF->getContents().append(Code.begin(), Code.end());
+  if (Inst.isCall()) {
+      unsigned CallOP = Inst.getOpcode();
+      if (652 <= CallOP && CallOP <=666) { // FIXME: only work with X86
+        dbgs() << InstOffset << ":" << Inst.getCCWeight() << "\n"; //[dcce]
+      } else {
+        //dbgs() << Inst << " skipped due to not explicit call\n"; //[dcce]
+      }
+  }
+  InstOffset += Code.size();
 
   if (Assembler.isBundlingEnabled() && Assembler.getRelaxAll()) {
     if (!isBundleLocked()) {

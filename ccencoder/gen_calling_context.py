@@ -32,7 +32,7 @@ def main(args):
         ## caculate maxid of cc encoding
         c_encode = dcce()
         max_id = c_encode.maxid(c_cg, args.root)
-        c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cc')
+        c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cg', args.trace)
         print(f'{args.bench} max_id is {max_id}')
         sys.stdout.flush()
 
@@ -55,7 +55,7 @@ def main(args):
     elif args.scheme == 'pcce':
         c_encode = pcce.pcce()
         c_encode.instrument_recursive(c_cg, c_dcg)
-        c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cc')
+        c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cg')
         max_id = c_encode.write_numcc(c_dcg, f'{args.outdir}/{args.bench}.numcc')
         print(f'{args.bench} max_id is {max_id}')
     else:

@@ -1,7 +1,6 @@
-#include <stdio.h>
 
-/*extern "C++"*/ void foo_mangled(int a) { printf("foo mangled\n"); }
-extern "C" void foo_not_mangled(int a) { printf("foo not mangled\n"); }
+/*extern "C++"*/ void foo_mangled(int a) {}
+extern "C" void foo_not_mangled(int a) {}
 
 
 class Test {
@@ -9,11 +8,9 @@ public:
     Test() {}
 
     void foo(int a) {
-        printf("foo1\n");
     }
 
     void foo(int a, int b) {
-        printf("foo2\n");
     }
 };
 

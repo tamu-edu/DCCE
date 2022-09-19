@@ -326,67 +326,105 @@ void PTACallGraph::dump(const std::string& filename)
     //-----------------------------------------------------
     std::ofstream fout;
     fout.open(filename + ".cg");
+    std::string str;
+    raw_string_ostream rawstr(str);
 
-    for (auto it : idToCSMap) {
-        CallSiteID csID = it.first;
-        const CallSitePair csPair = it.second;
-        const CallBlockNode* cbnode = csPair.first;
+    Module* mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
+    for (auto& F : *mod) {
+        NodeID callSiteID = 0;
+        rawstr << "In Function " << F.getName() << "\n";
+        for (auto &B : F) {
+            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
+                auto &I = *bbit;
+                if (!SVFUtil::isCallSite(&I)) continue;
+                const llvm::Instruction* csInst = llvm::dyn_cast<llvm::Instruction>(&I);
+                if (csInstToID.find(csInst) == csInstToID.end()) {
+                    rawstr << "CS Instruction not in csInstToID, skipping ... " << *csInst << "\n";
+                    continue;
+                }
 
-        const SVFFunction* callerFunc = getCallerOfCallSite(csID);
-        const SVFFunction* calleeFunc = getCalleeOfCallSite(csID);
+                const SVFFunction* firstCallerFunc = NULL;
+                PTACallGraphNode* firstCallerNode = NULL;
+                bool first = true;
+                bool needLineBreak = false;
+                bool isIndirect = csInstToID.find(csInst)->second.size() > 1;
+                for (auto csID : csInstToID.find(csInst)->second) {
+                    const SVFFunction* callerFunc = getCallerOfCallSite(csID);
+                    PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
+                    const SVFFunction* calleeFunc = getCalleeOfCallSite(csID);
+                    PTACallGraphNode* calleeNode = getCallGraphNode(calleeFunc);
 
-        PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
-        PTACallGraphNode* calleeNode = getCallGraphNode(calleeFunc);
+                    if (first) {
+                        firstCallerFunc = callerFunc;
+                        firstCallerNode = callerNode;
+                    }
+                    assert(firstCallerFunc == callerFunc);
+                    assert(firstCallerNode == callerNode);
 
-        //if (cbnode->isIndirectCall()) { continue; }  // indirect call
-        if (callerFunc == NULL) { printf("Caller of CSID:%d is null\n", csID); continue; }
-        if (calleeFunc == NULL) { printf("Callee of CSID:%d is null\n", csID); continue; }
-        if (callerFunc->isIntrinsic()) { continue; }
-        if (calleeFunc->isIntrinsic()) { continue; }
+                    if (callerFunc == NULL) { rawstr << "Caller of CSID: " << csID << " is null\n"; continue; }
+                    if (calleeFunc == NULL) { rawstr << "Callee of CSID: " << csID << " is null\n"; continue; }
+                    if (callerFunc->isIntrinsic()) { rawstr << "skip inst - " << *csInst << " due to caller is intrinssic" << callerFunc << "\n"; continue; }
+                    if (calleeFunc->isIntrinsic()) { rawstr << "skip inst - " << *csInst << " due to callee is intrinssic" << calleeFunc << "\n"; continue; }
 
-        std::string str;
-        raw_string_ostream rawstr(str);
-        rawstr << callerNode->getId() << "-" << callerNode->getFunction()->getName()
-            << ":" << calleeNode->getId() << "-" << calleeNode->getFunction()->getName()
-            << ":" << csID;
-        if (cbnode->isIndirectCall()) {
-            rawstr << "-i";
-        } else {
-            rawstr << "-d";
+                    std::string callerName = std::string(callerNode->getFunction()->getName());
+                    std::string calleeName = std::string(calleeNode->getFunction()->getName());
+                    NodeID callerID = callerNode->getId();
+                    NodeID calleeID = calleeNode->getId();
+                    assert(idToCSMap.find(csID) != idToCSMap.end());
+                    const CallBlockNode* cbnode = idToCSMap.find(csID)->second.first;
+
+                    if (callerName == "addWeight" || callerName == "removeWeight"
+                        || calleeName == "addWeight" || calleeName == "removeWeight") {
+                        rawstr << "Skip addWeight or removeWeight caller and callee\n";
+                        continue;
+                    }
+
+                    if (first) {
+                        std::string csStr;
+                        raw_string_ostream rawcsStr(csStr);
+                        if (cbnode->isIndirectCall()) rawcsStr << callSiteID << "-i";
+                        else            rawcsStr << callSiteID << "-d";
+                        fout << callerName << "-" << callerID << ":" << rawcsStr.str() << ":";
+                        first = false;
+                    }
+
+                    fout << csID << "-" << calleeName << "-" << calleeID << ",";
+                    needLineBreak = true;
+                }
+                if (needLineBreak) {
+                    fout << "\n";
+                    callSiteID += 1;
+                }
+            }
         }
-        fout << rawstr.str() << "\n";
     }
+    printf("%s", rawstr.str().c_str());
     fout.close();
+
     //-----------------------------------------------------
     // Indirect Call
     //-----------------------------------------------------
     fout.open(filename + ".indcall");
-    std::string str;
-    raw_string_ostream rawstr(str);
+    std::string str2;
+    raw_string_ostream rawstr2(str2);
 
     unsigned long max_callees = 0;
-    rawstr << "callsite --> {Set of possible callees} #of callees\n";
+    rawstr2 << "callsite --> {Set of possible callees} #of callees\n";
     for (auto it : indirectCallMap) {
         const CallBlockNode* cbnode = it.first;
-        CSInstToID::const_iterator itcs = csInstToID.find(cbnode->getCallSite());
-        assert(itcs != csInstToID.end());
-        unsigned long long int csid = itcs->second;
-
-        rawstr << csid << " --> {";
-        const FunctionSet& callees = getIndCSCallees(cbnode);
-        for (auto it_callees : callees) {
-            const SVFFunction* callee = it_callees;
-            PTACallGraphNode* calleeNode = getCallGraphNode(callee);
-            rawstr << calleeNode->getId() << '-' << calleeNode->getFunction()->getName() << ",";
+        rawstr2 << cbnode->toString() << " --> {";
+        for (auto function : it.second) {
+            rawstr2 << function->getName() << ", ";
         }
-        unsigned long num_callees = callees.size();
-        rawstr << "} " << num_callees << "\n";
-        if (max_callees < num_callees) {
+
+        unsigned long num_callees = it.second.size();
+        if (num_callees > max_callees) {
             max_callees = num_callees;
         }
+        rawstr2 << "} " << num_callees << "\n";
     }
-    rawstr << "max_num_callees: " << max_callees << "\n";
-    fout << rawstr.str();
+    rawstr2 << "max_num_callees: " << max_callees << "\n";
+    fout << rawstr2.str();
     fout.close();
     GraphPrinter::WriteGraphToFile(outs(), filename, this);
 }
@@ -406,71 +444,71 @@ void PTACallGraph::instrument_dcce(const std::string& ccinput)
     FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
     FunctionCallee      addWeight     = mod->getOrInsertFunction("addWeight", funcType);
     FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
-    // using load/store
-    //IntegerType* int64ty = Type::getInt64Ty(ctx);
+
+    std::string str;
+    raw_string_ostream rawstr(str);
 
     for (auto& F : *mod) {
-        printf("Function %s\n", F.getName().str().c_str());
+        rawstr << "Function " << F.getName().str() << "\n";
         for (auto &B : F) {
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
                 auto &I = *bbit;
                 if (SVFUtil::isCallSite(&I)) {
-                    auto *op = llvm::dyn_cast<llvm::CallBase>(&I);
-                    Function *func = op->getCalledFunction();
+                    auto *CB = llvm::dyn_cast<llvm::CallBase>(&I);
+                    Function *func = CB->getCalledFunction();
+  
+                    // Check if the CallBase does not have to have CCWeight
+                    bool IsIntrinsic = false;
+                    bool IsInstrumentedFunc = false;
+                    if (func != NULL) {
+                        IsIntrinsic = func->isIntrinsic();
+                        IsInstrumentedFunc = func->getName() == "addWeight" || func->getName() == "removeWeight";
+                    }
 
-                    if (func == NULL) {
-                        continue; // indirect call
-                    } else if (func->isIntrinsic()) {
-                        continue;
-                    } else if (func->getName() == "addWeight" || func->getName() == "removeWeight") {
+                    if (IsIntrinsic || IsInstrumentedFunc) {
+                        rawstr << "  Skipping instruction" << *CB
+                            << " due to IsIntrinsic: " << IsIntrinsic
+                            << ", IsInstrumentedFunc: " << IsInstrumentedFunc << "\n";
                         continue;
                     }
-                    //} else if (func->empty()) {
-                    //    continue;  // skip external functions such as DLL, addWeight/removeWeight/decode...
-                    //}
 
                     CSInstToID::const_iterator it = csInstToID.find(&I);
                     assert(it != csInstToID.end());
-                    unsigned long long int csid = it->second;
-                    assert(cs2w.find(csid) != cs2w.end());
-                    unsigned long long int weight = cs2w[csid];
-
-                    // using load/store
-                    //auto ccid = mod->getGlobalVariable("ccid");
-                    //auto load = new llvm::LoadInst(ccid, "", &I);
-                    //auto v = llvm::ConstantInt::get(int64ty, weight);
-                    //auto add = llvm::BinaryOperator::Create(Instruction::Add,
-                    //        load, v, "", &I);
-                    //auto store = new llvm::StoreInst(add, ccid, &I);
-
-
-                    //auto &II = *(++bbit);
-                    //ccid = mod->getGlobalVariable("ccid");
-                    //load = new LoadInst(ccid, "", &II);
-                    //v = ConstantInt::get(int64ty, weight);
-                    //auto sub = BinaryOperator::Create(Instruction::Sub,
-                    //        load, v, "", &II);
-                    //store = new StoreInst(sub, ccid, &II);
-                    //bbit--;
-
-                    printf("Inserting addWeight before %s\n", func->getName().str().c_str());
-                    // using rtlib
-                    IRBuilder builder(&I);
-                    builder.SetInsertPoint(&I);
-
-                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
-                    Value* args[] = {i64_val};
-                    builder.CreateCall(addWeight, args);
-
-                    for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
-                        builder.SetInsertPoint(SI);
-                        builder.CreateCall(removeWeight, args);
+                    if ((it->second).size() > 1) {
+                        rawstr << "  Indirect call " << I
+                            << " has more than one call targets ("
+                            << (it->second).size() << "). Instrumentation is skipped because we don't know the call target at runtime\n";
+                        continue;
                     }
+
+                    // Instrument direct call or indirect call with a single call target.
+                    for (auto csid : it->second) {
+                        assert (cs2w.find(csid) != cs2w.end());
+                        unsigned long long int weight = cs2w[csid];
+
+                        rawstr << "  Inserting add/removeWeight with CCWeight " << weight
+                            << " before/after CB " << *CB << "\n";
+
+                        // using rtlib
+                        IRBuilder builder(&I);
+                        builder.SetInsertPoint(&I);
+
+                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
+                        Value* args[] = {i64_val};
+                        builder.CreateCall(addWeight, args);
+
+                        for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
+                            builder.SetInsertPoint(SI);
+                            builder.CreateCall(removeWeight, args);
+                        }
+                    }
+
                 }
             }
         }
     }
+    printf("%s\n", rawstr.str().c_str());
 }
 
 void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int bench_code)
@@ -480,9 +518,6 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
 
     Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
     LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
-
-    // create a global variable to store ccinput
-    //SVFUtil::createGlobalString(mod, "ccinput", ccinput);
 
     // using rtlib
     std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
@@ -494,9 +529,11 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
     FunctionCallee      decode = mod->getOrInsertFunction("decode", funcType);
 
     bool insert_init = false;
+    std::string str;
+    raw_string_ostream rawstr(str);
 
     for (auto& F : *mod) {
-        printf("Function %s\n", F.getName().str().c_str());
+        rawstr << "Function " << F.getName().str() << "\n";
         bool insert_decode = false;
         for (auto &B : F) {
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
@@ -527,46 +564,146 @@ void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int benc
                 }
 
                 if (SVFUtil::isCallSite(&I)) {
-                    auto *op = llvm::dyn_cast<llvm::CallBase>(&I);
-                    Function *func = op->getCalledFunction();
+                    auto *CB = llvm::dyn_cast<llvm::CallBase>(&I);
+                    Function *func = CB->getCalledFunction();
 
-                    if (func == NULL) {
-                        continue; // indirect call
-                    } else if (func->isIntrinsic()) {
-                        continue;
-                    } else if (func->getName() == "addWeight" || func->getName() == "removeWeight") {
+                    // Check if the CallBase does not have to have CCWeight
+                    bool IsIntrinsic = false;
+                    bool IsInstrumentedFunc = false;
+                    if (func != NULL) {
+                        IsIntrinsic = func->isIntrinsic();
+                        IsInstrumentedFunc = func->getName() == "addWeight" || func->getName() == "removeWeight";
+                    }
+
+                    if (IsIntrinsic || IsInstrumentedFunc) {
+                        rawstr << "  Skipping instruction" << *CB
+                            << " due to IsIntrinsic: " << IsIntrinsic
+                            << ", IsInstrumentedFunc: " << IsInstrumentedFunc << "\n";
                         continue;
                     }
-                    //} else if (func->empty()) {
-                    //    continue;  // skip external functions such as DLL, addWeight/removeWeight/decode...
-                    //}
 
                     CSInstToID::const_iterator it = csInstToID.find(&I);
                     assert(it != csInstToID.end());
-                    unsigned long long int csid = it->second;
-                    assert(cs2w.find(csid) != cs2w.end());
-                    unsigned long long int weight = cs2w[csid];
-                    
-                    if (weight == 0) continue;
-                    printf("Inserting addWeight before %s\n", func->getName().str().c_str());
-  
-                    // using rtlib
-                    IRBuilder builder(&I);
-                    builder.SetInsertPoint(&I);
+                    if ((it->second).size() > 1) {
+                        rawstr << "  Indirect call " << I
+                            << " has more than one call targets ("
+                            << (it->second).size() << "). Instrumentation is skipped because we don't know the call target at runtime\n";
+                        continue;
+                    }
 
-                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
-                    Value* args[] = {i64_val};
-                    builder.CreateCall(addWeight, args);
+                    // Instrument direct call or indirect call with a single call target.
+                    for (auto csid : it->second) {
+                        assert(cs2w.find(csid) != cs2w.end());
+                        unsigned long long int weight = cs2w[csid];
 
-                    for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
-                        builder.SetInsertPoint(SI);
-                        builder.CreateCall(removeWeight, args);
+                        if (weight == 0) {
+                            rawstr << "  This call-site has zero CCWeight. Skipping instrumenting.\n";
+                            continue;
+                        }
+
+                        rawstr << "  Inserting add/removeWeight with CCWeight " << weight
+                            << " before/after CB " << *CB << "\n";
+
+                        // using rtlib
+                        IRBuilder builder(&I);
+                        builder.SetInsertPoint(&I);
+
+                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
+                        Value* args[] = {i64_val};
+                        builder.CreateCall(addWeight, args);
+
+                        for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
+                            builder.SetInsertPoint(SI);
+                            builder.CreateCall(removeWeight, args);
+                        }
                     }
                 }
             }
         }
     }
+    printf("%s\n", rawstr.str().c_str());
+}
+
+void PTACallGraph::add_ccweights(const std::string& ccinput)
+{
+    ccw_t f2cs2ccw;
+    //std::unordered_map<uint64_t, uint64_t> cs2w;
+    SVFUtil::parseCCWFile(ccinput, f2cs2ccw);
+
+    std::string str;
+    raw_string_ostream rawstr(str);
+
+    Module*  mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
+    for (auto& F : *mod) {
+        NodeID callSiteID = 0;
+        rawstr << "In Function " << F.getName() << "\n";
+        LLVMContext& C = F.getContext();
+        for (auto &B : F) {
+            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
+                auto &I = *bbit;
+                if (!SVFUtil::isCallSite(&I)) continue;
+                const llvm::Instruction* csInst = llvm::dyn_cast<llvm::Instruction>(&I);
+                if (csInstToID.find(csInst) == csInstToID.end()) {
+                    //rawstr << "CS Instruction not in csInstToID, skipping ... " << *csInst << "\n";
+                    continue;
+                }
+
+                const SVFFunction* firstCallerFunc = NULL;
+                PTACallGraphNode* firstCallerNode = NULL;
+                bool first = true;
+                bool needLineBreak = false;
+                bool isIndirect = csInstToID.find(csInst)->second.size() > 1;
+                rawstr << "In callsite " << I << "\n";
+
+                for (auto csID : csInstToID.find(csInst)->second) {
+                    const SVFFunction* callerFunc = getCallerOfCallSite(csID);
+                    PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
+                    const SVFFunction* calleeFunc = getCalleeOfCallSite(csID);
+                    PTACallGraphNode* calleeNode = getCallGraphNode(calleeFunc);
+                    if (first) {
+                        firstCallerFunc = callerFunc;
+                        firstCallerNode = callerNode;
+                    }
+                    assert(firstCallerFunc == callerFunc);
+                    assert(firstCallerNode == callerNode);
+
+                    if (callerFunc == NULL) { rawstr << "Caller of CSID " << csID << " is null\n"; continue; }
+                    if (calleeFunc == NULL) { rawstr << "Callee of CSID " << csID << " is null\n"; continue; }
+                    if (callerFunc->isIntrinsic()) { continue; }
+                    if (calleeFunc->isIntrinsic()) { continue; }
+
+                    std::string callerName = std::string(callerNode->getFunction()->getName());
+                    std::string calleeName = std::string(calleeNode->getFunction()->getName());
+
+                    if (callerName == "addWeight" || callerName == "removeWeight"
+                        || calleeName == "addWeight" || calleeName == "removeWeight") {
+                        rawstr << "Skip addWeight or removeWeight caller and callee\n";
+                        continue;
+                    }
+                    
+                    rawstr << "Finding callSiteID " << callSiteID << " in f2cs2ccw for " << I << "\n";
+                    if (f2cs2ccw[callerName].find(callSiteID) == f2cs2ccw[callerName].end()) {
+                        rawstr << "callSiteID " << callSiteID << " not found in cg file\n";
+                        printf("%s", rawstr.str().c_str());
+                    }
+                    assert(f2cs2ccw[callerName].find(callSiteID) != f2cs2ccw[callerName].end());
+                    std::string weight = f2cs2ccw[callerName][callSiteID];
+                    //if (weight > 0) {
+                    //    auto *CB = llvm::dyn_cast<llvm::CallBase>(&I);
+                    //    assert(CB != NULL);
+                    //    CB->addCallingContextWeight(llvm::AttributeList::ReturnIndex, weight);
+                    //    rawstr << "Inserting CCWeiht "  << weight << " to " << I << "\n";
+                    //}
+                    MDNode* N = MDNode::get(C, MDString::get(C, weight));
+                    I.setMetadata("ccwstring", N);
+                    callSiteID += 1;
+                    break;
+                }
+            }
+        }
+    }
+    printf("%s", rawstr.str().c_str());
 }
 
 void PTACallGraph::view()

@@ -10,6 +10,7 @@
 #include <signal.h>
 #include <cinttypes>
 #include <vector>
+#include <map>
 
 #include "libelf.h"
 
@@ -104,7 +105,6 @@
 
 #define ATOMIC_ADD_CTXT_HNDL(origin, val) dr_atomic_add32_return_sum(&origin, val)
 #define ATOMIC_ADD_THREAD_ID_MAX(origin) dr_atomic_add32_return_sum(&origin, 1)
-
 typedef struct _bb_shadow_t {
     bb_key_t key;
     slot_t slot_num;
@@ -373,7 +373,6 @@ bb_node_caller_ctxt_hndl(cct_bb_node_t *bb_node)
 static inline context_handle_t
 cur_child_ctxt_start_idx(slot_t num)
 {
-    //printf("before cur_child_ctxt_start_id: cur_id: %d, num: %d\n", global_ip_node_buff_idle_idx, num);
     context_handle_t next_start_idx =
         ATOMIC_ADD_CTXT_HNDL(global_ip_node_buff_idle_idx, num);
     if (next_start_idx >= CONTEXT_HANDLE_MAX) {
@@ -381,7 +380,6 @@ cur_child_ctxt_start_idx(slot_t num)
                               "application in its memory. Try a smaller program.");
     }
 
-    //printf("after cur_child_ctxt_start_id: cur_id: %d, num: %d next_start_id: %d\n", global_ip_node_buff_idle_idx, num, next_start_idx);
     return next_start_idx - num;
 }
 
@@ -3577,4 +3575,18 @@ drcctlib_priv_share_get_full_calling_ip_vector(context_handle_t ctxt_hndl,
 
         cur_ctxt = bb_node_caller_ctxt_hndl(parent_bb);
     }
+}
+
+app_pc
+drcctlib_get_func_entry(app_pc addr, const char* func_name)
+{
+
+    module_data_t *data = dr_lookup_module(addr);
+    app_pc func_entry = 0;
+    if (data != NULL) {
+        func_entry = moudle_get_function_entry(data, func_name, true);
+        dr_free_module_data(data);
+    }
+
+    return func_entry;
 }

@@ -1,0 +1,36 @@
+{
+    "adapters": {
+        "lldb-vscode": {
+            "attach": {
+                "pidProperty": "pid",
+                "pidSelect": "ask"
+            },
+            "command": [
+                "/home/sungkeun/git/DCCE/SVF/llvm-12.0.0/build/bin/lldb-vscode"
+            ],
+            "env": {
+                "LLDB_LAUNCH_FLAG_LAUNCH_IN_TTY": "YES"
+            },
+            "name": "lldb"
+        }
+    },
+
+    "configurations": {
+        "Launch" : {
+            "adapter": "lldb-vscode",
+            "configuration": {
+                "request": "launch",
+                "cwd": "./",
+                "program": "/home/sungkeun/git/DCCE/SVF/llvm-12.0.0/build/bin/clang",
+                "args": [
+                    "-m64", "-c", "-o main.o",
+                    "-flto", "-g", "-DSPEC", "-DNDEBUG", "-DSPEC_AUTO_SUPPRESS_OPENMP",
+                    "-O3", "-mavx",              "-DSPEC_LP64",  "main.c"
+                ],
+                "environment": [],
+                "stopOnEntry": true,
+                "externalConsole": true
+            }
+        }
+    }
+}

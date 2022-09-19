@@ -1,3 +1,16 @@
 __pycache__
 output*
 .cache
+bitcode-backup
+bin
+
+# for outputs of SPEC2017
+*.vtk
+*.yuv
+log
+mcf.out
+me.prm
+sh3_no_char_0849.tga
+statistics
+SPEC-benchmark.log
+gcc-pp.opts-O3_-finline-limit_0_-fif-conversion_-fif-conversion2.s

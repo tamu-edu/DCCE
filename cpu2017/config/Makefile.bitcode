@@ -180,7 +180,7 @@ ifeq ($(OS),windows_nt)
 else
     _defines_filter = -D% -U%
     OBJ           ?= .o
-    OBJOPT        ?= -c -o $@ -emit-llvm -pg 
+    OBJOPT        ?= -c -o $@ -flto
     LDOUT         ?= -o $@
     MATHLIBOPT    ?= -lm
     RMRF          ?= rm -rf
@@ -334,9 +334,11 @@ all: build
 
 $(EXEBASE): $(OBJS)
 ifndef NEEDATFILE
-	$(LLVM_LINK) $^ -o $@
+	#$(LLVM_LINK) $^ -o $@
+	$(LD) $(LDFLAGS) $(LD$(PRIMARY_BENCHLANG)FLAGS) $(EXTRA_LDFLAGS) $(FDO_LDFLAGS) $(FDO_LD$(PRIMARY_BENCHLANG)FLAGS) $(LDOPTFLAGS) $^           $(FINAL_LIBS) $(FINAL_LDOPTIONS) $(LDOUT) $(LDOUT_OPTIONS) $(LDOUT_EXTRA_OPTIONS) -fuse-ld=lld -Wl,--plugin-opt=-lto-embed-bitcode=optimized
 else
-	$(LLVM_LINK) @$(OBJNAMES) -o $@
+	#$(LLVM_LINK) @$(OBJNAMES) -o $@
+	$(LD) $(LDFLAGS) $(LD$(PRIMARY_BENCHLANG)FLAGS) $(EXTRA_LDFLAGS) $(FDO_LDFLAGS) $(FDO_LD$(PRIMARY_BENCHLANG)FLAGS) $(LDOPTFLAGS) @$(OBJNAMES) $(FINAL_LIBS) $(FINAL_LDOPTIONS) $(LDOUT) $(LDOUT_OPTIONS) $(LDOUT_EXTRA_OPTIONS) -fuse-ld=lld -Wl,--plugin-opt=-lto-embed-bitcode=optimized
 endif
 
 preprocess: $(PP_SOURCES)

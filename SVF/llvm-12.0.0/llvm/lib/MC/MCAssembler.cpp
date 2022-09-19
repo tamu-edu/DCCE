@@ -507,6 +507,7 @@ void MCAssembler::writeFragmentPadding(raw_ostream &OS,
 /// Write the fragment \p F to the output file.
 static void writeFragment(raw_ostream &OS, const MCAssembler &Asm,
                           const MCAsmLayout &Layout, const MCFragment &F) {
+    //dbgs() << "[dcce][ELF WRITING] writeFragment - order: " <<  F.getLayoutOrder() << "\n";
   // FIXME: Embed in fragments instead?
   uint64_t FragmentSize = Asm.computeFragmentSize(Layout, F);
 
@@ -571,7 +572,7 @@ static void writeFragment(raw_ostream &OS, const MCAssembler &Asm,
 
   case MCFragment::FT_Data:
     ++stats::EmittedDataFragments;
-    OS << cast<MCDataFragment>(F).getContents();
+    OS << cast<MCDataFragment>(F).getContents(); // [dcce] - here we have code to write MCDataFragment data
     break;
 
   case MCFragment::FT_Relaxable:
@@ -721,6 +722,7 @@ static void writeFragment(raw_ostream &OS, const MCAssembler &Asm,
 
 void MCAssembler::writeSectionData(raw_ostream &OS, const MCSection *Sec,
                                    const MCAsmLayout &Layout) const {
+    //dbgs() << "[dcce][ELF WRITING] MCAssembler::writeSectionData - " << Sec->getName() << "\n";
   assert(getBackendPtr() && "Expected assembler backend");
 
   // Ignore virtual sections.

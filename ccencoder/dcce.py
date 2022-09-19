@@ -47,14 +47,37 @@ class dcce:
         
         return self.max_id[p]
 
-    def write_cc(self, cg, filename):
+    def write_cc(self, cg, outfile, input_cg_file):
         print(f'---------------------------------')
-        print(f'Writing calling context file to {filename}')
+        print(f'Writing calling context file to {outfile}')
         print(f'---------------------------------')
-        f = open(filename, 'w')
-        for u in cg.nodes():
-            for v, cs in cg.neighbors(u):
-                wt = cg.edge_weight((u,v,cs))
-                f.write(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
-                print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}')
-        f.close()
+
+        cc = {} # caller_name-> callsite -> callee_name -> ccw
+        for caller in cg.nodes():
+            for callee, cs in cg.neighbors(caller):
+                wt = cg.edge_weight((caller,callee,cs))
+                #f.write(f'{cg.node2id[caller]}-{caller}:{cg.node2id[callee]}-{callee}:{cs}:{wt}\n')
+                #print(f'{cg.node2id[caller]}-{caller}:{cg.node2id[callee]}-{callee}:{cs}:{wt}')
+                if caller not in cc:
+                    cc[caller] = {}
+                if cs not in cc[caller]:
+                    cc[caller][cs] = {}
+
+                assert(callee not in cc[caller][cs])
+                cc[caller][cs][callee] = wt
+    
+        fout = open(outfile, 'w')
+        with open(input_cg_file, 'r') as fin:
+            for line in fin:
+                line = line.strip()[:-1] # Remove the last comma
+
+                caller, callsite_id, callee_set = line.split(':')
+                caller, caller_id = caller.split('-')
+                
+                fout.write(f'{caller}:{callsite_id}:')
+                for cs_callee_ccw in callee_set.split(','):
+                    cs, callee, callee_id = cs_callee_ccw.split('-')
+                    ccw = cc[caller][callsite_id][callee]
+                    fout.write(f'{cs}-{callee}-{ccw},')
+                fout.write('\n')
+        fout.close()

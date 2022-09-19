@@ -520,6 +520,7 @@ static MachineInstr *foldPatchpoint(MachineFunction &MF, MachineInstr &MI,
 
   MachineInstr *NewMI =
       MF.CreateMachineInstr(TII.get(MI.getOpcode()), MI.getDebugLoc(), true);
+  NewMI->setCCWeight(MI.getCCWeight());
   MachineInstrBuilder MIB(MF, NewMI);
 
   // No need to fold return, the meta data, and function arguments

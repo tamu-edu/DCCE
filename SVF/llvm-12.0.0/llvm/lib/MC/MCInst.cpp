@@ -66,6 +66,9 @@ void MCInst::print(raw_ostream &OS) const {
     OS << " ";
     getOperand(i).print(OS);
   }
+  if (IsCall) {
+    OS << "CCWeight: " << CCWeight;
+  }
   OS << ">";
 }
 

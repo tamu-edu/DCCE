@@ -256,6 +256,7 @@ protected:
   bool checkCVLocSection(unsigned FuncId, unsigned FileNo, SMLoc Loc);
 
 public:
+  uint64_t InstOffset;
   MCStreamer(const MCStreamer &) = delete;
   MCStreamer &operator=(const MCStreamer &) = delete;
   virtual ~MCStreamer();

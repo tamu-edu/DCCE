@@ -1083,6 +1083,7 @@ SDValue SelectionDAGBuilder::getControlRoot() {
 }
 
 void SelectionDAGBuilder::visit(const Instruction &I) {
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGBuilder::visit " << I << "\n");
   // Set up outgoing PHI node register values before emitting the terminator.
   if (I.isTerminator()) {
     HandlePHINodesInSuccessorBlocks(I.getParent());
@@ -1091,6 +1092,14 @@ void SelectionDAGBuilder::visit(const Instruction &I) {
   // Increase the SDNodeOrder if dealing with a non-debug instruction.
   if (!isa<DbgInfoIntrinsic>(I))
     ++SDNodeOrder;
+
+  if (isa<CallInst>(I) || isa<InvokeInst>(I) || isa<CallBrInst>(I)) {
+    auto* CB = dyn_cast<CallBase>(&I);
+    Attribute Attr = CB->getAttribute(AttributeList::ReturnIndex, Attribute::CCWeight);
+    if (Attr.isIntAttribute()) {
+        LLVM_DEBUG(dbgs() << "[danguria] " << CB->getName() << " - CCWeight: " << Attr.getValueAsInt() << "\n");
+    }
+  }
 
   CurInst = &I;
 
@@ -1108,6 +1117,7 @@ void SelectionDAGBuilder::visitPHI(const PHINode &) {
 }
 
 void SelectionDAGBuilder::visit(unsigned Opcode, const User &I) {
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGBuilder::visit opcode: " << Opcode << ", "<< I << "\n");
   // Note: this doesn't use InstVisitor, because it has to work with
   // ConstantExpr's in addition to instructions.
   switch (Opcode) {
@@ -2861,6 +2871,7 @@ void SelectionDAGBuilder::visitInvoke(const InvokeInst &I) {
 }
 
 void SelectionDAGBuilder::visitCallBr(const CallBrInst &I) {
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGBuilder::visitCallBr " << I << "\n");
   MachineBasicBlock *CallBrMBB = FuncInfo.MBB;
 
   // Deopt bundles are lowered in LowerCallSiteWithDeoptBundle, and we don't
@@ -7154,6 +7165,10 @@ void SelectionDAGBuilder::visitVectorPredicationIntrinsic(
 std::pair<SDValue, SDValue>
 SelectionDAGBuilder::lowerInvokable(TargetLowering::CallLoweringInfo &CLI,
                                     const BasicBlock *EHPadBB) {
+  if (CLI.CB == NULL)
+    LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGBuilder::visitCall null\n");
+  else
+    LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGBuilder::visitCall " << *(CLI.CB) << "\n");
   MachineFunction &MF = DAG.getMachineFunction();
   MachineModuleInfo &MMI = MF.getMMI();
   MCSymbol *BeginLabel = nullptr;
@@ -7226,6 +7241,8 @@ SelectionDAGBuilder::lowerInvokable(TargetLowering::CallLoweringInfo &CLI,
 void SelectionDAGBuilder::LowerCallTo(const CallBase &CB, SDValue Callee,
                                       bool isTailCall,
                                       const BasicBlock *EHPadBB) {
+
+  LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGBuilder::LowerCallTo " << CB << "\n");
   auto &DL = DAG.getDataLayout();
   FunctionType *FTy = CB.getFunctionType();
   Type *RetTy = CB.getType();
@@ -7677,6 +7694,7 @@ bool SelectionDAGBuilder::visitBinaryFloatCall(const CallInst &I,
 }
 
 void SelectionDAGBuilder::visitCall(const CallInst &I) {
+    LLVM_DEBUG(dbgs() << "[danguria] SelectionDAGBuilder::visitCall " << I << "\n");
   // Handle inline assembly differently.
   if (I.isInlineAsm()) {
     visitInlineAsm(I);
@@ -9156,6 +9174,10 @@ static AttributeList getReturnAttrs(TargetLowering::CallLoweringInfo &CLI) {
 /// migrated to using LowerCall, this hook should be integrated into SDISel.
 std::pair<SDValue, SDValue>
 TargetLowering::LowerCallTo(TargetLowering::CallLoweringInfo &CLI) const {
+  if (CLI.CB != NULL)
+    LLVM_DEBUG(dbgs() << "[danguria] TargetLowering::LowerCallTo " << *(CLI.CB) << "\n");
+  else
+    LLVM_DEBUG(dbgs() << "[danguria] TargetLowering::LowerCallTo \n");
   // Handle the incoming return values from the call.
   CLI.Ins.clear();
   Type *OrigRetTy = CLI.RetTy;

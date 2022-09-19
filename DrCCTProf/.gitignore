@@ -3,7 +3,7 @@
 build/
 build_debug/
 test_apps/build
-
+dynamorio/
 
 logs/
 

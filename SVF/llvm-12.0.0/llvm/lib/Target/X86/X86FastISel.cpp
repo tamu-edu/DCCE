@@ -38,9 +38,11 @@
 #include "llvm/IR/Operator.h"
 #include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCSymbol.h"
+#include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Target/TargetOptions.h"
 using namespace llvm;
+#define DEBUG_TYPE "danguria-x86fastisel"
 
 namespace {
 
@@ -3213,8 +3215,17 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
   bool Is64Bit        = Subtarget->is64Bit();
   bool IsWin64        = Subtarget->isCallingConvWin64(CC);
 
+
   const CallInst *CI = dyn_cast_or_null<CallInst>(CLI.CB);
   const Function *CalledFn = CI ? CI->getCalledFunction() : nullptr;
+  std::string CCWeight = "empty";
+  if (CI) {
+    if (MDNode* CCWNode = CI->getMetadata("ccwstring")) {
+      CCWeight = cast<MDString>(CCWNode->getOperand(0))->getString().str();
+      LLVM_DEBUG(dbgs() << "[danguria] X86FastISel::fastLowerCall" << *CI
+      << " CCWeight: " << CCWeight << "\n");
+    }
+  }
 
   // Call / invoke instructions with NoCfCheck attribute require special
   // handling.
@@ -3274,6 +3285,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
   SmallVector<MVT, 16> OutVTs;
   SmallVector<unsigned, 16> ArgRegs;
 
+  LLVM_DEBUG(dbgs() << "[danguria] X86FastISel::fastLowerCall reached here1 \n");
   // If this is a constant i1/i8/i16 argument, promote to i32 to avoid an extra
   // instruction. This is safe because it is common to all FastISel supported
   // calling conventions on x86.
@@ -3336,7 +3348,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
 
   // Issue CALLSEQ_START
   unsigned AdjStackDown = TII.getCallFrameSetupOpcode();
-  BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(AdjStackDown))
+  BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(AdjStackDown), CI)
     .addImm(NumBytes).addImm(0).addImm(0);
 
   // Walk the register/memloc assignments, inserting copies/loads.
@@ -3428,7 +3440,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
 
     if (VA.isRegLoc()) {
       BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc,
-              TII.get(TargetOpcode::COPY), VA.getLocReg()).addReg(ArgReg);
+              TII.get(TargetOpcode::COPY), VA.getLocReg(), CI).addReg(ArgReg);
       OutRegs.push_back(VA.getLocReg());
     } else {
       assert(VA.isMemLoc() && "Unknown value location!");
@@ -3470,7 +3482,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
   if (Subtarget->isPICStyleGOT()) {
     unsigned Base = getInstrInfo()->getGlobalBaseReg(FuncInfo.MF);
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc,
-            TII.get(TargetOpcode::COPY), X86::EBX).addReg(Base);
+            TII.get(TargetOpcode::COPY), X86::EBX, CI).addReg(Base);
   }
 
   if (Is64Bit && IsVarArg && !IsWin64) {
@@ -3491,7 +3503,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
     assert((Subtarget->hasSSE1() || !NumXMMRegs)
            && "SSE registers cannot be used when SSE is disabled");
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(X86::MOV8ri),
-            X86::AL).addImm(NumXMMRegs);
+            X86::AL, CI).addImm(NumXMMRegs);
   }
 
   // Materialize callee address in a register. FIXME: GV address can be
@@ -3514,7 +3526,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
   if (CalleeOp) {
     // Register-indirect call.
     unsigned CallOpc = Is64Bit ? X86::CALL64r : X86::CALL32r;
-    MIB = BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(CallOpc))
+    MIB = BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(CallOpc), CI)
       .addReg(CalleeOp);
   } else {
     // Direct call.
@@ -3531,7 +3543,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
                            ? (Is64Bit ? X86::CALL64m : X86::CALL32m)
                            : (Is64Bit ? X86::CALL64pcrel32 : X86::CALLpcrel32);
 
-    MIB = BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(CallOpc));
+    MIB = BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(CallOpc), CI);
     if (NeedLoad)
       MIB.addReg(Is64Bit ? X86::RIP : 0).addImm(1).addReg(0);
     if (Symbol)
@@ -3541,6 +3553,11 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
     if (NeedLoad)
       MIB.addReg(0);
   }
+
+  // Propagate CCWeight from CallBase to MachineInstr
+  MIB.addCCWeight(CCWeight);
+  LLVM_DEBUG(dbgs()<< "[danguria] X86FastISel::fastLowerCall propagate CCWeight: " << CCWeight
+               << "from CI: " << *CI << " to MI: " << *(MIB.getInstr()) << " &MI: " << MIB.getInstr() << "\n");
 
   // Add a register mask operand representing the call-preserved registers.
   // Proper defs for return values will be added by setPhysRegsDeadExcept().
@@ -3564,7 +3581,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
           ? NumBytes // Callee pops everything.
           : computeBytesPoppedByCalleeForSRet(Subtarget, CC, CLI.CB);
   unsigned AdjStackUp = TII.getCallFrameDestroyOpcode();
-  BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(AdjStackUp))
+  BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc, TII.get(AdjStackUp), CI)
     .addImm(NumBytes).addImm(NumBytesForCalleeToPop);
 
   // Now handle call return values.
@@ -3597,7 +3614,7 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
 
     // Copy out the result.
     BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc,
-            TII.get(TargetOpcode::COPY), CopyReg).addReg(SrcReg);
+            TII.get(TargetOpcode::COPY), CopyReg, CI).addReg(SrcReg);
     InRegs.push_back(VA.getLocReg());
 
     // Round the f80 to the right size, which also moves it to the appropriate
@@ -3609,11 +3626,11 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
       unsigned MemSize = ResVT.getSizeInBits()/8;
       int FI = MFI.CreateStackObject(MemSize, Align(MemSize), false);
       addFrameReference(BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc,
-                                TII.get(Opc)), FI)
+                                TII.get(Opc), CI), FI)
         .addReg(CopyReg);
       Opc = ResVT == MVT::f32 ? X86::MOVSSrm_alt : X86::MOVSDrm_alt;
       addFrameReference(BuildMI(*FuncInfo.MBB, FuncInfo.InsertPt, DbgLoc,
-                                TII.get(Opc), ResultReg + i), FI);
+                                TII.get(Opc), ResultReg + i, CI), FI);
     }
   }
 
@@ -3626,6 +3643,13 @@ bool X86FastISel::fastLowerCall(CallLoweringInfo &CLI) {
 
 bool
 X86FastISel::fastSelectInstruction(const Instruction *I)  {
+  LLVM_DEBUG(dbgs() << "[danguria] X86FastISel::fastSelectInstruction " << *I << "\n");
+  //auto* CB = dyn_cast<CallBase>(I);
+  //if (CB && CB->hasRetAttr(Attribute::CCWeight)) {
+  //  Attribute Attr = CB->getAttribute(AttributeList::ReturnIndex, Attribute::CCWeight);
+  //  assert(Attr.isIntAttribute());
+  //  LLVM_DEBUG(dbgs() << CB->getName() << " - CCWeight: " << Attr.getValueAsInt() << "\n");
+  //}
   switch (I->getOpcode()) {
   default: break;
   case Instruction::Load:

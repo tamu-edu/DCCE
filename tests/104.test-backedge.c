@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 
 int sum(int n) {
@@ -6,17 +5,10 @@ int sum(int n) {
     return n + sum(n-1);
 }
 
-void not_reachable_func() { printf("This never be printed\n"); }
+void not_reachable_func() {}
 
 int main (int argc, char *argv[])
 {
-    if (argc != 2) {
-        fprintf(stderr, "Usage: %s number n to sum up from zero to n\n", argv[0]);
-        exit(1);
-    }
-
-    int n = atoi(argv[1]);
-    printf("Sum(%d) is %d\n", n, sum(n));
-    
+    sum(10);
     return 0;
 }

@@ -5334,6 +5334,7 @@ static MachineInstr *FuseTwoAddrInst(MachineFunction &MF, unsigned Opcode,
   // Omit the implicit operands, something BuildMI can't do.
   MachineInstr *NewMI =
       MF.CreateMachineInstr(TII.get(Opcode), MI.getDebugLoc(), true);
+  if (MI.isCall()) NewMI->setCCWeight(MI.getCCWeight());
   MachineInstrBuilder MIB(MF, NewMI);
   addOperands(MIB, MOs);
 
@@ -5361,9 +5362,11 @@ static MachineInstr *FuseInst(MachineFunction &MF, unsigned Opcode,
                               MachineBasicBlock::iterator InsertPt,
                               MachineInstr &MI, const TargetInstrInfo &TII,
                               int PtrOffset = 0) {
+  LLVM_DEBUG(dbgs() << "[danguria] MachineInstr::FuseInst Opcode: " << Opcode << " MI: " << MI << "\n");
   // Omit the implicit operands, something BuildMI can't do.
   MachineInstr *NewMI =
       MF.CreateMachineInstr(TII.get(Opcode), MI.getDebugLoc(), true);
+  if (MI.isCall()) NewMI->setCCWeight(MI.getCCWeight());
   MachineInstrBuilder MIB(MF, NewMI);
 
   for (unsigned i = 0, e = MI.getNumOperands(); i != e; ++i) {
@@ -6318,6 +6321,7 @@ bool X86InstrInfo::unfoldMemoryOperand(
 
   // Emit the data processing instruction.
   MachineInstr *DataMI = MF.CreateMachineInstr(MCID, MI.getDebugLoc(), true);
+  if (MI.isCall()) DataMI->setCCWeight(MI.getCCWeight());
   MachineInstrBuilder MIB(MF, DataMI);
 
   if (FoldedStore)

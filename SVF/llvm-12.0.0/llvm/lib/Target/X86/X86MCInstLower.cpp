@@ -123,6 +123,7 @@ void X86AsmPrinter::StackMapShadowTracker::emitShadowPadding(
 }
 
 void X86AsmPrinter::EmitAndCountInstruction(MCInst &Inst) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::EmitAndCountInstruction " << Inst << "\n");
   OutStreamer->emitInstruction(Inst, getSubtargetInfo());
   SMShadowTracker.count(Inst, getSubtargetInfo(), CodeEmitter.get());
 }
@@ -491,6 +492,7 @@ static unsigned convertTailJumpOpcode(unsigned Opcode) {
 
 void X86MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
   OutMI.setOpcode(MI->getOpcode());
+  LLVM_DEBUG(dbgs() << "[danguria] X86MCInstLower::Lower MI: " << *MI << "\n");
 
   for (const MachineOperand &MO : MI->operands())
     if (auto MaybeMCOp = LowerMachineOperand(MI, MO))
@@ -976,6 +978,7 @@ void X86MCInstLower::Lower(const MachineInstr *MI, MCInst &OutMI) const {
 
 void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
                                  const MachineInstr &MI) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerTlsAddr " << MI << "\n");
   NoAutoPaddingScope NoPadScope(*OutStreamer);
   bool Is64Bits = MI.getOpcode() != X86::TLS_addr32 &&
                   MI.getOpcode() != X86::TLS_base_addr32;
@@ -1015,8 +1018,8 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
   if (Is64Bits) {
     bool NeedsPadding = SRVK == MCSymbolRefExpr::VK_TLSGD;
     if (NeedsPadding && Is64BitsLP64)
-      EmitAndCountInstruction(MCInstBuilder(X86::DATA16_PREFIX));
-    EmitAndCountInstruction(MCInstBuilder(X86::LEA64r)
+      EmitAndCountInstruction(MCInstBuilder(X86::DATA16_PREFIX, &MI));
+    EmitAndCountInstruction(MCInstBuilder(X86::LEA64r, &MI)
                                 .addReg(X86::RDI)
                                 .addReg(X86::RIP)
                                 .addImm(1)
@@ -1026,14 +1029,14 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
     const MCSymbol *TlsGetAddr = Ctx.getOrCreateSymbol("__tls_get_addr");
     if (NeedsPadding) {
       if (!UseGot)
-        EmitAndCountInstruction(MCInstBuilder(X86::DATA16_PREFIX));
-      EmitAndCountInstruction(MCInstBuilder(X86::DATA16_PREFIX));
-      EmitAndCountInstruction(MCInstBuilder(X86::REX64_PREFIX));
+        EmitAndCountInstruction(MCInstBuilder(X86::DATA16_PREFIX, &MI));
+      EmitAndCountInstruction(MCInstBuilder(X86::DATA16_PREFIX, &MI));
+      EmitAndCountInstruction(MCInstBuilder(X86::REX64_PREFIX, &MI));
     }
     if (UseGot) {
       const MCExpr *Expr = MCSymbolRefExpr::create(
           TlsGetAddr, MCSymbolRefExpr::VK_GOTPCREL, Ctx);
-      EmitAndCountInstruction(MCInstBuilder(X86::CALL64m)
+      EmitAndCountInstruction(MCInstBuilder(X86::CALL64m, &MI)
                                   .addReg(X86::RIP)
                                   .addImm(1)
                                   .addReg(0)
@@ -1041,13 +1044,13 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
                                   .addReg(0));
     } else {
       EmitAndCountInstruction(
-          MCInstBuilder(X86::CALL64pcrel32)
+          MCInstBuilder(X86::CALL64pcrel32, &MI)
               .addExpr(MCSymbolRefExpr::create(TlsGetAddr,
                                                MCSymbolRefExpr::VK_PLT, Ctx)));
     }
   } else {
     if (SRVK == MCSymbolRefExpr::VK_TLSGD && !UseGot) {
-      EmitAndCountInstruction(MCInstBuilder(X86::LEA32r)
+      EmitAndCountInstruction(MCInstBuilder(X86::LEA32r, &MI)
                                   .addReg(X86::EAX)
                                   .addReg(0)
                                   .addImm(1)
@@ -1055,7 +1058,7 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
                                   .addExpr(Sym)
                                   .addReg(0));
     } else {
-      EmitAndCountInstruction(MCInstBuilder(X86::LEA32r)
+      EmitAndCountInstruction(MCInstBuilder(X86::LEA32r, &MI)
                                   .addReg(X86::EAX)
                                   .addReg(X86::EBX)
                                   .addImm(1)
@@ -1068,7 +1071,7 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
     if (UseGot) {
       const MCExpr *Expr =
           MCSymbolRefExpr::create(TlsGetAddr, MCSymbolRefExpr::VK_GOT, Ctx);
-      EmitAndCountInstruction(MCInstBuilder(X86::CALL32m)
+      EmitAndCountInstruction(MCInstBuilder(X86::CALL32m, &MI)
                                   .addReg(X86::EBX)
                                   .addImm(1)
                                   .addReg(0)
@@ -1076,7 +1079,7 @@ void X86AsmPrinter::LowerTlsAddr(X86MCInstLower &MCInstLowering,
                                   .addReg(0));
     } else {
       EmitAndCountInstruction(
-          MCInstBuilder(X86::CALLpcrel32)
+          MCInstBuilder(X86::CALLpcrel32, &MI)
               .addExpr(MCSymbolRefExpr::create(TlsGetAddr,
                                                MCSymbolRefExpr::VK_PLT, Ctx)));
     }
@@ -1180,15 +1183,15 @@ static unsigned emitNop(MCStreamer &OS, unsigned NumBytes,
   switch (Opc) {
   default: llvm_unreachable("Unexpected opcode");
   case X86::NOOP:
-    OS.emitInstruction(MCInstBuilder(Opc), *Subtarget);
+    OS.emitInstruction(MCInstBuilder(Opc, NULL), *Subtarget);
     break;
   case X86::XCHG16ar:
-    OS.emitInstruction(MCInstBuilder(Opc).addReg(X86::AX).addReg(X86::AX),
+    OS.emitInstruction(MCInstBuilder(Opc, NULL).addReg(X86::AX).addReg(X86::AX),
                        *Subtarget);
     break;
   case X86::NOOPL:
   case X86::NOOPW:
-    OS.emitInstruction(MCInstBuilder(Opc)
+    OS.emitInstruction(MCInstBuilder(Opc, NULL)
                            .addReg(BaseReg)
                            .addImm(ScaleVal)
                            .addReg(IndexReg)
@@ -1214,6 +1217,7 @@ static void emitX86Nops(MCStreamer &OS, unsigned NumBytes,
 
 void X86AsmPrinter::LowerSTATEPOINT(const MachineInstr &MI,
                                     X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerSTATEPOINT" << MI << "\n");
   assert(Subtarget->is64Bit() && "Statepoint currently only supports X86-64");
 
   NoAutoPaddingScope NoPadScope(*OutStreamer);
@@ -1307,11 +1311,13 @@ void X86AsmPrinter::LowerFAULTING_OP(const MachineInstr &FaultingMI,
       MI.addOperand(MaybeOperand.getValue());
 
   OutStreamer->AddComment("on-fault: " + HandlerLabel->getName());
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerFAULTING_OP" << MI << "\n");
   OutStreamer->emitInstruction(MI, getSubtargetInfo());
 }
 
 void X86AsmPrinter::LowerFENTRY_CALL(const MachineInstr &MI,
                                      X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerFENTRY_CALL" << MI << "\n");
   bool Is64Bits = Subtarget->is64Bit();
   MCContext &Ctx = OutStreamer->getContext();
   MCSymbol *fentry = Ctx.getOrCreateSymbol("__fentry__");
@@ -1319,12 +1325,13 @@ void X86AsmPrinter::LowerFENTRY_CALL(const MachineInstr &MI,
       MCSymbolRefExpr::create(fentry, MCSymbolRefExpr::VK_None, Ctx);
 
   EmitAndCountInstruction(
-      MCInstBuilder(Is64Bits ? X86::CALL64pcrel32 : X86::CALLpcrel32)
+      MCInstBuilder(Is64Bits ? X86::CALL64pcrel32 : X86::CALLpcrel32, &MI)
           .addExpr(Op));
 }
 
 void X86AsmPrinter::LowerPATCHABLE_OP(const MachineInstr &MI,
                                       X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerPATCHABLE_OP" << MI << "\n");
   // PATCHABLE_OP minsize, opcode, operands
 
   NoAutoPaddingScope NoPadScope(*OutStreamer);
@@ -1352,7 +1359,7 @@ void X86AsmPrinter::LowerPATCHABLE_OP(const MachineInstr &MI,
       // rely specifically on this pattern to be able to patch a function.
       // This is only for 32-bit targets, when using /arch:IA32 or /arch:SSE.
       OutStreamer->emitInstruction(
-          MCInstBuilder(X86::MOV32rr_REV).addReg(X86::EDI).addReg(X86::EDI),
+          MCInstBuilder(X86::MOV32rr_REV, &MI).addReg(X86::EDI).addReg(X86::EDI),
           *Subtarget);
     } else if (MinSize == 2 && Opcode == X86::PUSH64r) {
       // This is an optimization that lets us get away without emitting a nop in
@@ -1374,6 +1381,7 @@ void X86AsmPrinter::LowerPATCHABLE_OP(const MachineInstr &MI,
 // Lower a stackmap of the form:
 // <id>, <shadowBytes>, ...
 void X86AsmPrinter::LowerSTACKMAP(const MachineInstr &MI) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerSTACKMAP " << MI << "\n");
   SMShadowTracker.emitShadowPadding(*OutStreamer, getSubtargetInfo());
 
   auto &Ctx = OutStreamer->getContext();
@@ -1389,6 +1397,7 @@ void X86AsmPrinter::LowerSTACKMAP(const MachineInstr &MI) {
 // [<def>], <id>, <numBytes>, <target>, <numArgs>, <cc>, ...
 void X86AsmPrinter::LowerPATCHPOINT(const MachineInstr &MI,
                                     X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerPATCHPOINT " << MI << "\n");
   assert(Subtarget->is64Bit() && "Patchpoint currently only supports X86-64");
 
   SMShadowTracker.emitShadowPadding(*OutStreamer, getSubtargetInfo());
@@ -1433,12 +1442,12 @@ void X86AsmPrinter::LowerPATCHPOINT(const MachineInstr &MI,
       EncodedBytes = 12;
 
     EmitAndCountInstruction(
-        MCInstBuilder(X86::MOV64ri).addReg(ScratchReg).addOperand(CalleeMCOp));
+        MCInstBuilder(X86::MOV64ri, &MI).addReg(ScratchReg).addOperand(CalleeMCOp));
     // FIXME: Add retpoline support and remove this.
     if (Subtarget->useIndirectThunkCalls())
       report_fatal_error(
           "Lowering patchpoint with thunks not yet implemented.");
-    EmitAndCountInstruction(MCInstBuilder(X86::CALL64r).addReg(ScratchReg));
+    EmitAndCountInstruction(MCInstBuilder(X86::CALL64r, &MI).addReg(ScratchReg));
   }
 
   // Emit padding.
@@ -1451,6 +1460,7 @@ void X86AsmPrinter::LowerPATCHPOINT(const MachineInstr &MI,
 
 void X86AsmPrinter::LowerPATCHABLE_EVENT_CALL(const MachineInstr &MI,
                                               X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerPATCHABLE_EVENT_CALL " << MI << "\n");
   assert(Subtarget->is64Bit() && "XRay custom events only supports X86-64");
 
   NoAutoPaddingScope NoPadScope(*OutStreamer);
@@ -1504,7 +1514,7 @@ void X86AsmPrinter::LowerPATCHABLE_EVENT_CALL(const MachineInstr &MI,
       if (SrcRegs[I] != DestRegs[I]) {
         UsedMask[I] = true;
         EmitAndCountInstruction(
-            MCInstBuilder(X86::PUSH64r).addReg(DestRegs[I]));
+            MCInstBuilder(X86::PUSH64r, &MI).addReg(DestRegs[I]));
       } else {
         emitX86Nops(*OutStreamer, 4, Subtarget);
       }
@@ -1517,7 +1527,7 @@ void X86AsmPrinter::LowerPATCHABLE_EVENT_CALL(const MachineInstr &MI,
   for (unsigned I = 0; I < MI.getNumOperands(); ++I)
     if (SrcRegs[I] != DestRegs[I])
       EmitAndCountInstruction(
-          MCInstBuilder(X86::MOV64rr).addReg(DestRegs[I]).addReg(SrcRegs[I]));
+          MCInstBuilder(X86::MOV64rr, &MI).addReg(DestRegs[I]).addReg(SrcRegs[I]));
 
   // We emit a hard dependency on the __xray_CustomEvent symbol, which is the
   // name of the trampoline to be implemented by the XRay runtime.
@@ -1527,13 +1537,13 @@ void X86AsmPrinter::LowerPATCHABLE_EVENT_CALL(const MachineInstr &MI,
     TOp.setTargetFlags(X86II::MO_PLT);
 
   // Emit the call instruction.
-  EmitAndCountInstruction(MCInstBuilder(X86::CALL64pcrel32)
+  EmitAndCountInstruction(MCInstBuilder(X86::CALL64pcrel32, &MI)
                               .addOperand(MCIL.LowerSymbolOperand(TOp, TSym)));
 
   // Restore caller-saved and used registers.
   for (unsigned I = sizeof UsedMask; I-- > 0;)
     if (UsedMask[I])
-      EmitAndCountInstruction(MCInstBuilder(X86::POP64r).addReg(DestRegs[I]));
+      EmitAndCountInstruction(MCInstBuilder(X86::POP64r, &MI).addReg(DestRegs[I]));
     else
       emitX86Nops(*OutStreamer, 1, Subtarget);
 
@@ -1547,6 +1557,7 @@ void X86AsmPrinter::LowerPATCHABLE_EVENT_CALL(const MachineInstr &MI,
 
 void X86AsmPrinter::LowerPATCHABLE_TYPED_EVENT_CALL(const MachineInstr &MI,
                                                     X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerPATCHABLE_TYPED_EVENT_CALL " << MI << "\n");
   assert(Subtarget->is64Bit() && "XRay typed events only supports X86-64");
 
   NoAutoPaddingScope NoPadScope(*OutStreamer);
@@ -1602,7 +1613,7 @@ void X86AsmPrinter::LowerPATCHABLE_TYPED_EVENT_CALL(const MachineInstr &MI,
       if (SrcRegs[I] != DestRegs[I]) {
         UsedMask[I] = true;
         EmitAndCountInstruction(
-            MCInstBuilder(X86::PUSH64r).addReg(DestRegs[I]));
+            MCInstBuilder(X86::PUSH64r, &MI).addReg(DestRegs[I]));
       } else {
         emitX86Nops(*OutStreamer, 4, Subtarget);
       }
@@ -1620,7 +1631,7 @@ void X86AsmPrinter::LowerPATCHABLE_TYPED_EVENT_CALL(const MachineInstr &MI,
   for (unsigned I = 0; I < MI.getNumOperands(); ++I)
     if (UsedMask[I])
       EmitAndCountInstruction(
-          MCInstBuilder(X86::MOV64rr).addReg(DestRegs[I]).addReg(SrcRegs[I]));
+          MCInstBuilder(X86::MOV64rr, &MI).addReg(DestRegs[I]).addReg(SrcRegs[I]));
 
   // We emit a hard dependency on the __xray_TypedEvent symbol, which is the
   // name of the trampoline to be implemented by the XRay runtime.
@@ -1630,13 +1641,13 @@ void X86AsmPrinter::LowerPATCHABLE_TYPED_EVENT_CALL(const MachineInstr &MI,
     TOp.setTargetFlags(X86II::MO_PLT);
 
   // Emit the call instruction.
-  EmitAndCountInstruction(MCInstBuilder(X86::CALL64pcrel32)
+  EmitAndCountInstruction(MCInstBuilder(X86::CALL64pcrel32, &MI)
                               .addOperand(MCIL.LowerSymbolOperand(TOp, TSym)));
 
   // Restore caller-saved and used registers.
   for (unsigned I = sizeof UsedMask; I-- > 0;)
     if (UsedMask[I])
-      EmitAndCountInstruction(MCInstBuilder(X86::POP64r).addReg(DestRegs[I]));
+      EmitAndCountInstruction(MCInstBuilder(X86::POP64r, &MI).addReg(DestRegs[I]));
     else
       emitX86Nops(*OutStreamer, 1, Subtarget);
 
@@ -1648,6 +1659,7 @@ void X86AsmPrinter::LowerPATCHABLE_TYPED_EVENT_CALL(const MachineInstr &MI,
 
 void X86AsmPrinter::LowerPATCHABLE_FUNCTION_ENTER(const MachineInstr &MI,
                                                   X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerPATCHABLE_FUNCTION_ENTER " << MI << "\n");
 
   NoAutoPaddingScope NoPadScope(*OutStreamer);
 
@@ -1688,6 +1700,7 @@ void X86AsmPrinter::LowerPATCHABLE_FUNCTION_ENTER(const MachineInstr &MI,
 
 void X86AsmPrinter::LowerPATCHABLE_RET(const MachineInstr &MI,
                                        X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerPATCHABLE_RET " << MI << "\n");
   NoAutoPaddingScope NoPadScope(*OutStreamer);
 
   // Since PATCHABLE_RET takes the opcode of the return statement as an
@@ -1720,6 +1733,7 @@ void X86AsmPrinter::LowerPATCHABLE_RET(const MachineInstr &MI,
 
 void X86AsmPrinter::LowerPATCHABLE_TAIL_CALL(const MachineInstr &MI,
                                              X86MCInstLower &MCIL) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::LowerPATCHABLE_TAIL_CALL " << MI << "\n");
   NoAutoPaddingScope NoPadScope(*OutStreamer);
 
   // Like PATCHABLE_RET, we have the actual instruction in the operands to this
@@ -2367,6 +2381,8 @@ static void addConstantComments(const MachineInstr *MI,
 }
 
 void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
+  LLVM_DEBUG(dbgs() << "[danguria] X86AsmPrinter::emitInstruction " << *MI << "\n");
+  
   X86MCInstLower MCInstLowering(*MF, *this);
   const X86RegisterInfo *RI =
       MF->getSubtarget<X86Subtarget>().getRegisterInfo();
@@ -2464,7 +2480,7 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
     // FIXME: We would like an efficient form for this, so we don't have to do a
     // lot of extra uniquing.
     EmitAndCountInstruction(
-        MCInstBuilder(X86::CALLpcrel32)
+        MCInstBuilder(X86::CALLpcrel32, MI)
             .addExpr(MCSymbolRefExpr::create(PICBase, OutContext)));
 
     const X86FrameLowering *FrameLowering =
@@ -2486,7 +2502,7 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
 
     // popl $reg
     EmitAndCountInstruction(
-        MCInstBuilder(X86::POP32r).addReg(MI->getOperand(0).getReg()));
+        MCInstBuilder(X86::POP32r, MI).addReg(MI->getOperand(0).getReg()));
 
     if (HasActiveDwarfFrame && !hasFP) {
       OutStreamer->emitCFIAdjustCfaOffset(stackGrowth);
@@ -2520,7 +2536,7 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
     DotExpr = MCBinaryExpr::createAdd(
         MCSymbolRefExpr::create(OpSym, OutContext), DotExpr, OutContext);
 
-    EmitAndCountInstruction(MCInstBuilder(X86::ADD32ri)
+    EmitAndCountInstruction(MCInstBuilder(X86::ADD32ri, MI)
                                 .addReg(MI->getOperand(0).getReg())
                                 .addReg(MI->getOperand(1).getReg())
                                 .addExpr(DotExpr));
@@ -2560,14 +2576,14 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
     return LowerPATCHABLE_TYPED_EVENT_CALL(*MI, MCInstLowering);
 
   case X86::MORESTACK_RET:
-    EmitAndCountInstruction(MCInstBuilder(getRetOpcode(*Subtarget)));
+    EmitAndCountInstruction(MCInstBuilder(getRetOpcode(*Subtarget), MI));
     return;
 
   case X86::MORESTACK_RET_RESTORE_R10:
     // Return, then restore R10.
-    EmitAndCountInstruction(MCInstBuilder(getRetOpcode(*Subtarget)));
+    EmitAndCountInstruction(MCInstBuilder(getRetOpcode(*Subtarget), MI));
     EmitAndCountInstruction(
-        MCInstBuilder(X86::MOV64rr).addReg(X86::R10).addReg(X86::RAX));
+        MCInstBuilder(X86::MOV64rr, MI).addReg(X86::R10).addReg(X86::RAX));
     return;
 
   case X86::SEH_PushReg:
@@ -2592,14 +2608,14 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
       // looking for a call. We may emit an unnecessary nop in some cases.
       if (!MBBI->isPseudo()) {
         if (MBBI->isCall())
-          EmitAndCountInstruction(MCInstBuilder(X86::NOOP));
+          EmitAndCountInstruction(MCInstBuilder(X86::NOOP, MI));
         break;
       }
     }
     return;
   }
   case X86::UBSAN_UD1:
-    EmitAndCountInstruction(MCInstBuilder(X86::UD1Lm)
+    EmitAndCountInstruction(MCInstBuilder(X86::UD1Lm, MI)
                                 .addReg(X86::EAX)
                                 .addReg(X86::EAX)
                                 .addImm(1)
@@ -2617,6 +2633,9 @@ void X86AsmPrinter::emitInstruction(const MachineInstr *MI) {
   // in to the stackmap shadow.  The only way to achieve this is if the call
   // is at the end of the shadow.
   if (MI->isCall()) {
+    TmpInst.setIsCall();
+    TmpInst.setCCWeight(MI->getCCWeight());
+    LLVM_DEBUG(dbgs() << "[danguria] This is Call - " << *MI << "\n");
     // Count then size of the call towards the shadow
     SMShadowTracker.count(TmpInst, getSubtargetInfo(), CodeEmitter.get());
     // Then flush the shadow so that we fill with nops before the call, not

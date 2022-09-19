@@ -111,6 +111,7 @@ public:
   };
 
 private:
+  std::string CCWeight = "empty";
   const MCInstrDesc *MCID;              // Instruction descriptor.
   MachineBasicBlock *Parent = nullptr;  // Pointer to the owning basic block.
 
@@ -779,6 +780,9 @@ public:
   bool isCall(QueryType Type = AnyInBundle) const {
     return hasProperty(MCID::Call, Type);
   }
+
+  void setCCWeight(std::string CCWeight) { this->CCWeight = CCWeight; }
+  std::string getCCWeight() const { assert(isCall()); return CCWeight; }
 
   /// Return true if this is a call instruction that may have an associated
   /// call site entry in the debug info.

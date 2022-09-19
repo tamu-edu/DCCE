@@ -19,10 +19,12 @@
 #include "llvm/MC/MCSection.h"
 #include "llvm/MC/MCSymbol.h"
 #include "llvm/MC/MCValue.h"
+#include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/SourceMgr.h"
 using namespace llvm;
 
+#define DEBUG_TYPE "danguria-mcobjectstreamer"
 MCObjectStreamer::MCObjectStreamer(MCContext &Context,
                                    std::unique_ptr<MCAsmBackend> TAB,
                                    std::unique_ptr<MCObjectWriter> OW,
@@ -205,6 +207,13 @@ static bool canReuseDataFragment(const MCDataFragment &F,
 MCDataFragment *
 MCObjectStreamer::getOrCreateDataFragment(const MCSubtargetInfo *STI) {
   MCDataFragment *F = dyn_cast_or_null<MCDataFragment>(getCurrentFragment());
+  if (F == NULL) {
+    LLVM_DEBUG(dbgs() << "[danguria] MCObjectStreamer::getOrCreateDataFragment - F is null\n");
+  } else if (!canReuseDataFragment(*F, *Assembler, STI)) {
+    LLVM_DEBUG(dbgs() << "[danguria] MCObjectStreamer::getOrCreateDataFragment - Can't reuse DF\n");
+  } else {
+    LLVM_DEBUG(dbgs() << "[danguria] MCObjectStreamer::getOrCreateDataFragment - Can reuse DF\n");
+  }
   if (!F || !canReuseDataFragment(*F, *Assembler, STI)) {
     F = new MCDataFragment();
     insert(F);
@@ -364,6 +373,7 @@ bool MCObjectStreamer::mayHaveInstructions(MCSection &Sec) const {
 
 void MCObjectStreamer::emitInstruction(const MCInst &Inst,
                                        const MCSubtargetInfo &STI) {
+  LLVM_DEBUG(dbgs() << "[danguria] MCObjectStreamer::emitInstruction " <<  Inst << "\n");
   const MCSection &Sec = *getCurrentSectionOnly();
   if (Sec.isVirtualSection()) {
     getContext().reportError(Inst.getLoc(), Twine(Sec.getVirtualSectionKind()) +
@@ -378,6 +388,7 @@ void MCObjectStreamer::emitInstruction(const MCInst &Inst,
 
 void MCObjectStreamer::emitInstructionImpl(const MCInst &Inst,
                                            const MCSubtargetInfo &STI) {
+  LLVM_DEBUG(dbgs() << "[danguria] MCObjectStreamer::emitInstructionImpl " << Inst << "\n");
   MCStreamer::emitInstruction(Inst, STI);
 
   MCSection *Sec = getCurrentSectionOnly();
@@ -429,6 +440,22 @@ void MCObjectStreamer::emitInstToFragment(const MCInst &Inst,
   getAssembler().getEmitter().encodeInstruction(Inst, VecOS, IF->getFixups(),
                                                 STI);
   IF->getContents().append(Code.begin(), Code.end());
+  //dbgs() << "[danguria] MCObjectStreamer::emitInstToFragment "<< Inst << " CCWeight - " << Inst.getCCWeight() << " offset: " << InstOffset << " at here1\n";
+  //if (Inst.isCall()) dbgs() << InstOffset << ":" << Inst.getCCWeight() << ":" << Code.str() << "(" << Code.size() << ")" << " by MCObjectStreamer\n";
+  if (Inst.isCall()) {
+    unsigned CallOP = Inst.getOpcode();
+    if (652 <= CallOP && CallOP <=666) { // FIXME: only work with X86
+      dbgs() << InstOffset << ":" << Inst.getCCWeight() << "\n"; //[dcce]
+    } else {
+      // dbgs() << Inst << " skipped due to not explicit call\n"; //[dcce]
+    }
+    //dbgs() << Inst
+    //       << ", offset: " << InstOffset
+    //       << ", ccw: " << Inst.getCCWeight()
+    //       << ", code: " << Code.c_str() << "(" << Code.size() << ")"
+    //       << " by MCObjectStreamer\n";
+  }
+  InstOffset += Code.size();
 }
 
 #ifndef NDEBUG

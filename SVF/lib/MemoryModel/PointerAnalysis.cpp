@@ -274,6 +274,11 @@ void PointerAnalysis::finalize()
         }
     }
 
+    if (Options::CCWeight) {
+        assert(!Options::CCInput.getValue().empty() && "CCInput must be provided to run ccweight");
+        getPTACallGraph()->add_ccweights(Options::CCInput.getValue());
+    }
+
     // FSTBHC has its own TBHC-specific test validation.
     if(!pag->isBuiltFromFile() && alias_validation
             && !SVFUtil::isa<FlowSensitiveTBHC>(this))

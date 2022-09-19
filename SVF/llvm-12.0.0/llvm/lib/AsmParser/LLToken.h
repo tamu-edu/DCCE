@@ -188,6 +188,7 @@ enum Kind {
   kw_cold,
   kw_convergent,
   kw_dereferenceable,
+  kw_ccweight,
   kw_dereferenceable_or_null,
   kw_inaccessiblememonly,
   kw_inaccessiblemem_or_argmemonly,

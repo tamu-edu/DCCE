@@ -18,12 +18,14 @@
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Support/SMLoc.h"
+#include "llvm/Support/Debug.h"
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 
 namespace llvm {
 
+//#define DEBUG_TYPE "danguria-mcinst"
 class MCExpr;
 class MCInst;
 class MCInstPrinter;
@@ -165,8 +167,16 @@ class MCInst {
   SMLoc Loc;
   SmallVector<MCOperand, 8> Operands;
 
+  std::string CCWeight = "empty";
+  bool IsCall = false;
+
 public:
   MCInst() = default;
+
+  void setCCWeight(std::string CCWeight) { this->CCWeight = CCWeight; }
+  std::string getCCWeight() const { return CCWeight; }
+  void setIsCall() { IsCall = true; }
+  bool isCall() const { return IsCall; }
 
   void setOpcode(unsigned Op) { Opcode = Op; }
   unsigned getOpcode() const { return Opcode; }

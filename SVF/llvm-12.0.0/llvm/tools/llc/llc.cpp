@@ -57,6 +57,8 @@
 #include <memory>
 using namespace llvm;
 
+raw_pwrite_stream* CCWOS = NULL;
+
 static codegen::RegisterCodeGenFlags CGF;
 
 // General options for llc.  Other pass-specific options are specified
@@ -71,6 +73,9 @@ InputLanguage("x", cl::desc("Input language ('ir' or 'mir')"));
 
 static cl::opt<std::string>
 OutputFilename("o", cl::desc("Output filename"), cl::value_desc("filename"));
+
+static cl::opt<std::string>
+CCWeightFilename("ccw", cl::desc("CCWeight Output filename"), cl::value_desc("CCWeight filename"));
 
 static cl::opt<std::string>
     SplitDwarfOutputFile("split-dwarf-output",
@@ -219,6 +224,40 @@ LLVM_ATTRIBUTE_NORETURN static void reportError(Error Err, StringRef Filename) {
   llvm_unreachable("reportError() should not return");
 }
 
+static std::unique_ptr<ToolOutputFile> GetCCWOutputStream(const char *TargetName,
+                                                          Triple::OSType OS,
+                                                          const char *ProgName)
+{
+  // If we don't yet have an output filename, make one.
+  if (CCWeightFilename.empty()) {
+    if (InputFilename == "-") {
+      CCWeightFilename = "-";
+    } else {
+      // If InputFilename ends in .bc or .ll, remove it.
+      StringRef IFN = InputFilename;
+      if (IFN.endswith(".bc") || IFN.endswith(".ll"))
+        CCWeightFilename = std::string(IFN.drop_back(3));
+      else if (IFN.endswith(".mir"))
+        CCWeightFilename = std::string(IFN.drop_back(4));
+      else
+        CCWeightFilename = std::string(IFN);
+
+      CCWeightFilename += ".ccw";
+    }
+  }
+
+  // Open the file.
+  std::error_code EC;
+  sys::fs::OpenFlags OpenFlags = sys::fs::OF_None;
+  OpenFlags |= sys::fs::OF_Text;
+  auto FDOut = std::make_unique<ToolOutputFile>(CCWeightFilename, EC, OpenFlags);
+  if (EC) {
+    reportError(EC.message());
+    return nullptr;
+  }
+
+  return FDOut;
+}
 static std::unique_ptr<ToolOutputFile> GetOutputStream(const char *TargetName,
                                                        Triple::OSType OS,
                                                        const char *ProgName) {
@@ -573,6 +612,10 @@ static int compileModule(char **argv, LLVMContext &Context) {
       GetOutputStream(TheTarget->getName(), TheTriple.getOS(), argv[0]);
   if (!Out) return 1;
 
+  std::unique_ptr<ToolOutputFile> CCWOut =
+      GetCCWOutputStream(TheTarget->getName(), TheTriple.getOS(), argv[0]);
+  if (!CCWOut) return 1;
+
   std::unique_ptr<ToolOutputFile> DwoOut;
   if (!SplitDwarfOutputFile.empty()) {
     std::error_code EC;
@@ -608,6 +651,7 @@ static int compileModule(char **argv, LLVMContext &Context) {
 
   {
     raw_pwrite_stream *OS = &Out->os();
+    CCWOS = &CCWOut->os();
 
     // Manually do the buffering rather than using buffer_ostream,
     // so we can memcmp the contents in CompileTwice mode
@@ -711,6 +755,7 @@ static int compileModule(char **argv, LLVMContext &Context) {
 
   // Declare success.
   Out->keep();
+  CCWOut->keep();
   if (DwoOut)
     DwoOut->keep();
 

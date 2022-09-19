@@ -80,6 +80,7 @@ bool CallLowering::lowerCall(MachineIRBuilder &MIRBuilder, const CallBase &CB,
                              ArrayRef<ArrayRef<Register>> ArgRegs,
                              Register SwiftErrorVReg,
                              std::function<unsigned()> GetCalleeReg) const {
+  LLVM_DEBUG(dbgs() << "[danguria] CallLowering::lowerCall " << CB << "\n");
   CallLoweringInfo Info;
   const DataLayout &DL = MIRBuilder.getDataLayout();
   MachineFunction &MF = MIRBuilder.getMF();
@@ -143,6 +144,13 @@ bool CallLowering::lowerCall(MachineIRBuilder &MIRBuilder, const CallBase &CB,
   Info.IsMustTailCall = CB.isMustTailCall();
   Info.IsTailCall = CanBeTailCalled;
   Info.IsVarArg = IsVarArg;
+  std::string CCWeight = "empty";
+  if (MDNode* CCWNode = CB.getMetadata("ccwstring")) {
+    CCWeight = cast<MDString>(CCWNode->getOperand(0))->getString().str();
+  }
+  LLVM_DEBUG(dbgs() << "[danguria] CallLowering::lowerCall propagate CCWeight " << CCWeight
+                 << "from CB: " << CB << " to MI (not created yet)\n");
+  Info.CCWeight = CCWeight;
   return lowerCall(MIRBuilder, Info);
 }
 

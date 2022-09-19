@@ -30,6 +30,7 @@
 #include <vector>
 
 namespace llvm {
+#define DEBUG_TYPE "danguria-x86asmprinter"
 
 class BasicBlock;
 class BlockAddress;
@@ -341,6 +342,7 @@ public:
 
   /// Emit the specified function out to the OutStreamer.
   bool runOnMachineFunction(MachineFunction &MF) override {
+    LLVM_DEBUG(dbgs() << "[danguria] AsmPrinter::runOnMachineFunction MF: " << MF.getName() << " &MF: " << &MF << "\n");
     SetupMachineFunction(MF);
     emitFunctionBody();
     return false;

@@ -3032,6 +3032,7 @@ SDValue X86TargetLowering::LowerCallResult(
     const SmallVectorImpl<ISD::InputArg> &Ins, const SDLoc &dl,
     SelectionDAG &DAG, SmallVectorImpl<SDValue> &InVals,
     uint32_t *RegMask) const {
+  LLVM_DEBUG(dbgs() << "[danguria] X86TargetLowering::LowerCallResult\n");
 
   const TargetRegisterInfo *TRI = Subtarget.getRegisterInfo();
   // Assign locations to each value returned by this call.
@@ -3920,6 +3921,14 @@ X86TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
   const Module *M = MF.getMMI().getModule();
   Metadata *IsCFProtectionSupported = M->getModuleFlag("cf-protection-branch");
 
+  if (CI && Fn) {
+    LLVM_DEBUG(dbgs() << "[danguria] X86TargetLowering::LowerCall Function: " << Fn->getName() << " CI: " << *CI << "\n");
+  } else if (Fn){
+    LLVM_DEBUG(dbgs() << "[danguria] X86TargetLowering::LowerCall Function: " << Fn->getName() << " CI: NULL\n");
+  } else {
+    LLVM_DEBUG(dbgs() << "[danguria] X86TargetLowering::LowerCall Function: Fn: NULL CI: NULL\n");
+  }
+
   MachineFunction::CallSiteInfo CSInfo;
   if (CallConv == CallingConv::X86_INTR)
     report_fatal_error("X86 interrupts may not be called directly");
@@ -4400,6 +4409,7 @@ X86TargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
     MF.getFrameInfo().setHasTailCall();
     SDValue Ret = DAG.getNode(X86ISD::TC_RETURN, dl, NodeTys, Ops);
     DAG.addCallSiteInfo(Ret.getNode(), std::move(CSInfo));
+    LLVM_DEBUG(dbgs() << "[danguria] X86TargetLowering::LowerCall Function return here becuase it is tailcall\n");
     return Ret;
   }
 
@@ -4585,8 +4595,8 @@ bool MatchingStackOffset(SDValue Arg, unsigned Offset, ISD::ArgFlagsTy Flags,
   }
 
   return Bytes == MFI.getObjectSize(FI);
-}
 
+}
 /// Check whether the call is eligible for tail call optimization. Targets
 /// that want to do tail call optimization should implement this function.
 bool X86TargetLowering::IsEligibleForTailCallOptimization(
@@ -32631,6 +32641,7 @@ X86TargetLowering::EmitLoweredProbedAlloca(MachineInstr &MI,
 MachineBasicBlock *
 X86TargetLowering::EmitLoweredSegAlloca(MachineInstr &MI,
                                         MachineBasicBlock *BB) const {
+  LLVM_DEBUG(dbgs() << "X86TargetLowering::EmitLoweredSegAlloca " << MI << "\n");
   MachineFunction *MF = BB->getParent();
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
   const DebugLoc &DL = MI.getDebugLoc();
@@ -32714,7 +32725,8 @@ X86TargetLowering::EmitLoweredSegAlloca(MachineInstr &MI,
       .addExternalSymbol("__morestack_allocate_stack_space")
       .addRegMask(RegMask)
       .addReg(X86::RDI, RegState::Implicit)
-      .addReg(X86::RAX, RegState::ImplicitDefine);
+      .addReg(X86::RAX, RegState::ImplicitDefine)
+      .addCCWeight(MI.getCCWeight());
   } else if (Is64Bit) {
     BuildMI(mallocMBB, DL, TII->get(X86::MOV32rr), X86::EDI)
       .addReg(sizeVReg);
@@ -32722,7 +32734,8 @@ X86TargetLowering::EmitLoweredSegAlloca(MachineInstr &MI,
       .addExternalSymbol("__morestack_allocate_stack_space")
       .addRegMask(RegMask)
       .addReg(X86::EDI, RegState::Implicit)
-      .addReg(X86::EAX, RegState::ImplicitDefine);
+      .addReg(X86::EAX, RegState::ImplicitDefine)
+      .addCCWeight(MI.getCCWeight());
   } else {
     BuildMI(mallocMBB, DL, TII->get(X86::SUB32ri), physSPReg).addReg(physSPReg)
       .addImm(12);
@@ -32730,7 +32743,7 @@ X86TargetLowering::EmitLoweredSegAlloca(MachineInstr &MI,
     BuildMI(mallocMBB, DL, TII->get(X86::CALLpcrel32))
       .addExternalSymbol("__morestack_allocate_stack_space")
       .addRegMask(RegMask)
-      .addReg(X86::EAX, RegState::ImplicitDefine);
+      .addReg(X86::EAX, RegState::ImplicitDefine).addCCWeight(MI.getCCWeight());
   }
 
   if (!Is64Bit)
@@ -32829,6 +32842,7 @@ X86TargetLowering::EmitLoweredTLSAddr(MachineInstr &MI,
 MachineBasicBlock *
 X86TargetLowering::EmitLoweredTLSCall(MachineInstr &MI,
                                       MachineBasicBlock *BB) const {
+  LLVM_DEBUG(dbgs() << "X86TargetLowering::EmitLoweredTLSCall " << MI << "\n");
   // This is pretty easy.  We're taking the value that we received from
   // our load from the relocation, sticking it in either RDI (x86-64)
   // or EAX and doing an indirect call.  The return value will then
@@ -32856,7 +32870,7 @@ X86TargetLowering::EmitLoweredTLSCall(MachineInstr &MI,
             .addGlobalAddress(MI.getOperand(3).getGlobal(), 0,
                               MI.getOperand(3).getTargetFlags())
             .addReg(0);
-    MIB = BuildMI(*BB, MI, DL, TII->get(X86::CALL64m));
+    MIB = BuildMI(*BB, MI, DL, TII->get(X86::CALL64m)).addCCWeight(MI.getCCWeight());
     addDirectMem(MIB, X86::RDI);
     MIB.addReg(X86::RAX, RegState::ImplicitDefine).addRegMask(RegMask);
   } else if (!isPositionIndependent()) {
@@ -32868,7 +32882,7 @@ X86TargetLowering::EmitLoweredTLSCall(MachineInstr &MI,
             .addGlobalAddress(MI.getOperand(3).getGlobal(), 0,
                               MI.getOperand(3).getTargetFlags())
             .addReg(0);
-    MIB = BuildMI(*BB, MI, DL, TII->get(X86::CALL32m));
+    MIB = BuildMI(*BB, MI, DL, TII->get(X86::CALL32m)).addCCWeight(MI.getCCWeight());
     addDirectMem(MIB, X86::EAX);
     MIB.addReg(X86::EAX, RegState::ImplicitDefine).addRegMask(RegMask);
   } else {
@@ -32880,7 +32894,7 @@ X86TargetLowering::EmitLoweredTLSCall(MachineInstr &MI,
             .addGlobalAddress(MI.getOperand(3).getGlobal(), 0,
                               MI.getOperand(3).getTargetFlags())
             .addReg(0);
-    MIB = BuildMI(*BB, MI, DL, TII->get(X86::CALL32m));
+    MIB = BuildMI(*BB, MI, DL, TII->get(X86::CALL32m)).addCCWeight(MI.getCCWeight());
     addDirectMem(MIB, X86::EAX);
     MIB.addReg(X86::EAX, RegState::ImplicitDefine).addRegMask(RegMask);
   }
@@ -33781,6 +33795,7 @@ X86TargetLowering::EmitSjLjDispatchBlock(MachineInstr &MI,
 MachineBasicBlock *
 X86TargetLowering::EmitInstrWithCustomInserter(MachineInstr &MI,
                                                MachineBasicBlock *BB) const {
+  LLVM_DEBUG(dbgs() << "[danguria] X86TargetLowering::EmitInstrWithCustomInserter " << MI << "\n");
   MachineFunction *MF = BB->getParent();
   const TargetInstrInfo *TII = Subtarget.getInstrInfo();
   const DebugLoc &DL = MI.getDebugLoc();

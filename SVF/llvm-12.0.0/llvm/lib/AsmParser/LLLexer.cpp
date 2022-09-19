@@ -642,6 +642,7 @@ lltok::Kind LLLexer::LexIdentifier() {
   KEYWORD(cold);
   KEYWORD(convergent);
   KEYWORD(dereferenceable);
+  KEYWORD(ccweight);
   KEYWORD(dereferenceable_or_null);
   KEYWORD(inaccessiblememonly);
   KEYWORD(inaccessiblemem_or_argmemonly);

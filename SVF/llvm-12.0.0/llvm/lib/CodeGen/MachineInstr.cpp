@@ -129,6 +129,11 @@ MachineInstr::MachineInstr(MachineFunction &MF, const MCInstrDesc &tid,
 
   if (!NoImp)
     addImplicitDefUseOperands(MF);
+
+  //if (getOpcode() == 660) {
+  //  uint64_t* p = &CCWeight;
+  //  *(p + 100000) = 1000;
+  //}
 }
 
 /// MachineInstr ctor - Copies MachineInstr arg exactly.
@@ -1661,10 +1666,11 @@ void MachineInstr::print(raw_ostream &OS, ModuleSlotTracker &MST,
     OS << "nomerge ";
 
   // Print the opcode name.
-  if (TII)
-    OS << TII->getName(getOpcode());
-  else
+  if (TII) {
+    OS << "{Opcode: " << getOpcode() << " isCall: " << isCall() << " CCWeight: " << CCWeight << "} " << TII->getName(getOpcode());
+  } else {
     OS << "UNKNOWN";
+  }
 
   if (SkipOpers)
     return;
@@ -2102,12 +2108,12 @@ void MachineInstr::emitError(StringRef Msg) const {
 MachineInstrBuilder llvm::BuildMI(MachineFunction &MF, const DebugLoc &DL,
                                   const MCInstrDesc &MCID, bool IsIndirect,
                                   Register Reg, const MDNode *Variable,
-                                  const MDNode *Expr) {
+                                  const MDNode *Expr, const Instruction* Inst) {
   assert(isa<DILocalVariable>(Variable) && "not a variable");
   assert(cast<DIExpression>(Expr)->isValid() && "not an expression");
   assert(cast<DILocalVariable>(Variable)->isValidLocationForIntrinsic(DL) &&
          "Expected inlined-at fields to agree");
-  auto MIB = BuildMI(MF, DL, MCID).addReg(Reg, RegState::Debug);
+  auto MIB = BuildMI(MF, DL, MCID, Inst).addReg(Reg, RegState::Debug);
   if (IsIndirect)
     MIB.addImm(0U);
   else
@@ -2118,15 +2124,15 @@ MachineInstrBuilder llvm::BuildMI(MachineFunction &MF, const DebugLoc &DL,
 MachineInstrBuilder llvm::BuildMI(MachineFunction &MF, const DebugLoc &DL,
                                   const MCInstrDesc &MCID, bool IsIndirect,
                                   MachineOperand &MO, const MDNode *Variable,
-                                  const MDNode *Expr) {
+                                  const MDNode *Expr, const Instruction* Inst) {
   assert(isa<DILocalVariable>(Variable) && "not a variable");
   assert(cast<DIExpression>(Expr)->isValid() && "not an expression");
   assert(cast<DILocalVariable>(Variable)->isValidLocationForIntrinsic(DL) &&
          "Expected inlined-at fields to agree");
   if (MO.isReg())
-    return BuildMI(MF, DL, MCID, IsIndirect, MO.getReg(), Variable, Expr);
+    return BuildMI(MF, DL, MCID, IsIndirect, MO.getReg(), Variable, Expr, Inst);
 
-  auto MIB = BuildMI(MF, DL, MCID).add(MO);
+  auto MIB = BuildMI(MF, DL, MCID, Inst).add(MO);
   if (IsIndirect)
     MIB.addImm(0U);
   else
@@ -2138,9 +2144,9 @@ MachineInstrBuilder llvm::BuildMI(MachineBasicBlock &BB,
                                   MachineBasicBlock::iterator I,
                                   const DebugLoc &DL, const MCInstrDesc &MCID,
                                   bool IsIndirect, Register Reg,
-                                  const MDNode *Variable, const MDNode *Expr) {
+                                  const MDNode *Variable, const MDNode *Expr, const Instruction* Inst) {
   MachineFunction &MF = *BB.getParent();
-  MachineInstr *MI = BuildMI(MF, DL, MCID, IsIndirect, Reg, Variable, Expr);
+  MachineInstr *MI = BuildMI(MF, DL, MCID, IsIndirect, Reg, Variable, Expr, Inst);
   BB.insert(I, MI);
   return MachineInstrBuilder(MF, MI);
 }
@@ -2149,9 +2155,9 @@ MachineInstrBuilder llvm::BuildMI(MachineBasicBlock &BB,
                                   MachineBasicBlock::iterator I,
                                   const DebugLoc &DL, const MCInstrDesc &MCID,
                                   bool IsIndirect, MachineOperand &MO,
-                                  const MDNode *Variable, const MDNode *Expr) {
+                                  const MDNode *Variable, const MDNode *Expr, const Instruction* Inst) {
   MachineFunction &MF = *BB.getParent();
-  MachineInstr *MI = BuildMI(MF, DL, MCID, IsIndirect, MO, Variable, Expr);
+  MachineInstr *MI = BuildMI(MF, DL, MCID, IsIndirect, MO, Variable, Expr, Inst);
   BB.insert(I, MI);
   return MachineInstrBuilder(MF, *MI);
 }
@@ -2175,9 +2181,9 @@ static const DIExpression *computeExprForSpill(const MachineInstr &MI) {
 MachineInstr *llvm::buildDbgValueForSpill(MachineBasicBlock &BB,
                                           MachineBasicBlock::iterator I,
                                           const MachineInstr &Orig,
-                                          int FrameIndex) {
+                                          int FrameIndex, const Instruction* Inst) {
   const DIExpression *Expr = computeExprForSpill(Orig);
-  return BuildMI(BB, I, Orig.getDebugLoc(), Orig.getDesc())
+  return BuildMI(BB, I, Orig.getDebugLoc(), Orig.getDesc(), Inst)
       .addFrameIndex(FrameIndex)
       .addImm(0U)
       .addMetadata(Orig.getDebugVariable())

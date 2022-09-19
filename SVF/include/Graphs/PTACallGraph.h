@@ -226,7 +226,7 @@ public:
     typedef std::pair<const CallBlockNode*, const SVFFunction*> CallSitePair;
     typedef Map<CallSitePair, CallSiteID> CallSiteToIdMap;
     typedef Map<CallSiteID, CallSitePair> IdToCallSiteMap;
-    typedef Map<const Instruction*, CallSiteID> CSInstToID;
+    typedef Map<const Instruction*, std::set<CallSiteID>> CSInstToID;
     typedef Set<const SVFFunction*> FunctionSet;
     typedef OrderedMap<const CallBlockNode*, FunctionSet> CallEdgeMap;
     typedef CallGraphEdgeSet::iterator CallGraphEdgeIter;
@@ -346,7 +346,7 @@ public:
             CallSiteID id = totalCallSiteNum++;
             csToIdMap.insert(std::make_pair(newCS, id));
             idToCSMap.insert(std::make_pair(id, newCS));
-            csInstToID.insert(std::make_pair(cs->getCallSite(), id));
+            csInstToID[cs->getCallSite()].insert(id);
             return id;
         }
         return it->second;
@@ -453,6 +453,7 @@ public:
     void view();
     void instrument_dcce(const std::string& ccinput);
     void instrument_pcce(const std::string& ccinput, unsigned int bench_code);
+    void add_ccweights(const std::string& ccinput);
 };
 
 } // End namespace SVF

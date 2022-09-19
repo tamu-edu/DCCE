@@ -425,13 +425,16 @@ class callgraph(basegraph, common, labeling):
 
     def reachable_edges(self):
         reachable_edges = []
+        num_indirect_call = 0
         edges = self.edges()
         for u in self.reachable_nodes():
             for v, cs in self.neighbors(u):
                 e = (u, (v, cs))
                 assert(e in edges)
                 reachable_edges.append(e)
-        return reachable_edges
+                if cs.split('-')[1] == 'i':
+                    num_indirect_call += 1
+        return reachable_edges, num_indirect_call
                 
 
 

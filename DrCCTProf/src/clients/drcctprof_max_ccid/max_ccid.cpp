@@ -58,8 +58,8 @@ CallBackOnCall(int32_t slot, app_pc instr_addr)
     context_handle_t id1 = drcctlib_get_context_handle(drcontext);
     context_handle_t id2 = drcctlib_get_context_handle(drcontext, slot);
     dr_fprintf(gTraceFile,
-               "Call - ip: %#x id1: %d id2: %d\n", instr_addr, id1, id2);
-    printf("Call - ip: %#x id1: %d id2: %d\n", instr_addr, id1, id2);
+               "Call - ip: %p id1: %d id2: %d\n", instr_addr, id1, id2);
+    printf("Call - ip: %p id1: %d id2: %d\n", instr_addr, id1, id2);
 }
 
 void

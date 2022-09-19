@@ -15,9 +15,11 @@
 #define LLVM_MC_MCINSTBUILDER_H
 
 #include "llvm/MC/MCInst.h"
-
+#include "llvm/CodeGen/MachineInstr.h"
+#include "llvm/Support/Debug.h"
 namespace llvm {
 
+#define DEBUG_TYPE "danguria-mcinstbuilder"
 class MCInstBuilder {
   MCInst Inst;
 
@@ -25,6 +27,22 @@ public:
   /// Create a new MCInstBuilder for an MCInst with a specific opcode.
   MCInstBuilder(unsigned Opcode) {
     Inst.setOpcode(Opcode);
+    LLVM_DEBUG(dbgs() << "[danguria] MCInstBuilder::MCInstBuilder(Opcode). Inst: " << Inst << "\n");
+  }
+
+  MCInstBuilder(unsigned Opcode, const MachineInstr* MI) {
+    Inst.setOpcode(Opcode);
+    if (MI != NULL && MI->isCall()) {
+      Inst.setIsCall();
+      std::string CCWeight = MI->getCCWeight();
+      Inst.setCCWeight(CCWeight);
+      LLVM_DEBUG(dbgs() << "[danguria] MCInstBuilder::MCInstBuilder(Opcode, MI). Propagating CCWeight " << CCWeight
+                 << " from MI: " << *MI << " to MCInst: " << Inst << "\n");
+    } else if (MI != NULL){
+      LLVM_DEBUG(dbgs() << "[danguria] MCInstBuilder::MCInstBuilder(Opcode, MI). MI is Not Inst: " << Inst << "\n");
+    } else {
+      LLVM_DEBUG(dbgs() << "[danguria] MCInstBuilder::MCInstBuilder(Opcode, MI). MI is NULL Inst: " << Inst << "\n");
+    }
   }
 
   /// Add a new register operand.

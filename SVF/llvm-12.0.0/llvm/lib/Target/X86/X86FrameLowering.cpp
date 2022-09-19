@@ -2635,6 +2635,8 @@ void X86FrameLowering::adjustForSegmentedStacks(
   unsigned TlsReg, TlsOffset;
   DebugLoc DL;
 
+  LLVM_DEBUG(dbgs() << "[danguria] X86FrameLowering::adjustForSegmentedStack\n");
+
   // To support shrink-wrapping we would need to insert the new blocks
   // at the right place and update the branches to PrologueMBB.
   assert(&(*MF.begin()) == &PrologueMBB && "Shrink-wrapping not supported yet");
@@ -2848,6 +2850,7 @@ void X86FrameLowering::adjustForSegmentedStacks(
         .addExternalSymbol("__morestack_addr")
         .addReg(0);
     MF.getMMI().setUsesMorestackAddr(true);
+    LLVM_DEBUG(dbgs() << "[danguria] X86FrameLowering::adjustForSegmentedStack creating CALL64m\n");
   } else {
     if (Is64Bit)
       BuildMI(allocMBB, DL, TII.get(X86::CALL64pcrel32))

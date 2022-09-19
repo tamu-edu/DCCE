@@ -736,4 +736,9 @@ namespace SVF
         llvm::cl::desc("ID indicating benchmarks")
     );
 
+    const llvm::cl::opt<bool> Options::CCWeight(
+        "ccweight",
+        llvm::cl::init(false),
+        llvm::cl::desc("Add CC edge weight to callsite"));
+
 } // namespace SVF.

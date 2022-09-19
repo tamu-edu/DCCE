@@ -17,11 +17,13 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
 
 namespace SVF
 {
 namespace SVFUtil
 {
+    typedef std::unordered_map<std::string, std::unordered_map<uint64_t, std::string>> ccw_t;
     // Not used for now.
     void createGlobalString(Module* mod, const std::string var_name, const std::string initial_value)
     {
@@ -114,32 +116,105 @@ namespace SVFUtil
             cont.push_back(token);
         }
     }
-
-
-    void parse_ccfile(const std::string& ccinput, std::unordered_map<uint64_t,uint64_t>& cs2w)
+    void parseCCWFile(const std::string& ccinput, ccw_t& ccw)
     {
+        // main:2-i:3-A-3,4-B-4,
+        std::string str;
+        raw_string_ostream rawstr(str);
+
         std::ifstream inf(ccinput);
         if (!inf.is_open()) {
             std::cout << "unable to open file " << ccinput << std::endl;
             exit(1);
         }
+
+        rawstr << "--------------------------------------------\n";
+        rawstr << "Parsing cc file " << ccinput << "\n";
+        printf("--------------------------------------------\n");
+        printf("Parsing cc file %s\n", ccinput.c_str());
         std::string line;
 
         while (std::getline(inf, line)) {
-            std::vector<std::string> list;
-            Split(line, list, ':');
-            uint64_t cs = std::stoul(list[2], NULL, 10);
-            uint64_t w = 0;
-            // Max value of 64bit unsigned integer needs 19 decimal digits
-            if (strlen(list[3].c_str()) < 20) {
-                w = std::stoul(list[3], NULL, 10);
-            }
+            rawstr << "Processing line: " << line << "\n";
+            std::vector<std::string> caller_cs_callees;
+            Split(line, caller_cs_callees, ':');
 
-            assert(cs2w.find(cs) == cs2w.end());
-            cs2w[cs] = w;
-            //std::cout << "cs: " << cs << ", w: " << w << std::endl;
+            // caller
+            std::string caller(caller_cs_callees[0]);
+
+            // csid-calltype
+            std::vector<std::string> csid_calltype;
+            Split(caller_cs_callees[1], csid_calltype, '-');
+            uint64_t csid = std::stoul(csid_calltype[0], NULL, 10);
+            assert(ccw[caller].find(csid) == ccw[caller].end());
+
+            ccw[caller][csid] = caller_cs_callees[2];
+            rawstr << "Adding caller: " << caller << ", csid: " << csid << ", ccwstring: " << caller_cs_callees[2] << "\n";
+
+            // cs-callee-ccw,...,
+            //std::vector<std::string> set_cs_callee_ccw;
+            //Split(caller_cs_callees[2], set_cs_callee_ccw, ',');
+
+            //for (auto cs_callee_ccw : set_cs_callee_ccw) {
+            //  std::vector<std::string> ccc;
+            //  Split(cs_callee_ccw, ccc, '-');
+            //  if (ccc.size() == 0) break; // for last comma
+            //  ccw[caller][csid] = cs_callee_ccw;
+            //  rawstr << "Adding caller: " << caller << ", csid: " << csid << ", ccwstring: " << cs_callee_ccw << "\n";
+            //}
         }
         inf.close();
+        rawstr << "Parsing cc file done.\n";
+        rawstr << "--------------------------------------------\n";
+        printf("%s", rawstr.str().c_str());
+    }
+
+    void parse_ccfile(const std::string& ccinput, std::unordered_map<uint64_t,uint64_t>& cs2w)
+    {
+        std::string str;
+        raw_string_ostream rawstr(str);
+
+        std::ifstream inf(ccinput);
+        if (!inf.is_open()) {
+            std::cout << "unable to open file " << ccinput << std::endl;
+            exit(1);
+        }
+
+        rawstr << "--------------------------------------------\n";
+        rawstr << "Parsing cc file " << ccinput << "\n";
+        printf("--------------------------------------------\n");
+        printf("Parsing cc file %s\n", ccinput.c_str());
+        std::string line;
+
+        while (std::getline(inf, line)) {
+            rawstr << "Processing line: " << line << "\n";
+            std::vector<std::string> caller_cs_callees;
+            Split(line, caller_cs_callees, ':');
+
+            std::vector<std::string> set_cs_callee_ccw;
+            Split(caller_cs_callees[2], set_cs_callee_ccw, ',');
+
+            for (auto cs_callee_ccw : set_cs_callee_ccw) {
+                std::vector<std::string> ccc;
+                Split(cs_callee_ccw, ccc, '-');
+                if (ccc.size() == 0) break; // for last comma
+
+                uint64_t cs = std::stoul(ccc[0], NULL, 10);
+                uint64_t w = 0;
+                // Max value of 64bit unsigned integer needs 19 decimal digits
+                if (strlen(ccc[2].c_str()) < 20) {
+                    w = std::stoul(ccc[2], NULL, 10);
+                }
+                assert(cs2w.find(cs) == cs2w.end());
+                cs2w[cs] = w;
+                rawstr << "    Adding cs -> w : " << cs << " -> " << w << "\n";
+                //std::cout << "cs: " << cs << ", w: " << w << std::endl;
+            }
+        }
+        inf.close();
+        rawstr << "Parsing cc file done.\n";
+        rawstr << "--------------------------------------------\n";
+        printf("%s", rawstr.str().c_str());
     }
 
 } // End namespace SVFUtil

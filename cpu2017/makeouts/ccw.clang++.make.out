@@ -1,0 +1,40 @@
+DIR=$1
+BENCH=$2
+
+echo "llvm-dis ${DIR}/${BENCH}.bc"
+llvm-dis ${DIR}/${BENCH}.bc
+
+echo "clang++ ${BC_ROOT}/${BENCH}.bc \
+        -g \
+        -m64 \
+        -z muldefs \
+        -mavx \
+        -DSPEC_LINUX_X64 \
+        -DSPEC_OPENMP \
+        -Wno-return-type \
+        -DUSE_OPENMP \
+        -lm \
+        -L/home/sungkeun/git/spack/var/spack/environments/base/.spack-env/._view/dec54r6zjqn3jmn5hxa5l5z6bsyw22pw/lib \
+        -I/home/sungkeun/git/spack/opt/spack/linux-centos7-piledriver/gcc-12.1.0/llvm-openmp-12.0.1-e5sxuwhroyvhg4tiarzwyohmavipiw42/include \
+        -fopenmp=libomp \
+        -o ${DIR}/${BENCH} > ${DIR}/${BENCH}.clang_ccw 2>&1"
+
+clang++ ${BC_ROOT}/${BENCH}.bc \
+        -O3 \
+        -g \
+        -m64 \
+        -z muldefs \
+        -mavx \
+        -DSPEC_LINUX_X64 \
+        -DSPEC_OPENMP \
+        -Wno-return-type \
+        -DUSE_OPENMP \
+        -lm \
+        -L/home/sungkeun/git/spack/var/spack/environments/base/.spack-env/._view/dec54r6zjqn3jmn5hxa5l5z6bsyw22pw/lib \
+        -I/home/sungkeun/git/spack/opt/spack/linux-centos7-piledriver/gcc-12.1.0/llvm-openmp-12.0.1-e5sxuwhroyvhg4tiarzwyohmavipiw42/include \
+        -fopenmp=libomp \
+        -o ${DIR}/${BENCH} > ${DIR}/${BENCH}.clang_ccw 2>&1
+
+
+echo "llvm-objdump ${DIR}/${BENCH}"
+llvm-objdump -DS ${DIR}/${BENCH} > ${DIR}/${BENCH}.asm

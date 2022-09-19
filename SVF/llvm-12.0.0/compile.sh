@@ -1,5 +1,6 @@
 mkdir build
 cd build
-cmake -G "Unix Makefiles" ../llvm -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;libcxx;libcxxabi;lld"
-cmake --build . -j32
+CC=gcc CXX=g++ cmake -G "Unix Makefiles" ../llvm -DLLVM_ENABLE_PROJECTS="lld" -DLLVM_TARGETS_TO_BUILD=X86
+#CC=gcc CXX=g++ cmake -G "Unix Makefiles" ../llvm -DLLVM_ENABLE_PROJECTS="clang" -DLLVM_TARGETS_TO_BUILD=X86
+cmake --build . -j1
 

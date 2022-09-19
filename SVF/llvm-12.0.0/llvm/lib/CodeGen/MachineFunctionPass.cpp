@@ -28,13 +28,14 @@
 
 using namespace llvm;
 using namespace ore;
-
+#define DEBUG_TYPE "danguria-machinepass"
 Pass *MachineFunctionPass::createPrinterPass(raw_ostream &O,
                                              const std::string &Banner) const {
   return createMachineFunctionPrinterPass(O, Banner);
 }
 
 bool MachineFunctionPass::runOnFunction(Function &F) {
+  LLVM_DEBUG(dbgs() << "[danguria] runOnFunction F: " << F << " &F: " << &F << "\n");
   // Do not codegen any 'available_externally' functions at all, they have
   // definitions outside the translation unit.
   if (F.hasAvailableExternallyLinkage())

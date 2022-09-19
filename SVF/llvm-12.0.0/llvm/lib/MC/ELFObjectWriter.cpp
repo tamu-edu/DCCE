@@ -40,6 +40,7 @@
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/Compression.h"
+#include "llvm/Support/Debug.h"
 #include "llvm/Support/EndianStream.h"
 #include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -407,6 +408,7 @@ bool ELFWriter::hasRelocationAddend() const {
 
 // Emit the ELF header.
 void ELFWriter::writeHeader(const MCAssembler &Asm) {
+  //dbgs() << "[dcce] ELFWriter::writeHeader\n";
   // ELF Header
   // ----------
   //
@@ -842,6 +844,7 @@ bool ELFWriter::maybeWriteCompression(
 
 void ELFWriter::writeSectionData(const MCAssembler &Asm, MCSection &Sec,
                                  const MCAsmLayout &Layout) {
+  //dbgs() << "[dcce] ELFWriter::writeSectionData - " << Sec.getName() << "\n";
   MCSectionELF &Section = static_cast<MCSectionELF &>(Sec);
   StringRef SectionName = Section.getName();
 
@@ -914,6 +917,7 @@ void ELFWriter::WriteSecHdrEntry(uint32_t Name, uint32_t Type, uint64_t Flags,
 
 void ELFWriter::writeRelocations(const MCAssembler &Asm,
                                        const MCSectionELF &Sec) {
+    //dbgs() << "[dcce] ELFWriter::writeRelocations - " << Sec.getName() << "\n";
   std::vector<ELFRelocationEntry> &Relocs = OWriter.Relocations[&Sec];
 
   // We record relocations by pushing to the end of a vector. Reverse the vector
@@ -986,6 +990,7 @@ const MCSectionELF *ELFWriter::createStringTable(MCContext &Ctx) {
 void ELFWriter::writeSection(const SectionIndexMapTy &SectionIndexMap,
                              uint32_t GroupSymbolIndex, uint64_t Offset,
                              uint64_t Size, const MCSectionELF &Section) {
+    //dbgs() << "[dcce] ELFWriter::writeSection - " << Section.getName() << "\n" ;
   uint64_t sh_link = 0;
   uint64_t sh_info = 0;
 
@@ -1042,6 +1047,7 @@ void ELFWriter::writeSection(const SectionIndexMapTy &SectionIndexMap,
 void ELFWriter::writeSectionHeader(
     const MCAsmLayout &Layout, const SectionIndexMapTy &SectionIndexMap,
     const SectionOffsetsTy &SectionOffsets) {
+    //dbgs() << "[dcce][ELFWriter] ELFWriter::writeSectionHeader\n";
   const unsigned NumSections = SectionTable.size();
 
   // Null section first.
@@ -1071,6 +1077,7 @@ void ELFWriter::writeSectionHeader(
 }
 
 uint64_t ELFWriter::writeObject(MCAssembler &Asm, const MCAsmLayout &Layout) {
+  //dbgs() << "[dcce] ELFWriter::writeObject\n";
   uint64_t StartOffset = W.OS.tell();
 
   MCContext &Ctx = Asm.getContext();
@@ -1145,7 +1152,8 @@ uint64_t ELFWriter::writeObject(MCAssembler &Asm, const MCAsmLayout &Layout) {
 
   for (MCSectionELF *Group : Groups) {
     align(Group->getAlignment());
-
+    //dbgs() << "[dcce] ELFWriter::WriteObject Writing Group Section - "
+    //        << Group->getName() << "\n";
     // Remember the offset into the file for this section.
     uint64_t SecStart = W.OS.tell();
 
@@ -1192,6 +1200,7 @@ uint64_t ELFWriter::writeObject(MCAssembler &Asm, const MCAsmLayout &Layout) {
 
     if (OWriter.EmitAddrsigSection) {
       uint64_t SecStart = W.OS.tell();
+      //dbgs() << "[dcce] ELFWriter::WriteObject writing AddrsigSection\n";
       writeAddrsigSection();
       uint64_t SecEnd = W.OS.tell();
       SectionOffsets[AddrsigSection] = std::make_pair(SecStart, SecEnd);
@@ -1199,6 +1208,7 @@ uint64_t ELFWriter::writeObject(MCAssembler &Asm, const MCAsmLayout &Layout) {
   }
 
   if (CGProfileSection) {
+    //dbgs() << "[dcce] ELFWriter::WriteObject writing CGProfileSection\n";
     uint64_t SecStart = W.OS.tell();
     for (const MCAssembler::CGProfileEntry &CGPE : Asm.CGProfile) {
       W.write<uint32_t>(CGPE.From->getSymbol().getIndex());
@@ -1223,6 +1233,13 @@ uint64_t ELFWriter::writeObject(MCAssembler &Asm, const MCAsmLayout &Layout) {
 
   // ... then the section header table ...
   writeSectionHeader(Layout, SectionIndexMap, SectionOffsets);
+  for (auto Sec : SectionOffsets) {
+        const StringRef SectionName = Sec.first->getName();
+        const std::pair<uint64_t, uint64_t> StartEnd = Sec.second;
+        //dbgs() << "[dcce] ELFWriter::WriteObject SectionName: " << SectionName
+        //    << ", StartOffset: " << StartEnd.first
+        //    << ", EndOffset: " << StartEnd.second << "\n";
+  }
 
   uint16_t NumSections = support::endian::byte_swap<uint16_t>(
       (SectionTable.size() + 1 >= ELF::SHN_LORESERVE) ? (uint16_t)ELF::SHN_UNDEF

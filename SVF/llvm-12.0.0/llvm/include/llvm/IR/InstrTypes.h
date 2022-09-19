@@ -1544,6 +1544,12 @@ public:
     setAttributes(PAL);
   }
 
+  void addCallingContextWeight(unsigned i, uint64_t Bytes) {
+    AttributeList PAL = getAttributes();
+    PAL = PAL.addCallingContextWeight(getContext(), i, Bytes);
+    setAttributes(PAL);
+  }
+
   /// adds the dereferenceable_or_null attribute to the list of
   /// attributes.
   void addDereferenceableOrNullAttr(unsigned i, uint64_t Bytes) {

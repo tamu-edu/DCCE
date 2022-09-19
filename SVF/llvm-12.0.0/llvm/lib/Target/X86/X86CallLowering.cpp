@@ -46,7 +46,7 @@
 #include <cstdint>
 
 using namespace llvm;
-
+#define DEBUG_TYPE "danguria-x86calllowering"
 X86CallLowering::X86CallLowering(const X86TargetLowering &TLI)
     : CallLowering(&TLI) {}
 
@@ -383,6 +383,8 @@ bool X86CallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
   const TargetInstrInfo &TII = *STI.getInstrInfo();
   const X86RegisterInfo *TRI = STI.getRegisterInfo();
 
+  LLVM_DEBUG(dbgs() << "[danguria] X86CallLowering::lowerCall \n");
+
   // Handle only Linux C, X86_64_SysV calling conventions for now.
   if (!STI.isTargetLinux() || !(Info.CallConv == CallingConv::C ||
                                 Info.CallConv == CallingConv::X86_64_SysV))
@@ -400,7 +402,8 @@ bool X86CallLowering::lowerCall(MachineIRBuilder &MIRBuilder,
 
   auto MIB = MIRBuilder.buildInstrNoInsert(CallOpc)
                  .add(Info.Callee)
-                 .addRegMask(TRI->getCallPreservedMask(MF, Info.CallConv));
+                 .addRegMask(TRI->getCallPreservedMask(MF, Info.CallConv))
+                 .addCCWeight(Info.CCWeight);
 
   SmallVector<ArgInfo, 8> SplitArgs;
   for (const auto &OrigArg : Info.OrigArgs) {
