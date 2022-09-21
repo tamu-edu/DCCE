@@ -24,7 +24,7 @@
 
 #include <iterator>
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <sys/time.h>
 #include <fstream>
 #include <string>
@@ -101,7 +101,9 @@ uint64_t process_end_time;
 
 int g_prog_status = 0; // 0: Program start up, 1: Program running, 2: Program termination
 uint64_t g_first_call, g_last_call;
-std::map<uint64_t, std::map<uint64_t, uint64_t>> CCW; // callsite -> callee --> ccw
+
+std::unordered_map<uint64_t, uint64_t> CCW_DIRECT; // callsite -> ccw
+std::unordered_map<uint64_t, std::unordered_map<uint64_t, uint64_t>> CCW_INDIRECT; // callsite -> callee --> ccw
 
 //------------------------------------------------------
 // Functions for CCW
@@ -145,23 +147,61 @@ read_ccw_file(std::string fname)
 
             std::vector<std::string> list;
             split(line, ":", list);
-            DR_ASSERT(list.size() == 3);
+            DR_ASSERT(list.size() == 2);
 
             uint64_t callsite_addr = std::strtoul(list[0].c_str(), NULL, 16);
-            uint64_t callee_addr = std::strtoul(list[1].c_str(), NULL, 16);
-            uint64_t ccw = std::strtoul(list[2].c_str(), NULL, 10);
-            CCW[callsite_addr][callee_addr] = ccw;
+
+            std::string callee2ccw = list[1];
+            list.clear();
+            split(callee2ccw, ",", list);
+
+            DR_ASSERT(list.size() >= 2);
+            if (list.size() == 2) {
+                std::vector<std::string> c2w;
+                split(list[0], "-", c2w);
+                uint64_t callee_addr = std::strtoul(c2w[0].c_str(), NULL, 16);
+                uint64_t ccw = std::strtoul(c2w[1].c_str(), NULL, 10);
+                CCW_DIRECT[callsite_addr] = ccw;
+                //dr_fprintf(STDOUT, "DIRECT_CALL %p -> %p : %d\n", callsite_addr, callee_addr, ccw);
+
+            } else {
+                std::vector<std::string> c2w;
+                for (unsigned int i = 0; i < list.size()-1; i++) {
+                    split(list[i], "-", c2w);
+                    uint64_t callee_addr = std::strtoul(c2w[0].c_str(), NULL, 16);
+                    uint64_t ccw = std::strtoul(c2w[1].c_str(), NULL, 10);
+                    CCW_INDIRECT[callsite_addr][callee_addr] = ccw;
+                    //dr_fprintf(STDOUT, "INDIRECT_CALL %p -> %p : %d\n", callsite_addr, callee_addr, ccw);
+                    c2w.clear();
+
+                }
+            }
         }
     }
 }
 
 uint64_t
-get_ccw(uint64_t callsite, uint64_t callee)
+get_ccw_direct(uint64_t callsite, uint64_t callee)
 {
     //dr_fprintf(STDOUT, "get_ccw %p -> %p\n", callsite, callee);
-    if (CCW.find(callsite) != CCW.end()) {
-        if (CCW[callsite].find(callee) != CCW[callsite].end()) {
-            return CCW[callsite][callee];
+    if (CCW_DIRECT.find(callsite) != CCW_DIRECT.end()) {
+        return CCW_DIRECT[callsite];
+    } else {
+        //dr_fprintf(STDOUT,
+        //           "\nCCW Test Failed to find ccw because unknown callsite. callsite: %p callee: %p\n",
+        //           callsite, callee);
+        //DR_ASSERT(false);
+    }
+    return 0; //make compiler happy
+}
+
+uint64_t
+get_ccw_indirect(uint64_t callsite, uint64_t callee)
+{
+    //dr_fprintf(STDOUT, "get_ccw %p -> %p\n", callsite, callee);
+    if (CCW_INDIRECT.find(callsite) != CCW_INDIRECT.end()) {
+        if (CCW_INDIRECT[callsite].find(callee) != CCW_INDIRECT[callsite].end()) {
+            return CCW_INDIRECT[callsite][callee];
         } else {
             dr_fprintf(STDOUT,
                        "\nCCW Test Failed to find ccw because unknown callee. callsite: %p callee: %p\n",
@@ -185,8 +225,8 @@ static void
 at_call(app_pc instr_addr, app_pc target_addr)
 {
     //dr_fprintf(STDOUT, "at_call %p %p\n", instr_addr, target_addr);
-    file_t f =
-        (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
+    //file_t f =
+    //    (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
 
     if (g_prog_status == 2) return;
 
@@ -202,15 +242,15 @@ at_call(app_pc instr_addr, app_pc target_addr)
         return;
     }
 
-    uint64_t ccw_value = get_ccw((uint64_t)instr_addr, (uint64_t)target_addr);
+    uint64_t ccw_value = get_ccw_direct((uint64_t)instr_addr, (uint64_t)target_addr);
 }
 
 static void
 at_call_ind(app_pc instr_addr, app_pc target_addr)
 {
     //dr_fprintf(STDOUT, "at_call %p %p\n", instr_addr, target_addr);
-    file_t f =
-        (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
+    //file_t f =
+    //    (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
 
     if (g_prog_status == 2) return;
 
@@ -226,14 +266,14 @@ at_call_ind(app_pc instr_addr, app_pc target_addr)
         return;
     }
 
-    uint64_t ccw_value = get_ccw((uint64_t)instr_addr, (uint64_t)target_addr);
+    uint64_t ccw_value = get_ccw_indirect((uint64_t)instr_addr, (uint64_t)target_addr);
 }
 
 void
 at_return(app_pc instr_addr, app_pc target_addr)
 {
-    file_t f =
-        (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
+    //file_t f =
+    //    (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
 
     if (g_prog_status != 1) return;
 

@@ -7,19 +7,19 @@ import threading
 from subprocess import Popen, PIPE
 
 benches = [
-    '100.test-pcce-fig-4',
-    '101.test-pcce-fig-5a',
-    '102.test-indirect-call',
-    '103.test-libc-nostatic-nodebug',
-    '103.test-libc-static-nodebug',
-    '103.test-libc-static-debug',
-    '104.test-backedge',
-    '105.test-functionname',
-    '106.test-machinecode',
-    #'107.test-memset',
-    '108.test-mleak',
-    '109.test-matadd',
-    '110.test-tail-call',
+    #'100.test-pcce-fig-4',
+    #'101.test-pcce-fig-5a',
+    #'102.test-indirect-call',
+    #'103.test-libc-nostatic-nodebug',
+    #'103.test-libc-static-nodebug',
+    #'103.test-libc-static-debug',
+    #'104.test-backedge',
+    #'105.test-functionname',
+    #'106.test-machinecode',
+    ##'107.test-memset',
+    #'108.test-mleak',
+    #'109.test-matadd',
+    #'110.test-tail-call',
     #'500.perlbench_r', # MAXID Overflow
     #'502.gcc_r',
     '505.mcf_r',
@@ -31,7 +31,7 @@ benches = [
     '523.xalancbmk_r',
     '525.x264_r',
     #'526.blender_r',
-    '531.deepsjeng_r',
+    #'531.deepsjeng_r',
     #'538.imagick_r', # MAXID Overflow
     '541.leela_r',
     #'544.nab_r',  # never finished
@@ -43,7 +43,7 @@ benches = [
     #'620.omnetpp_s', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
     '623.xalancbmk_s',
     '625.x264_s',
-    '631.deepsjeng_s',
+    #'631.deepsjeng_s',
     #'638.imagick_s', # MAXID Overflow
     '641.leela_s',
     #'644.nab_s', # never finished
@@ -286,26 +286,26 @@ def run_ccweight(cw_dir, ccenc_dir, bin_dir):
     print('CCW file is created.')
 
 def run_ccwtest(cw_dir, bin_dir):
-    ccwtest_dir = cw_dir + '/drclient_empty'
-    makedirs(ccwtest_dir)
-    for bench in benches:
-        cmd = f'$drrun -t drclient_empty -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-        print(cmd)
-        os.system(cmd)
+    #ccwtest_dir = cw_dir + '/drclient_empty'
+    #makedirs(ccwtest_dir)
+    #for bench in benches:
+    #    cmd = f'$drrun -t drclient_empty -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+    #    print(cmd)
+    #    os.system(cmd)
 
-    ccwtest_dir = cw_dir + '/drclient_callret_overhead_test'
-    makedirs(ccwtest_dir)
-    for bench in benches:
-        cmd = f'$drrun -t drclient_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-        print(cmd)
-        os.system(cmd)
+    #ccwtest_dir = cw_dir + '/drclient_callret_overhead_test'
+    #makedirs(ccwtest_dir)
+    #for bench in benches:
+    #    cmd = f'$drrun -t drclient_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+    #    print(cmd)
+    #    os.system(cmd)
 
-    ccwtest_dir = cw_dir + '/drcctlib_callret_overhead_test'
-    makedirs(ccwtest_dir)
-    for bench in benches:
-        cmd = f'$drrun -t drcctlib_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-        print(cmd)
-        os.system(cmd)
+    #ccwtest_dir = cw_dir + '/drcctlib_callret_overhead_test'
+    #makedirs(ccwtest_dir)
+    #for bench in benches:
+    #    cmd = f'$drrun -t drcctlib_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+    #    print(cmd)
+    #    os.system(cmd)
 
     ccwtest_dir = cw_dir + '/drclient_ccw_test'
     makedirs(ccwtest_dir)
