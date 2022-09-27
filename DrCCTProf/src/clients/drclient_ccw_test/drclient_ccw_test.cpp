@@ -105,6 +105,16 @@ uint64_t g_first_call, g_last_call;
 std::unordered_map<uint64_t, uint64_t> CCW_DIRECT; // callsite -> ccw
 std::unordered_map<uint64_t, std::unordered_map<uint64_t, uint64_t>> CCW_INDIRECT; // callsite -> callee --> ccw
 
+
+//#define ATOMIC_ADD_THREAD_ID_MAX(origin) dr_atomic_add32_return_sum(&origin, 1)
+//#define THREAD_MAX_NUM 8192
+typedef struct _per_thread_t {
+    uint64_t ccid;
+    uint64_t ccw;
+} per_thread_t;
+//static int global_thread_id_max = 0;
+//static per_thread_t **global_pt_cache_buff;
+
 //------------------------------------------------------
 // Functions for CCW
 //------------------------------------------------------
@@ -142,6 +152,7 @@ read_ccw_file(std::string fname)
                 g_first_call = std::strtoul(first_last[0].c_str(), NULL, 16);
                 g_last_call = std::strtoul(first_last[1].c_str(), NULL, 16);
                 first = false;
+                //dr_fprintf(STDOUT, "start_call: %p last_call: %p\n", g_first_call, g_last_call);
                 continue;
             }
 
@@ -203,10 +214,10 @@ get_ccw_indirect(uint64_t callsite, uint64_t callee)
         if (CCW_INDIRECT[callsite].find(callee) != CCW_INDIRECT[callsite].end()) {
             return CCW_INDIRECT[callsite][callee];
         } else {
-            dr_fprintf(STDOUT,
-                       "\nCCW Test Failed to find ccw because unknown callee. callsite: %p callee: %p\n",
-                       callsite, callee);
-            DR_ASSERT(false);
+            //dr_fprintf(STDOUT,
+            //           "\nCCW Test Failed to find ccw because unknown callee. callsite: %p callee: %p\n",
+            //           callsite, callee);
+            //DR_ASSERT(false);
         }
     } else {
         //dr_fprintf(STDOUT,
@@ -224,10 +235,8 @@ get_ccw_indirect(uint64_t callsite, uint64_t callee)
 static void
 at_call(app_pc instr_addr, app_pc target_addr)
 {
-    //dr_fprintf(STDOUT, "at_call %p %p\n", instr_addr, target_addr);
-    //file_t f =
-    //    (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
-
+    //dr_fprintf(STDOUT, "at_call callsite: %p jump target: %p\n",
+    //           instr_addr, target_addr);
     if (g_prog_status == 2) return;
 
    
@@ -243,14 +252,21 @@ at_call(app_pc instr_addr, app_pc target_addr)
     }
 
     uint64_t ccw_value = get_ccw_direct((uint64_t)instr_addr, (uint64_t)target_addr);
+    // TODO: is it possible to skip updateing ccid if ccw is zero?
+    void *drcontext = dr_get_current_drcontext();
+    per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
+    DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
+    pt->ccid += ccw_value;
+    pt->ccw = ccw_value;
+    //dr_fprintf(STDOUT, "at_call callsite: %p jump target: %p ccid: %ul\n",
+    //           instr_addr, target_addr, pt->ccid);
 }
 
 static void
 at_call_ind(app_pc instr_addr, app_pc target_addr)
 {
-    //dr_fprintf(STDOUT, "at_call %p %p\n", instr_addr, target_addr);
-    //file_t f =
-    //    (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
+    //dr_fprintf(STDOUT, "at_call_ind callsite: %p jump target: %p\n",
+    //           instr_addr, target_addr);
 
     if (g_prog_status == 2) return;
 
@@ -267,13 +283,20 @@ at_call_ind(app_pc instr_addr, app_pc target_addr)
     }
 
     uint64_t ccw_value = get_ccw_indirect((uint64_t)instr_addr, (uint64_t)target_addr);
+    void *drcontext = dr_get_current_drcontext();
+    per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
+    DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
+    pt->ccid += ccw_value;
+    pt->ccw = ccw_value;
+    //dr_fprintf(STDOUT, "at_call_ind callsite: %p jump target: %p ccid: %ul\n",
+    //           instr_addr, target_addr, pt->ccid);
 }
 
 void
 at_return(app_pc instr_addr, app_pc target_addr)
 {
-    //file_t f =
-    //    (file_t)(ptr_uint_t)drmgr_get_tls_field(dr_get_current_drcontext(), tls_idx);
+    //dr_fprintf(STDOUT, "at_return retsite: %p jump target: %p\n",
+    //           instr_addr, target_addr);
 
     if (g_prog_status != 1) return;
 
@@ -281,6 +304,12 @@ at_return(app_pc instr_addr, app_pc target_addr)
         g_prog_status = 2;
         //dr_fprintf(STDOUT, "Finished main function\n");
     }
+    void *drcontext = dr_get_current_drcontext();
+    per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
+    DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
+    pt->ccid -= pt->ccw;
+    //dr_fprintf(STDOUT, "at_ret retsite: %p jump target: %p ccid: %ul\n",
+    //           instr_addr, target_addr, pt->ccid);
 }
 
 //------------------------------------------------------
@@ -312,27 +341,36 @@ event_thread_init(void *drcontext)
     char name[256] = "";
     INIT_LOG_FILE_NAME(name, op_ccw_dir.get_value().c_str(), op_bench.get_value().c_str(), tls_idx);
     //dr_fprintf(STDOUT, "Creating log file at:%s", name);
-
-    file_t f = dr_open_file(name, DR_FILE_WRITE_OVERWRITE | DR_FILE_ALLOW_LARGE);
-
-    DR_ASSERT(f != INVALID_FILE);
+    //int id = ATOMIC_ADD_THREAD_ID_MAX(global_thread_id_max);
+    //id--;
+    //if (id > THREAD_MAX_NUM) {
+    //    DRCCTLIB_EXIT_PROCESS(
+    //        "Thread num > THREAD_MAX_NUM(%d), please change the value of THREAD_MAX_NUM.",
+    //        THREAD_MAX_NUM);
+    //}
+    per_thread_t *pt = (per_thread_t *)dr_global_alloc(sizeof(per_thread_t));
+    DR_ASSERT(pt != NULL);
+    pt->ccid = 0;
+    pt->ccw = 0;
 
     //dr_fprintf(STDOUT, "drmgr_set_tls_field tls_idx: %d\n", tls_idx);
     /* store it in the slot provided in the drcontext */
-    drmgr_set_tls_field(drcontext, tls_idx, (void *)(ptr_uint_t)f);
+    drmgr_set_tls_field(drcontext, tls_idx, (void *)pt);
 }
 
 static void
 event_thread_exit(void *drcontext)
 {
     //dr_fprintf(STDOUT, "event_thread_exit tls_idx: %d\n", tls_idx);
+    per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
     dr_close_file((file_t)(ptr_uint_t)drmgr_get_tls_field(drcontext, tls_idx));
+    dr_global_free(pt, sizeof(per_thread_t));
 }
 
 static void
 client_init(int argc, const char *argv[])
 {
-    dr_fprintf(STDOUT, "Starting client %d\n", my_id);
+    dr_fprintf(STDOUT, "Starting client ccw_test %d\n", my_id);
     std::string parse_err;
     int last_index;
     if (!droption_parser_t::parse_argv(DROPTION_SCOPE_CLIENT, argc, argv, &parse_err, &last_index)) {

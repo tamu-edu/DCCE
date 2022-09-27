@@ -16,38 +16,38 @@ benches = [
     #'104.test-backedge',
     #'105.test-functionname',
     #'106.test-machinecode',
-    ##'107.test-memset',
-    #'108.test-mleak',
-    #'109.test-matadd',
-    #'110.test-tail-call',
+    ###'107.test-memset',
+    ##'108.test-mleak',
+    ##'109.test-matadd',
+    ##'110.test-tail-call',
     #'500.perlbench_r', # MAXID Overflow
     #'502.gcc_r',
-    '505.mcf_r',
-    '508.namd_r',
+    #'505.mcf_r',
+    #'508.namd_r',
     '510.parest_r',
     #'511.povray_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    '519.lbm_r',
+    #'519.lbm_r',
     #'520.omnetpp_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    '523.xalancbmk_r',
-    '525.x264_r',
+    #'523.xalancbmk_r',
+    #'525.x264_r',
     #'526.blender_r',
     #'531.deepsjeng_r',
     #'538.imagick_r', # MAXID Overflow
-    '541.leela_r',
+    #'541.leela_r',
     #'544.nab_r',  # never finished
-    '557.xz_r',
+    #'557.xz_r',
     #'600.perlbench_s', # MAXID Overflow
     #'602.gcc_s',
-    '605.mcf_s',
-    '619.lbm_s',
+    #'605.mcf_s',
+    #'619.lbm_s',
     #'620.omnetpp_s', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    '623.xalancbmk_s',
-    '625.x264_s',
+    #'623.xalancbmk_s',
+    #'625.x264_s',
     #'631.deepsjeng_s',
     #'638.imagick_s', # MAXID Overflow
-    '641.leela_s',
+    #'641.leela_s',
     #'644.nab_s', # never finished
-    '657.xz_s',
+    #'657.xz_s',
 ]
 
 cmd_options = {
@@ -286,31 +286,31 @@ def run_ccweight(cw_dir, ccenc_dir, bin_dir):
     print('CCW file is created.')
 
 def run_ccwtest(cw_dir, bin_dir):
-    #ccwtest_dir = cw_dir + '/drclient_empty'
-    #makedirs(ccwtest_dir)
-    #for bench in benches:
-    #    cmd = f'$drrun -t drclient_empty -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-    #    print(cmd)
-    #    os.system(cmd)
+    ccwtest_dir = cw_dir + '/drclient_empty'
+    makedirs(ccwtest_dir)
+    for bench in benches:
+        cmd = f'$drrun -t drclient_empty -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+        print(cmd)
+        os.system(cmd)
 
     #ccwtest_dir = cw_dir + '/drclient_callret_overhead_test'
     #makedirs(ccwtest_dir)
     #for bench in benches:
-    #    cmd = f'$drrun -t drclient_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+    #    cmd = f'$drrun -t drclient_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
     #    print(cmd)
     #    os.system(cmd)
 
-    #ccwtest_dir = cw_dir + '/drcctlib_callret_overhead_test'
-    #makedirs(ccwtest_dir)
-    #for bench in benches:
-    #    cmd = f'$drrun -t drcctlib_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-    #    print(cmd)
-    #    os.system(cmd)
+    ccwtest_dir = cw_dir + '/drcctlib_callret_overhead_test'
+    makedirs(ccwtest_dir)
+    for bench in benches:
+        cmd = f'$drrun -t drcctlib_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+        print(cmd)
+        os.system(cmd)
 
     ccwtest_dir = cw_dir + '/drclient_ccw_test'
     makedirs(ccwtest_dir)
     for bench in benches:
-        cmd = f'$drrun -t drclient_ccw_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {bin_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+        cmd = f'$drrun -t drclient_ccw_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
         print(cmd)
         os.system(cmd)
 
