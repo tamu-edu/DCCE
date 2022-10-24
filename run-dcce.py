@@ -6,49 +6,90 @@ import shlex
 import threading
 from subprocess import Popen, PIPE
 
-benches = [
-    #'100.test-pcce-fig-4',
-    #'101.test-pcce-fig-5a',
-    #'102.test-indirect-call',
-    #'103.test-libc-nostatic-nodebug',
-    #'103.test-libc-static-nodebug',
-    #'103.test-libc-static-debug',
-    #'104.test-backedge',
-    #'105.test-functionname',
-    #'106.test-machinecode',
-    ###'107.test-memset',
-    ##'108.test-mleak',
-    ##'109.test-matadd',
-    ##'110.test-tail-call',
-    #'500.perlbench_r', # MAXID Overflow
-    #'502.gcc_r',
-    #'505.mcf_r',
-    #'508.namd_r',
-    '510.parest_r',
-    #'511.povray_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    #'519.lbm_r',
-    #'520.omnetpp_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    #'523.xalancbmk_r',
-    #'525.x264_r',
-    #'526.blender_r',
-    #'531.deepsjeng_r',
-    #'538.imagick_r', # MAXID Overflow
-    #'541.leela_r',
-    #'544.nab_r',  # never finished
-    #'557.xz_r',
-    #'600.perlbench_s', # MAXID Overflow
-    #'602.gcc_s',
-    #'605.mcf_s',
-    #'619.lbm_s',
-    #'620.omnetpp_s', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    #'623.xalancbmk_s',
-    #'625.x264_s',
-    #'631.deepsjeng_s',
-    #'638.imagick_s', # MAXID Overflow
-    #'641.leela_s',
-    #'644.nab_s', # never finished
-    #'657.xz_s',
-]
+ccenc_schemes = ['dcce']#, 'pcce']
+
+
+benchmark_suites = {
+    #'test' : [
+    #    '100.test-pcce-fig-4',
+    #    #'101.test-pcce-fig-5a',
+    #    #'102.test-indirect-call',
+    #    #'103.test-libc-nostatic-nodebug',
+    #    #'103.test-libc-static-nodebug',
+    #    #'103.test-libc-static-debug',
+    #    #'104.test-backedge',
+    #    #'105.test-functionname',
+    #    #'106.test-machinecode',
+    #    ##'107.test-memset',
+    #    #'108.test-mleak',
+    #    #'109.test-matadd',
+    #    #'110.test-tail-call',
+    #],
+
+    'Splash-3' : [
+        '701.BARNES',
+        '702.CHOLESKY',
+        '703.FFT',
+        '704.FMM',
+        '705.LU-CB',
+        '706.LU-NCB',
+        '707.OCEAN-CP',
+        '708.OCEAN-NCP',
+        '709.RADIOSITY',
+        '710.RADIX',
+        #'711.RAYTRACE', # link time error
+        #'712.VOLREND', # link time error
+        '713.WATER-NSQUARED',
+        '714.WATER-SPATIAL',
+    ],
+    #'Splash-3-barrier-elision' : [
+    #    '701.BARNES',
+    #    '702.CHOLESKY',
+    #    '703.FFT',
+    #    '704.FMM',
+    #    '705.LU-CB',
+    #    '706.LU-NCB',
+    #    '707.OCEAN-CP',
+    #    '708.OCEAN-NCP',
+    #    '709.RADIOSITY',
+    #    '710.RADIX',
+    #    '713.WATER-NSQUARED',
+    #    '714.WATER-SPATIAL',
+    #],
+
+    'SPEC2017' : [
+        #'500.perlbench_r', # MAXID Overflow
+        #'502.gcc_r',
+        '505.mcf_r',
+        '508.namd_r',
+        '510.parest_r',
+        #'511.povray_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
+        '519.lbm_r',
+        #'520.omnetpp_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
+        '523.xalancbmk_r',
+        '525.x264_r',
+        #'526.blender_r',
+        #'531.deepsjeng_r',  # OOM
+        #'538.imagick_r', # MAXID Overflow
+        '541.leela_r',
+        #'544.nab_r',  # never finished
+        '557.xz_r',
+        #'600.perlbench_s', # MAXID Overflow
+        #'602.gcc_s',
+        '605.mcf_s',
+        '619.lbm_s',
+        #'620.omnetpp_s', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
+        '623.xalancbmk_s',
+        '625.x264_s',
+        #'631.deepsjeng_s', # OOM
+        #'638.imagick_s', # MAXID Overflow
+        '641.leela_s',
+        #'644.nab_s', # never finished
+        '657.xz_s',
+
+    ],
+
+}
 
 cmd_options = {
         '500.perlbench_r': '-I%s/500.perlbench_r/data/all/input/lib %s/500.perlbench_r/data/refrate/input/checkspam.pl 2500 5 25 11 150 1 1 1 1' % (os.getenv('CPU2017_RUN_DIR'), os.getenv('CPU2017_RUN_DIR')),
@@ -101,7 +142,26 @@ cmd_options = {
         '108.test-mleak': '1073741823',
         '109.test-matadd': '',
         '110.test-tail-call': '',
+        '701.BARNES'         : f' < {os.getenv("SPLASH3_ROOT")}/apps/barnes/inputs/n8k-p2',
+        '702.CHOLESKY'       : f' -p2 < {os.getenv("SPLASH3_ROOT")}/kernels/cholesky/inputs/tk29.O',
+        '703.FFT'            : f' -p2 -m28',
+        '704.FMM'            : f' < {os.getenv("SPLASH3_ROOT")}/apps/fmm/inputs/input.2.16384',
+        '705.LU-CB'          : f' -p2 -n4096',
+        '706.LU-NCB'         : f' -p2 -n4096',
+        '707.OCEAN-CP'       : f' -p2 -n4098', 
+        '708.OCEAN-NCP'      : f' -p2 -n4098',
+        '709.RADIOSITY'      : f' -p 2 -tq 200 -ae 5000 -bf 0.1 -en 0.05 -room -batch',
+        '710.RADIX'          : f' -p2 -n92048576',  #n1048576
+        #'711.RAYTRACE', # link time error
+        '712.VOLREND'        : f' 16 {os.getenv("SPLASH3_ROOT")}/apps/volrend/inputs/head 8',
+        '713.WATER-NSQUARED' : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-nsquared/inputs/n4096-p2',
+        '714.WATER-SPATIAL'  : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-spatial/inputs/n4096-p2',
     }
+
+def foreach_bench():
+    for suite_name, benches in benchmark_suites.items():
+        for bench in benches:
+            yield suite_name, bench
 
 def run_cmd_foreach_bench(cmd_log, parallel=True):
     if parallel:
@@ -133,7 +193,7 @@ def run_cmd(cmd, log=None):
         print('Execution Failed with error %d. See %s' % (exit_code, log))
         #exit(1)
 
-def run_build():
+def build():
     makedirs(os.getenv('DCCE_RTLIB_BUILD_DIR'))
     makedirs(os.getenv('PCCE_RTLIB_BUILD_DIR'))
     cmd = f'cd {os.getenv("LLVM_ROOT")} && build compile.sh; cd -'
@@ -147,68 +207,92 @@ def run_build():
 
     cmd = f'cd {os.getenv("PCCE_RTLIB_BUILD_DIR")} && cmake .. && make -j4; cd -'
     run_cmd(cmd)
+    
+    cmd = f'cd {os.getenv("TEST_ROOT")} && make ; cd -'
+    run_cmd(cmd)
+    
+    cmd = f'cd {os.getenv("SPLASH3_ROOT")} && make ; cd -'
+    run_cmd(cmd)
+    
+    cmd = f'cd {os.getenv("SPLASH3_BARRIER_ELISION_ROOT")} && make ; cd -'
+    run_cmd(cmd)
 
-def run_extract_bitcode():
-    cmd_log = []
-    for bench in benches:
-        # extract bitcode from the executable
-        cmd = f'objcopy {os.getenv("BIN_ROOT")}/{bench} --dump-section .llvmbc={os.getenv("BC_ROOT")}/{bench}.bc'
-        log = f'{os.getenv("BC_ROOT")}/{bench}.bc.log'
-        cmd_log.append((cmd, log))
-    run_cmd_foreach_bench(cmd_log)
-
-    cmd_log = []
-    for bench in benches:
-        # disassmble the bitcode
-        cmd = f'llvm-dis {os.getenv("BC_ROOT")}/{bench}.bc -o {os.getenv("BC_ROOT")}/{bench}.ll'
-        log = f'{os.getenv("BC_ROOT")}/{bench}.ll.log'
-        cmd_log.append((cmd, log))
-    run_cmd_foreach_bench(cmd_log)
-
-    cmd_log = []
-    for bench in benches:
-        # disassemble the executable
-        cmd = f'llvm-objdump -DS {os.getenv("BIN_ROOT")}/{bench}'
-        log = f'{os.getenv("BIN_ROOT")}/{bench}.asm'
-        cmd_log.append((cmd, log))
-    run_cmd_foreach_bench(cmd_log)
-
-
-def run_clean():
+def clean():
     run_cmd('rm -rf %s' % os.getenv('DCCE_RTLIB_BUILD_DIR'))
     run_cmd('bash %s/clean.sh' % (os.getenv('SVF_ROOT')))
     run_cmd('rm -rf %s/test.bc' % (os.getenv('BC_ROOT')))
 
-def run_callgraph():
-    makedirs(os.getenv('CG_DIR'))
+def extract_bitcode():
+    output_bin = os.getenv("OUTPUT_BIN")
+    output_bitcode = os.getenv("OUTPUT_BITCODE")
+    for suite_name, _ in benchmark_suites.items():
+        makedirs(f'{output_bitcode}/{suite_name}')
+    
     cmd_log = []
-    for bench in benches:
-        cmd = f'wpa -ander -dump-callgraph {os.getenv("CG_DIR")}/{bench} {os.getenv("BC_ROOT")}/{bench}.bc'
-        log = '%s/%s.callgraph.log' % (os.getenv('CG_DIR'), bench)
+    for suite_name, bench in foreach_bench():
+        # extract bitcode from the executable
+        cmd = f'objcopy {output_bin}/{suite_name}/{bench} --dump-section .llvmbc={output_bitcode}/{suite_name}/{bench}.bc'
+        log = f'{output_bitcode}/{suite_name}/{bench}.bc.log'
+        cmd_log.append((cmd, log))
+    run_cmd_foreach_bench(cmd_log)
+
+    cmd_log = []
+    for suite_name, bench in foreach_bench():
+        # disassmble the bitcode
+        cmd = f'llvm-dis {output_bitcode}/{suite_name}/{bench}.bc -o {output_bitcode}/{suite_name}/{bench}.ll'
+        log = f'{output_bitcode}/{suite_name}/{bench}.ll.log'
+        cmd_log.append((cmd, log))
+    run_cmd_foreach_bench(cmd_log)
+
+    # TODO: move it to run_bin
+    cmd_log = []
+    for suite_name, bench in foreach_bench():
+        # disassemble the executable
+        cmd = f'llvm-objdump -DS {output_bin}/{suite_name}/{bench}'
+        log = f'{output_bin}/{suite_name}/{bench}.asm'
+        cmd_log.append((cmd, log))
+    run_cmd_foreach_bench(cmd_log)
+
+def callgraph():
+    output_cg = os.getenv("OUTPUT_CG")
+    output_bitcode = os.getenv("OUTPUT_BITCODE")
+    for suite_name, _ in benchmark_suites.items():
+        print(f'{output_cg}/{suite_name}')
+        makedirs(f'{output_cg}/{suite_name}')
+
+    cmd_log = []
+    for suite_name, bench in foreach_bench():
+        cmd = f'wpa -ander -dump-callgraph {output_cg}/{suite_name}/{bench} {output_bitcode}/{suite_name}/{bench}.bc'
+        log = f'{output_cg}/{suite_name}/{bench}.callgraph.log'
         cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
 
     cmd_log = []
-    for bench in benches:
-        cmd = f'python ccencoder/callgraph-stats.py {os.getenv("CG_DIR")}/{bench}-final.cg {bench} main {os.getenv("CG_DIR")}'
-        log = '%s/%s.stats.log' % (os.getenv('CG_DIR'), bench)
+    for suite_name, bench in foreach_bench():
+        cmd = f'python ccencoder/callgraph-stats.py {output_cg}/{suite_name}/{bench}-final.cg {bench} main {output_cg}/{suite_name}'
+        log = f'{output_cg}/{suite_name}/{bench}.stats.log'
         cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
 
-    print('Callgraphs are generated in {}'.format(os.getenv('CG_DIR')))
+    print(f'Callgraphs are generated in {output_cg}')
 
-def run_ccenc(ccenc_dir, args):
-    makedirs(ccenc_dir)
+def ccenc(args):
+    ccenc_root = os.getenv("OUTPUT_CCENC")
+    for scheme in ccenc_schemes:
+        for suite_name, _ in benchmark_suites.items():
+            makedirs(f'{ccenc_root}/{scheme}/{suite_name}')
+
     cmd_log = []
-    for bench in benches:
-        cmd = f'python ccencoder/gen_calling_context.py ' \
-            f'{os.getenv("CG_DIR")}/{bench}-final.cg {bench} main {args.ccenc} {ccenc_dir}'
-        log = f'{ccenc_dir}/{bench}.ccenc.log'
-        cmd_log.append((cmd, log))
+    for scheme in ccenc_schemes:
+        for suite_name, bench in foreach_bench():
+            cmd = f'python ccencoder/gen_calling_context.py ' \
+                f'{os.getenv("OUTPUT_CG")}/{suite_name}/{bench}-final.cg {bench} main {scheme} {ccenc_root}/{scheme}/{suite_name}'
+            log = f'{ccenc_root}/{scheme}/{suite_name}/{bench}.ccenc.log'
+            cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
-    print('Calling context encoding is done and outputs are stored in {}'.format(ccenc_dir))
+    print(f'Calling context encoding is done and outputs are stored in {ccenc_root}')
 
-def run_instrument(bc_dir, ccenc_dir, instr_method):
+def static_instr(bc_dir, ccenc_dir, instr_method):
     makedirs(bc_dir)
     cmd_log = []
     for bench in benches:
@@ -229,251 +313,159 @@ def run_instrument(bc_dir, ccenc_dir, instr_method):
 
     print('Instrumentation is done')
 
-def run_ccweight(cw_dir, ccenc_dir, bin_dir):
-    makedirs(cw_dir)
+def dyn_instr(args):
+    output_ccenc = os.getenv("OUTPUT_CCENC")
+    output_bitcode = os.getenv("OUTPUT_BITCODE")
+    output_dyn_bin = os.getenv("OUTPUT_DYN_BIN")
+
+    for scheme in ccenc_schemes:
+        for suite_name, _ in benchmark_suites.items():
+            makedirs(f'{output_dyn_bin}/{scheme}/{suite_name}')
 
     # Add ccweight attributes to CallInst in bitcode 
     cmd_log = []
-    for bench in benches:
-        bench_code = int(bench[:3])
-        #cmd = f'ccw -ccinput {ccenc_dir}/{bench}.cg -dump-modules {cw_dir} {os.getenv("BC_ROOT")}/{bench}.bc'
-        cmd = f'wpa -ander -ccinput {ccenc_dir}/{bench}.cg -ccweight -bench-code {bench_code} -dump-modules {cw_dir} {os.getenv("BC_ROOT")}/{bench}.bc'
-        log = '%s/%s.addccweight.log' % (cw_dir, bench)
-        cmd_log.append((cmd, log))
+    for scheme in ccenc_schemes:
+        for suite_name, bench in foreach_bench():
+            bench_code = int(bench[:3])
+            cmd = f'wpa -ander -ccinput {output_ccenc}/{scheme}/{suite_name}/{bench}.cg -ccweight -bench-code {bench_code} -dump-modules {output_dyn_bin}/{scheme}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
+            log = f'{output_dyn_bin}/{scheme}/{suite_name}/{bench}.addccweight.log'
+            cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
    
     # Build CCWeight attributed bitcode
     cmd_log = []
-    for bench in benches:
-        cmd = f"bash {os.getenv('CPU2017_MAKE_DIR')}/ccw.clang++.make.out {cw_dir} {bench}"
-        cmd = f'clang++ {cw_dir}/{bench}.bc \
-                -m64 \
-                -z muldefs \
-                -mavx \
-                -DSPEC_LINUX_X64 \
-                -DSPEC_OPENMP \
-                -Wno-return-type \
-                -DUSE_OPENMP \
-                -lm \
-                -L/usr/lib/llvm-10/lib \
-                -I/usr/lib/llvm-10/include/openmp \
-                -fopenmp=libomp \
-                -o {cw_dir}/{bench}'
-        log = '%s/%s.offset' % (cw_dir, bench)
-        cmd_log.append((cmd, log))
+    for scheme in ccenc_schemes:
+        for suite_name, bench in foreach_bench():
+            cmd = f'clang++ {output_dyn_bin}/{scheme}/{suite_name}/{bench}.bc \
+                    -m64 \
+                    -z muldefs \
+                    -mavx \
+                    -DSPEC_LINUX_X64 \
+                    -DSPEC_OPENMP \
+                    -Wno-return-type \
+                    -DUSE_OPENMP \
+                    -lm \
+                    -L/usr/lib/llvm-10/lib \
+                    -I/usr/lib/llvm-10/include/openmp \
+                    -fopenmp=libomp \
+                    -o {output_dyn_bin}/{scheme}/{suite_name}/{bench}'
+            log = f'{output_dyn_bin}/{scheme}/{suite_name}/{bench}.offset'
+            cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
-    #-L/home/sungkeun/git/spack/var/spack/environments/base/.spack-env/._view/dec54r6zjqn3jmn5hxa5l5z6bsyw22pw/lib \
-    #-I/home/sungkeun/git/spack/opt/spack/linux-centos7-piledriver/gcc-12.1.0/llvm-openmp-12.0.1-e5sxuwhroyvhg4tiarzwyohmavipiw42/include \
    
     # Disassemble the executable
     cmd_log = []
-    for bench in benches:
-        # disassemble the executable
-        cmd = f'llvm-objdump -DS {cw_dir}/{bench}'
-        log = f'{cw_dir}/{bench}.asm'
-        cmd_log.append((cmd, log))
+    for scheme in ccenc_schemes:
+        for suite_name, bench in foreach_bench():
+            # disassemble the executable
+            cmd = f'llvm-objdump -DS {output_dyn_bin}/{scheme}/{suite_name}/{bench}'
+            log = f'{output_dyn_bin}/{scheme}/{suite_name}/{bench}.asm'
+            cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
 
     # generate the final ccw file
     cmd_log = []
-    for bench in benches:
-        bench_code = int(bench[:3])
-        cmd = f"python ccencoder/gen_ccw.py -ccw {cw_dir}/{bench}.offset -bin {cw_dir}/{bench}.asm -output {cw_dir}/{bench}.ccw"
-        log =  f'{cw_dir}/{bench}.gen_ccw.log'
-        cmd_log.append((cmd, log))
+    for scheme in ccenc_schemes:
+        for suite_name, bench in foreach_bench():
+            bench_code = int(bench[:3])
+            cmd = f"python ccencoder/gen_ccw.py -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.offset -bin {output_dyn_bin}/{scheme}/{suite_name}/{bench}.asm -output {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw"
+            log =  f'{output_dyn_bin}/{scheme}/{suite_name}/{bench}.gen_ccw.log'
+            cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
 
     print('CCW file is created.')
 
-def run_ccwtest(cw_dir, bin_dir):
-    ccwtest_dir = cw_dir + '/drclient_empty'
-    makedirs(ccwtest_dir)
-    for bench in benches:
-        cmd = f'$drrun -t drclient_empty -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
+def run_native_exp(args):
+    output_bin = os.getenv("OUTPUT_BIN")
+    output_native_exp = os.getenv("OUTPUT_NATIVE_EXP")
+
+    for suite_name, bench in foreach_bench():
+        makedirs(f'{output_native_exp}/{suite_name}')
+    for suite_name, bench in foreach_bench():
+        cmd = f'/usr/bin/time -v {output_bin}/{suite_name}/{bench} {cmd_options[bench]} > {output_native_exp}/{suite_name}/{bench}.out 2>&1'
         print(cmd)
         os.system(cmd)
+        os.system('sleep 10')
 
-    #ccwtest_dir = cw_dir + '/drclient_callret_overhead_test'
-    #makedirs(ccwtest_dir)
-    #for bench in benches:
-    #    cmd = f'$drrun -t drclient_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-    #    print(cmd)
-    #    os.system(cmd)
+def run_static_exp(args):
+    output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
+    output_static_exp = os.getenv("OUTPUT_STATIC_EXP")
 
-    ccwtest_dir = cw_dir + '/drcctlib_callret_overhead_test'
-    makedirs(ccwtest_dir)
-    for bench in benches:
-        cmd = f'$drrun -t drcctlib_callret_overhead_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-        print(cmd)
-        os.system(cmd)
-
-    ccwtest_dir = cw_dir + '/drclient_ccw_test'
-    makedirs(ccwtest_dir)
-    for bench in benches:
-        cmd = f'$drrun -t drclient_ccw_test -ccw {cw_dir}/{bench}.ccw -ccwdir {ccwtest_dir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {ccwtest_dir}/{bench}.out 2>&1'
-        print(cmd)
-        os.system(cmd)
-
-    print(f'CCW Tests are launched. See log files in {cw_dir}')
-
-def run_bench_runtime():
-    bench_runtime_dir = os.getenv('RUNTIME_WITHOUT_CLIENT')
-    bin_root = os.getenv('BIN_ROOT')
-    makedirs(bench_runtime_dir)
-    for bench in benches:
-        cmd = f'{{ bash -c "time {bin_root}/{bench} {cmd_options[bench]}" ;}} > {bench_runtime_dir}/{bench}.out 2>&1'
-        print(cmd)
-        os.system(cmd)
-
-    print(f'CCW Tests are launched. See log files in {bench_runtime_dir}')
-
-def run_ccupdate_drcctlib(cw_dir, outdir):
-    ccwtest_dir = cw_dir + '/ccwtest'
-    makedirs(ccwtest_dir)
-    makedirs(outdir)
-    for bench in benches:
-        cmd = f'$drrun -t ccupdate_drcctlib -outdir {outdir} -bench {bench} -- {cw_dir}/{bench} {cmd_options[bench]} > {outdir}/{bench}.out 2>&1 &'
-        print(cmd)
-        #os.system(cmd)
-
-
-def run_make_exe(bin_dir, bc_dir, rtlib_dir):
-    makedirs(bin_dir)
-    cmd_log = []
-    for bench in benches:
-        #cmd = 'bash %s/common.clang++.make.out %s %s %s %s' % \
-        #        (os.getenv('CPU2017_MAKE_DIR'),
-        #        bc_dir,
-        #        bin_dir,
-        #        rtlib_dir,
-        #        bench)
-        #log = '%s/%s.log' % (bin_dir, bench)
-        if bench in ['100.test-pcce-fig-4', '101.test-pcce-fig-5a', '102.test-indirect-call', '103.test-libc-nostatic-nodebug', '103.test-libc-static-debug', '103.test-libc-static-debug', '104.test-backedge', '106.test-machinecode']:
-            cmd = 'bash %s/test.make.out %s %s %s %s' % \
-                    (os.getenv('CPU2017_MAKE_DIR'),
-                    bc_dir,
-                    bin_dir,
-                    rtlib_dir,
-                    bench)
-            log = '%s/%s.log' % (bin_dir, bench)
-        else:
-            cmd = 'bash %s/common.clang++.make.out %s %s %s %s' % \
-                    (os.getenv('CPU2017_MAKE_DIR'),
-                    bc_dir,
-                    bin_dir,
-                    rtlib_dir,
-                    bench)
-            log = '%s/%s.log' % (bin_dir, bench)
-        cmd_log.append((cmd, log))
-    run_cmd_foreach_bench(cmd_log)
-    print('Making executables is done')
-
-def run_bench(stats_dir, bin_dir, num_tests):
-    for run in range(num_tests):
-        base_stats_dir = '%s/%s' % (stats_dir, run)
-        makedirs(base_stats_dir)
-        for bench in benches:
-            cmd = '(time %s/%s %s) > %s/%s.log 2>&1' % \
-                    (bin_dir, bench, cmd_options[bench],
-                     base_stats_dir, bench)
+    for client in ['dcce_ccid_overhead_only_update', 'dcce_ccid_overhead', 'pcce_ccid_overhead_only_update', 'pcce_ccid_overhead']:
+        for suite_name, bench in foreach_bench():
+            makedirs(f'{output_static_exp}/{client}/{suite_name}')
+        for suite_name, bench in foreach_bench():
+            cmd = f'/usr/bin/time -v {output_static_bin}/{client}/{suite_name}/{bench} {cmd_options[bench]} > {output_static_exp}/{client}/{suite_name}/{bench}.out 2>&1'
             print(cmd)
-            cmd = 'mv gmon.out %s/%s.gmon' % \
-                    (base_stats_dir, bench)
-            print(cmd)
-            #os.system(cmd)
+            os.system(cmd)
+            os.system('sleep 10')
 
-def run_gprof(stats_dir, bin_dir, num_tests):
-    cmd_log = []
-    for run in range(num_tests):
-        base_stats_dir = '%s/%s' % (stats_dir, run)
-        for bench in benches:
-            cmd = 'gprof %s/%s %s/%s.gmon' % \
-                    (bin_dir, bench,
-                    base_stats_dir, bench)
-            log = '%s/%s.gprof' % (base_stats_dir, bench)
-            cmd_log.append((cmd, log))
-    run_cmd_foreach_bench(cmd_log)
+def run_dyn_exp(args):
+    output_ccenc = os.getenv("OUTPUT_CCENC")
+    output_dyn_bin = os.getenv("OUTPUT_DYN_BIN")
+    output_dyn_exp = os.getenv("OUTPUT_DYN_EXP")
 
-    print('Running gprof is done')
+    for scheme in ccenc_schemes:
+        #for client in ['drclient_empty', 'dcce_ccid_overhead_only_update', 'dcce_ccid_overhead', 'drcctlib_ccid_overhead_only_update', 'drcctlib_ccid_overhead']:
+        for client in ['dcce_ccid_overhead', 'drcctlib_ccid_overhead']:
+            for suite_name, bench in foreach_bench():
+                makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
+            for suite_name, bench in foreach_bench():
+                cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
+                print(cmd)
+                os.system(cmd)
+                os.system('sleep 10')
+
+
+#def run_gprof(stats_dir, bin_dir, num_tests):
+#    cmd_log = []
+#    for run in range(num_tests):
+#        base_stats_dir = '%s/%s' % (stats_dir, run)
+#        for bench in benches:
+#            cmd = 'gprof %s/%s %s/%s.gmon' % \
+#                    (bin_dir, bench,
+#                    base_stats_dir, bench)
+#            log = '%s/%s.gprof' % (base_stats_dir, bench)
+#            cmd_log.append((cmd, log))
+#    run_cmd_foreach_bench(cmd_log)
+#
+#    print('Running gprof is done')
 
 def main(args):
-
-    if (args.build == False and \
-            args.extract_bitcode == False and \
-            args.clean == False and \
-            args.callgraph == False \
-            and args.ccenc == None and \
-            args.instrument == None and \
-            args.ccweight == None and \
-            args.run_ccwtest == None and \
-            args.run_bench_runtime== None and \
-            args.make_exe == None and \
-            args.run_bench == None and \
-            args.run_gprof == None):
+    if (not args.build \
+            and not args.clean \
+            and not args.extract_bitcode \
+            and not args.callgraph \
+            and not args.ccenc \
+            and not args.static_instr \
+            and not args.dyn_instr \
+            and not args.run_native_exp \
+            and not args.run_static_exp \
+            and not args.run_dyn_exp):
         print("Nothing to do ...\nrun 'run_dcce -h' to see how to use.")
         exit(1)
 
     if (args.build):
-        run_build()
-    if (args.extract_bitcode):
-        run_extract_bitcode()
+        build()
     if (args.clean):
-        run_clean()
+        clean()
+    if (args.extract_bitcode):
+        extract_bitcode()
     if (args.callgraph):
-        run_callgraph()
-    if (args.ccenc != None):
-        if args.ccenc == 'dcce':
-            run_ccenc(os.getenv('DCCE_CCENC_DIR'), args)
-        elif args.ccenc == 'pcce':
-            run_ccenc(os.getenv('PCCE_CCENC_DIR'), args)
-    if (args.instrument != None):
-        if args.instrument == 'base2':
-            run_instrument(os.getenv('BASE2_BC_DIR'), os.getenv('DCCE_CCENC_DIR'), 'dcce')
-        elif args.instrument == 'dcce':
-            run_instrument(os.getenv('DCCE_BC_DIR'), os.getenv('DCCE_CCENC_DIR'), 'dcce')
-        elif args.instrument == 'pcce':
-            run_instrument(os.getenv('PCCE_BC_DIR'), os.getenv('PCCE_CCENC_DIR'), 'pcce')
-
-    if (args.ccweight != None):
-        if args.ccweight == 'dcce':
-            run_ccweight(os.getenv('DCCE_CCWEIGHT_DIR'), os.getenv('DCCE_CCENC_DIR'), os.getenv('BIN_ROOT'))
-        elif args.ccweight == 'pcce':
-            run_ccweight(os.getenv('PCCE_CCWEIGHT_DIR'), os.getenv('PCCE_CCENC_DIR'), os.getenv('BIN_ROOT'))
+        callgraph()
+    if (args.ccenc):
+        ccenc(args)
+    if (args.static_instr):
+        static_instr()
+    if (args.dyn_instr):
+        dyn_instr(args)
+    if (args.run_native_exp):
+        run_native_exp(args)
+    if (args.run_static_exp):
+        run_static_exp(args)
+    if (args.run_dyn_exp):
+        run_dyn_exp(args)
     
-    if (args.run_ccwtest != None):
-        if args.run_ccwtest == 'dcce':
-            run_ccwtest(os.getenv('DCCE_CCWEIGHT_DIR'), os.getenv('BIN_ROOT'))
-        elif args.run_ccwtest == 'pcce':
-            run_ccwtest(os.getenv('PCCE_CCWEIGHT_DIR'), os.getenv('BIN_ROOT'))
-    
-    if (args.run_bench_runtime):
-        run_bench_runtime()
-
-    #if (args.run_ccupdate_drcctlib != None):
-    #    run_ccupdate_drcctlib(os.getenv('DCCE_CCWEIGHT_DIR'), os.getenv('DRCCTLIB_CCUPDATE_TEST'))
-
-    if (args.make_exe != None):
-        if args.make_exe == 'base2':
-            run_make_exe(os.getenv('BASE2_BIN_DIR'), os.getenv('BASE2_BC_DIR'), os.getenv('BASE2_RTLIB_DIR'))
-        elif args.make_exe == 'dcce':
-            run_make_exe(os.getenv('DCCE_BIN_DIR'), os.getenv('DCCE_BC_DIR'), os.getenv('DCCE_RTLIB_DIR'))
-        elif args.make_exe == 'pcce':
-            run_make_exe(os.getenv('PCCE_BIN_DIR'), os.getenv('PCCE_BC_DIR'), os.getenv('PCCE_RTLIB_DIR'))
-    if (args.run_bench != None):
-        if args.run_bench == 'base2':
-            run_bench(os.getenv('BASE2_STATS_DIR'), os.getenv('BASE2_BIN_DIR'), 1)
-        elif args.run_bench == 'dcce':
-            run_bench(os.getenv('DCCE_STATS_DIR'), os.getenv('DCCE_BIN_DIR'), 1)
-        elif args.run_bench == 'pcce':
-            run_bench(os.getenv('PCCE_STATS_DIR'), os.getenv('PCCE_BIN_DIR'), 1)
-    if (args.run_gprof != None):
-        if args.run_gprof == 'base2':
-            run_gprof(os.getenv('BASE2_STATS_DIR'), os.getenv('BASE2_BIN_DIR'), 1)
-        elif args.run_gprof == 'dcce':
-            run_gprof(os.getenv('DCCE_STATS_DIR'), os.getenv('DCCE_BIN_DIR'), 1)
-        elif args.run_gprof == 'pcce':
-            run_gprof(os.getenv('PCCE_STATS_DIR'), os.getenv('PCCE_BIN_DIR'), 1)
-
 
 def makedirs(dir):
     if not os.path.exists(dir):
@@ -486,30 +478,36 @@ if __name__== "__main__":
 
     parser = argparse.ArgumentParser(\
             description='Main program to run DCCE project.')
+
     parser.add_argument('-build', action='store_true',
             help='build SVF and runtime.')
-    parser.add_argument('-extract-bitcode', action='store_true',
-            help='extract bitcode from the binary.')
     parser.add_argument('-clean', action='store_true',
             help='clean all the output files.')
+   
+    # Common commands
+    parser.add_argument('-extract-bitcode', action='store_true',
+            help='extract bitcode from the binary.')
     parser.add_argument('-callgraph', action='store_true',
             help='run wpa to genrate callgph(.cg) file')
-    parser.add_argument('-ccenc', choices=['dcce', 'pcce'],
+    parser.add_argument('-ccenc', action='store_true',
             help='run calling context encoding with given method.')
-    parser.add_argument('-instrument', choices=['base2', 'dcce', 'pcce', 'valence'],
-            help='run wpa to instrument benchmarks.')
-    parser.add_argument('-ccweight', choices=['dcce', 'pcce', 'valence'],
-            help='run wpa to add ccweight to callsite.')
-    parser.add_argument('-run-ccwtest', choices=['dcce', 'pcce', 'valence'],
-            help='run ccw test.')
-    parser.add_argument('-run-bench-runtime', action='store_true',
-            help='run benchmarks to measure execution times of benchmarks without anything (static or dynamic instrumentation)')
-    parser.add_argument('-make-exe', choices=['base2', 'dcce', 'pcce', 'valence'],
-            help='make executable.')
-    parser.add_argument('-run-bench', choices=['base', 'base2', 'dcce', 'pcce', 'valence'],
-            help='run instrumented benchmarks.')
-    parser.add_argument('-run-gprof', choices=['base', 'base2', 'dcce', 'pcce', 'valence'],
-            help='run gprof.')
+
+    # For static instrumentation
+    parser.add_argument('-static-instr', action='store_true',
+            help='Run static instrumentation.')
+    # For dynamic instrumentation
+    parser.add_argument('-dyn-instr', action='store_true',
+            help='Run dynamic instrumentation.')
+
+
+    # For exeriment
+    parser.add_argument('-run-native-exp', action='store_true',
+            help='run benchmarks without any instrumentations.')
+    parser.add_argument('-run-static-exp', action='store_true',
+            help='run static instrument experiments')
+    parser.add_argument('-run-dyn-exp', action='store_true',
+            help='run dynamic instrument experiments')
+
     args = parser.parse_args()
 
     main(args)

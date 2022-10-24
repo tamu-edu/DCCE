@@ -75,17 +75,6 @@ using namespace std;
 #    define IF_WINDOWS(x) /* nothing */
 #endif
 
-#define MAXIMUM_SYMNAME 256
-#define MAXIMUM_FILEPATH 512
-typedef struct _ccw_struct_t {
-    app_pc addr;
-    module_data_t* data;
-    drsym_info_t sym;
-    drsym_error_t symres;
-    char name[MAXIMUM_SYMNAME];
-    char file[MAXIMUM_FILEPATH];
-} ccw_struct_t;
-
 //------------------------------------------------------
 // Options
 //------------------------------------------------------
@@ -94,9 +83,6 @@ static droption_t<std::string> op_ccw
 
 static droption_t<std::string> op_bench
 (DROPTION_SCOPE_CLIENT, "bench", "", "Benchmark", "Benchmark name");
-
-static droption_t<std::string> op_ccw_dir
-(DROPTION_SCOPE_CLIENT, "ccwdir", "", "Directory of ccweight", "Directory of ccweight");
 
 static droption_t<std::string> op_bin_path
 (DROPTION_SCOPE_CLIENT, "bin_path", "", "binary path", "binary path");
@@ -114,17 +100,6 @@ static void
 event_thread_init(void *drcontext)
 {
     dr_fprintf(STDOUT, "event_thread_init tls_idx: %d\n", tls_idx);
-
-    char name[256] = "";
-    INIT_LOG_FILE_NAME(name, op_ccw_dir.get_value().c_str(), op_bench.get_value().c_str(), tls_idx);
-    dr_fprintf(STDOUT, "Creating log file at:%s", name);
-
-    file_t f = dr_open_file(name, DR_FILE_WRITE_OVERWRITE | DR_FILE_ALLOW_LARGE);
-    DR_ASSERT(f != INVALID_FILE);
-
-    dr_fprintf(STDOUT, "drmgr_set_tls_field tls_idx: %d\n", tls_idx);
-    /* store it in the slot provided in the drcontext */
-    drmgr_set_tls_field(drcontext, tls_idx, (void *)(ptr_uint_t)f);
 }
 
 static void
@@ -137,7 +112,7 @@ event_thread_exit(void *drcontext)
 static void
 client_init(int argc, const char *argv[])
 {
-    dr_fprintf(STDOUT, "Starting client %s\n", my_id);
+    dr_fprintf(STDOUT, "Starting client %d\n", my_id);
     std::string parse_err;
     int last_index;
     if (!droption_parser_t::parse_argv(DROPTION_SCOPE_CLIENT, argc, argv, &parse_err, &last_index)) {

@@ -11,6 +11,7 @@ OPENMP_INCLUDE_DIR  = /usr/lib/llvm-10/include/openmp
 #OPENMP_LIB_DIR      = /home/sungkeun/git/spack/var/spack/environments/base/.spack-env/._view/dec54r6zjqn3jmn5hxa5l5z6bsyw22pw/lib
 #OPENMP_INCLUDE_DIR  = /home/sungkeun/git/spack/opt/spack/linux-centos7-piledriver/gcc-12.1.0/llvm-openmp-12.0.1-e5sxuwhroyvhg4tiarzwyohmavipiw42/include
 OBJ_DIR = ${TEST_ROOT}/obj
+TEST_BIN_ROOT = ${OUTPUT_BIN}/test
 dir_guard=@mkdir -p ${OBJ_DIR}
 
 all: 100.test-pcce-fig-4 \
@@ -84,46 +85,46 @@ ${OBJ_DIR}/110.test-tail-call-foo.o: ${TEST_ROOT}/110.test-tail-call-foo.c
 	clang  ${CFLAGS} -I${OPENMP_INCLUDE_DIR} -fopenmp=libomp -c $^ -o $@ -O3
 
 100.test-pcce-fig-4: ${OBJ_DIR}/100.test-pcce-fig-4.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 101.test-pcce-fig-5a: ${OBJ_DIR}/101.test-pcce-fig-5a.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 102.test-indirect-call: ${OBJ_DIR}/102.test-indirect-call.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 103.test-libc-nostatic-nodebug: ${OBJ_DIR}/103.test-libc-nostatic-nodebug.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 103.test-libc-static-nodebug: ${OBJ_DIR}/103.test-libc-static-nodebug.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 103.test-libc-static-debug: ${OBJ_DIR}/103.test-libc-static-debug.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 104.test-backedge: ${OBJ_DIR}/104.test-backedge.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 105.test-functionname: ${OBJ_DIR}/105.test-functionname.o
-	clang++ ${CPPFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang++ ${CPPFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 106.test-machinecode: ${OBJ_DIR}/106.test-machinecode.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 107.test-memset: ${OBJ_DIR}/107.test-memset.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 108.test-mleak: ${OBJ_DIR}/108.test-mleak.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
 109.test-matadd: ${OBJ_DIR}/109.test-matadd.o
-	clang++ ${CFLAGS} ${LTO_OPTION} $^ -L${OPENMP_LIB_DIR} -fopenmp=libomp -o ${BIN_ROOT}/$@
+	clang++ ${CFLAGS} ${LTO_OPTION} $^ -L${OPENMP_LIB_DIR} -fopenmp=libomp -o ${TEST_BIN_ROOT}/$@
 
 110.test-tail-call: ${OBJ_DIR}/110.test-tail-call-main.o ${OBJ_DIR}/110.test-tail-call-foo.o
-	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${BIN_ROOT}/$@ -O3
+	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@ -O3
 
 .PHONY: clean
 	
 clean:
 	rm -rf ${OBJ_DIR}
-	#rm ${BIN_ROOT}/1*.test-*
+	rm ${TEST_BIN_ROOT}/*

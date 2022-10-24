@@ -96,6 +96,7 @@ add_subdirectory(drutil)
 add_subdirectory(droption)
 add_subdirectory(drcovlib)
 add_subdirectory(drcctlib)
+add_subdirectory(dccelib)
 add_subdirectory(drstatecmp)
 if (LINUX) # TODO i#2414: Port to Windows, Mac, and Android.
   if (HAVE_LIBUNWIND_H)

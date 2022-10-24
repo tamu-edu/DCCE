@@ -1,0 +1,29 @@
+#!/home/ksungkeun84/git/spack/var/spack/environments/dcce/.spack-env/view/bin/python3
+
+import sys
+
+if len(sys.argv) != 2:
+    print(f"Usage: {sys.argv[0]} time")
+    exit(0)
+
+t = sys.argv[1]
+# case1 h:m:s  ex) 1:33:33
+# case2 m:s.ms ex) 1:33.33
+tokens = (t.split(':'))
+if len(tokens) == 3:
+    hours = int(tokens[0])
+    mins = int(tokens[1])
+    secs = int(tokens[2])
+    msecs = (hours*60*60 + mins*60 + secs) * 100
+elif len(tokens) == 2:
+    mins = int(tokens[0])
+    tokens = tokens[1].split('.')
+    secs = int(tokens[0])
+    msecs = int(tokens[1])
+    msecs = (mins*60 + secs) * 100 + msecs
+else:
+    print(f'unknown time format {t}')
+    exit(1)
+
+
+print(msecs)

@@ -221,7 +221,7 @@ typedef struct _per_thread_t {
 } per_thread_t;
 
 #ifdef DRCCTLIB_DEBUG_LOG_CCT_INFO
-void *global_cct_info_lock;
+//void *global_cct_info_lock;
 static cct_info_t global_cct_info;
 #endif
 
@@ -1531,7 +1531,7 @@ instrument_before_bb_first_instr(bb_shadow_t *cur_bb_shadow)
     cct_bb_node_t *new_caller_bb_node = NULL;
     if (instr_state_contain(pt->pre_instr_state, INSTR_STATE_THREAD_ROOT_VIRTUAL)) {
         new_caller_bb_node = pt->root_bb_node;
-        printf("Caller is root id: %d\n", pt->cur_bb_node->child_ctxt_start_idx);
+        //printf("Caller is root id: %d\n", pt->cur_bb_node->child_ctxt_start_idx);
     } else if (instr_state_contain(pt->pre_instr_state, INSTR_STATE_CALL_DIRECT) ||
                instr_state_contain(pt->pre_instr_state, INSTR_STATE_CALL_IN_DIRECT)) {
         new_caller_bb_node = pt->cur_bb_node;
@@ -2640,12 +2640,10 @@ get_peak_rss()
 static void
 print_stats()
 {
-    if (global_log_file != INVALID_FILE) {
-        dr_fprintf(global_log_file, "\nTotalCallPaths = %" PRIu32,
-                   global_ip_node_buff_idle_idx);
-        // Peak resource usage
-        dr_fprintf(global_log_file, "\nPeakRSS = %zu", get_peak_rss());
-    }
+    dr_fprintf(STDOUT, "\nTotalCallPaths = %" PRIu32,
+               global_ip_node_buff_idle_idx);
+    // Peak resource usage
+    dr_fprintf(STDOUT, "\nPeakRSS = %zu", get_peak_rss());
 }
 
 static per_thread_t *

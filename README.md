@@ -61,3 +61,68 @@ Run runcpu to start building process
     $ cd ${SPEC2017_ROOT} ; source shrc
     $ runcpu --config=dcce-clang-llvm-linux-x86.cfg --action=build intspeed
 
+
+## Output directory structure
+```bash
+output
+├── bin
+│   ├── SPEC2017
+│   ├── Splash-3
+│   └── test
+├── bitcode
+│   ├── SPEC2017
+│   ├── Splash-3
+│   └── test
+├── callgraph
+│   ├── SPEC2017
+│   ├── Splash-3
+│   └── test
+├── ccenc
+│   ├── dcce
+│   │   ├── SPEC2017
+│   │   ├── Splash-3
+│   │   └── test
+│   └── pcce
+│       ├── SPEC2017
+│       ├── Splash-3
+│       └── test
+├── native
+│   └── experiment
+│       ├── SPEC2017
+│       ├── Splash-3
+│       └── test
+├── dynamic_instrument
+│   ├── bin
+│   │   ├── SPEC2017
+│   │   ├── Splash-3
+│   │   └── test
+│   ├── bitcode
+│   │   │   ├── SPEC2017
+│   │   │   ├── Splash-3
+│   │   │   └── test
+│   └── experiment
+│       ├── drclient_empty
+│       │   ├── SPEC2017
+│       │   ├── Splash-3
+│       │   └── test
+│       ├── dcce_ccid_overhead
+│       │   ├── SPEC2017
+│       │   ├── Splash-3
+│       │   └── test
+│       ├── dcce_ccid_overhead_only_update
+│       │   ├── SPEC2017
+│       │   ├── Splash-3
+│       │   └── test
+│       ├── drcctlib_ccid_overhead_only_update
+│       │   ├── SPEC2017
+│       │   ├── Splash-3
+│       │   └── test
+│       └── drcctlib_ccid_overhead
+│           ├── SPEC2017
+│           ├── Splash-3
+│           └── test
+├── dynamic_instrument
+│   └── dcce
+│   └── drcctprof
+
+```

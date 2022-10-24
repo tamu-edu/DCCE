@@ -25,6 +25,7 @@
 #include <iterator>
 #include <vector>
 #include <unordered_map>
+#include <sys/resource.h>
 #include <sys/time.h>
 #include <fstream>
 #include <string>
@@ -48,32 +49,32 @@ using namespace std;
         sprintf(_BUFFER + strlen(_BUFFER), "%s/ccwtest-%s-%d-%d.log", _CCW_DIR, _BENCH, getpid(), TLS_IDX); \
     } while (0)
 
-#define BUFFER_SIZE_BYTES(buf) sizeof(buf)
-#define BUFFER_SIZE_ELEMENTS(buf) (BUFFER_SIZE_BYTES(buf) / sizeof((buf)[0]))
-#define BUFFER_LAST_ELEMENT(buf) (buf)[BUFFER_SIZE_ELEMENTS(buf) - 1]
-#define NULL_TERMINATE_BUFFER(buf) BUFFER_LAST_ELEMENT(buf) = 0
+//#define BUFFER_SIZE_BYTES(buf) sizeof(buf)
+//#define BUFFER_SIZE_ELEMENTS(buf) (BUFFER_SIZE_BYTES(buf) / sizeof((buf)[0]))
+//#define BUFFER_LAST_ELEMENT(buf) (buf)[BUFFER_SIZE_ELEMENTS(buf) - 1]
+//#define NULL_TERMINATE_BUFFER(buf) BUFFER_LAST_ELEMENT(buf) = 0
 
-#ifdef WINDOWS
-#    define IF_WINDOWS(x) x
-#else
-#    define IF_WINDOWS(x) /* nothing */
-#endif
-
-#ifdef WINDOWS
-#    define IF_WINDOWS(x) x
-#    define IF_UNIX_ELSE(x, y) y
-#else
-#    define IF_WINDOWS(x)
-#    define IF_UNIX_ELSE(x, y) x
-#endif
-
-#ifdef WINDOWS
-#    define DISPLAY_STRING(msg) dr_messagebox("%s", msg)
-#    define IF_WINDOWS(x) x
-#else
-#    define DISPLAY_STRING(msg) dr_printf("%s\n", msg);
-#    define IF_WINDOWS(x) /* nothing */
-#endif
+//#ifdef WINDOWS
+//#    define IF_WINDOWS(x) x
+//#else
+//#    define IF_WINDOWS(x) /* nothing */
+//#endif
+//
+//#ifdef WINDOWS
+//#    define IF_WINDOWS(x) x
+//#    define IF_UNIX_ELSE(x, y) y
+//#else
+//#    define IF_WINDOWS(x)
+//#    define IF_UNIX_ELSE(x, y) x
+//#endif
+//
+//#ifdef WINDOWS
+//#    define DISPLAY_STRING(msg) dr_messagebox("%s", msg)
+//#    define IF_WINDOWS(x) x
+//#else
+//#    define DISPLAY_STRING(msg) dr_printf("%s\n", msg);
+//#    define IF_WINDOWS(x) /* nothing */
+//#endif
 
 //------------------------------------------------------
 // Options
@@ -105,14 +106,28 @@ uint64_t g_first_call, g_last_call;
 std::unordered_map<uint64_t, uint64_t> CCW_DIRECT; // callsite -> ccw
 std::unordered_map<uint64_t, std::unordered_map<uint64_t, uint64_t>> CCW_INDIRECT; // callsite -> callee --> ccw
 
+//------------------------------------------------------
+// Statistics
+//------------------------------------------------------
+#ifdef DCCE_STATS
+std::unordered_map<uint64_t, std::pair<uint64_t,uint64_t>> tid2numcalls;
+#endif
 
-//#define ATOMIC_ADD_THREAD_ID_MAX(origin) dr_atomic_add32_return_sum(&origin, 1)
-//#define THREAD_MAX_NUM 8192
+
+#define ATOMIC_ADD_THREAD_ID_MAX(origin) dr_atomic_add32_return_sum(&origin, 1)
+#define THREAD_MAX_NUM 8192
 typedef struct _per_thread_t {
+    uint64_t tid;
     uint64_t ccid;
     uint64_t ccw;
+#ifdef DCCE_STATS
+    uint64_t num_direct_calls;
+    uint64_t num_indirect_calls;
+    uint64_t stack_depth;
+#endif
 } per_thread_t;
-//static int global_thread_id_max = 0;
+static int global_thread_id_max = 0;
+static uint64_t max_stack_depth = 0;
 //static per_thread_t **global_pt_cache_buff;
 
 //------------------------------------------------------
@@ -148,7 +163,7 @@ read_ccw_file(std::string fname)
             if (first) {
                 std::vector<std::string> first_last;
                 split(line, ",", first_last);
-                DR_ASSERT(first_last.size() == 2);
+                DR_ASSERT(first_last.size() == 3);
                 g_first_call = std::strtoul(first_last[0].c_str(), NULL, 16);
                 g_last_call = std::strtoul(first_last[1].c_str(), NULL, 16);
                 first = false;
@@ -237,19 +252,20 @@ at_call(app_pc instr_addr, app_pc target_addr)
 {
     //dr_fprintf(STDOUT, "at_call callsite: %p jump target: %p\n",
     //           instr_addr, target_addr);
-    if (g_prog_status == 2) return;
+
+    //if (g_prog_status == 2) return;
 
    
-    if (0 == g_prog_status) {
-        if (g_first_call == (uint64_t)instr_addr) {
-            //dr_fprintf(STDOUT, "Start main function\n");
-            g_prog_status = 1;
-        }
-    }
+    //if (0 == g_prog_status) {
+    //    if (g_first_call == (uint64_t)instr_addr) {
+    //        //dr_fprintf(STDOUT, "Start main function\n");
+    //        g_prog_status = 1;
+    //    }
+    //}
 
-    if (g_prog_status != 1) {
-        return;
-    }
+    //if (g_prog_status != 1) {
+    //    return;
+    //}
 
     uint64_t ccw_value = get_ccw_direct((uint64_t)instr_addr, (uint64_t)target_addr);
     // TODO: is it possible to skip updateing ccid if ccw is zero?
@@ -258,6 +274,24 @@ at_call(app_pc instr_addr, app_pc target_addr)
     DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
     pt->ccid += ccw_value;
     pt->ccw = ccw_value;
+#ifdef DCCE_STATS
+    pt->num_direct_calls++;
+    pt->stack_depth++;
+#endif
+
+    //if (g_barrier_call == (uint64_t)target_addr) {
+    //    //printf("[t%lu] barrier called at ccid: %lu\n", pt->tid, pt->ccid);
+    //    if (barrier2cnt.find((uint64_t)instr_addr) == barrier2cnt.end()) {
+    //        barrier2cnt[(uint64_t)instr_addr] = 0;
+    //    }
+    //    barrier2cnt[(uint64_t)instr_addr]++;
+    //}
+
+    //if (cs2cnt.find((uint64_t)instr_addr) == cs2cnt.end()) {
+    //    cs2cnt[(uint64_t)instr_addr] = 0;
+    //}
+    //cs2cnt[(uint64_t)instr_addr]++;
+
     //dr_fprintf(STDOUT, "at_call callsite: %p jump target: %p ccid: %ul\n",
     //           instr_addr, target_addr, pt->ccid);
 }
@@ -268,19 +302,19 @@ at_call_ind(app_pc instr_addr, app_pc target_addr)
     //dr_fprintf(STDOUT, "at_call_ind callsite: %p jump target: %p\n",
     //           instr_addr, target_addr);
 
-    if (g_prog_status == 2) return;
+    //if (g_prog_status == 2) return;
 
    
-    if (0 == g_prog_status) {
-        if (g_first_call == (uint64_t)instr_addr) {
-            //dr_fprintf(STDOUT, "Start main function\n");
-            g_prog_status = 1;
-        }
-    }
+    //if (0 == g_prog_status) {
+    //    if (g_first_call == (uint64_t)instr_addr) {
+    //        //dr_fprintf(STDOUT, "Start main function\n");
+    //        g_prog_status = 1;
+    //    }
+    //}
 
-    if (g_prog_status != 1) {
-        return;
-    }
+    //if (g_prog_status != 1) {
+    //    return;
+    //}
 
     uint64_t ccw_value = get_ccw_indirect((uint64_t)instr_addr, (uint64_t)target_addr);
     void *drcontext = dr_get_current_drcontext();
@@ -288,6 +322,24 @@ at_call_ind(app_pc instr_addr, app_pc target_addr)
     DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
     pt->ccid += ccw_value;
     pt->ccw = ccw_value;
+#ifdef DCCE_STATS
+    pt->num_indirect_calls++;
+    pt->stack_depth++;
+#endif
+
+    //if (g_barrier_call == (uint64_t)target_addr) {
+    //    //printf("[t%lu] barrier called at ccid: %lu\n", pt->tid, pt->ccid);
+    //    if (barrier2cnt.find((uint64_t)instr_addr) == barrier2cnt.end()) {
+    //        barrier2cnt[(uint64_t)instr_addr] = 0;
+    //    }
+    //    barrier2cnt[(uint64_t)instr_addr]++;
+    //}
+
+    //if (cs2cnt.find((uint64_t)instr_addr) == cs2cnt.end()) {
+    //    cs2cnt[(uint64_t)instr_addr] = 0;
+    //}
+    //cs2cnt[(uint64_t)instr_addr]++;
+
     //dr_fprintf(STDOUT, "at_call_ind callsite: %p jump target: %p ccid: %ul\n",
     //           instr_addr, target_addr, pt->ccid);
 }
@@ -298,16 +350,19 @@ at_return(app_pc instr_addr, app_pc target_addr)
     //dr_fprintf(STDOUT, "at_return retsite: %p jump target: %p\n",
     //           instr_addr, target_addr);
 
-    if (g_prog_status != 1) return;
+    //if (g_prog_status != 1) return;
 
-    if ((uint64_t)target_addr == g_last_call) {
-        g_prog_status = 2;
-        //dr_fprintf(STDOUT, "Finished main function\n");
-    }
+    //if ((uint64_t)target_addr == g_last_call) {
+    //    g_prog_status = 2;
+    //    //dr_fprintf(STDOUT, "Finished main function\n");
+    //}
     void *drcontext = dr_get_current_drcontext();
     per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
     DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
     pt->ccid -= pt->ccw;
+#ifdef DCCE_STATS
+    pt->stack_depth--;
+#endif
     //dr_fprintf(STDOUT, "at_ret retsite: %p jump target: %p ccid: %ul\n",
     //           instr_addr, target_addr, pt->ccid);
 }
@@ -338,20 +393,27 @@ event_thread_init(void *drcontext)
 {
     //dr_fprintf(STDOUT, "event_thread_init tls_idx: %d\n", tls_idx);
 
-    char name[256] = "";
-    INIT_LOG_FILE_NAME(name, op_ccw_dir.get_value().c_str(), op_bench.get_value().c_str(), tls_idx);
+    //char name[256] = "";
+    //INIT_LOG_FILE_NAME(name, op_ccw_dir.get_value().c_str(), op_bench.get_value().c_str(), tls_idx);
     //dr_fprintf(STDOUT, "Creating log file at:%s", name);
-    //int id = ATOMIC_ADD_THREAD_ID_MAX(global_thread_id_max);
-    //id--;
-    //if (id > THREAD_MAX_NUM) {
-    //    DRCCTLIB_EXIT_PROCESS(
-    //        "Thread num > THREAD_MAX_NUM(%d), please change the value of THREAD_MAX_NUM.",
-    //        THREAD_MAX_NUM);
-    //}
+    int id = ATOMIC_ADD_THREAD_ID_MAX(global_thread_id_max);
+    id--;
+    if (id > THREAD_MAX_NUM) {
+        dr_fprintf(STDOUT,
+            "Thread num > THREAD_MAX_NUM(%d), please change the value of THREAD_MAX_NUM.",
+            THREAD_MAX_NUM);
+        DR_ASSERT(false);
+    }
     per_thread_t *pt = (per_thread_t *)dr_global_alloc(sizeof(per_thread_t));
     DR_ASSERT(pt != NULL);
     pt->ccid = 0;
     pt->ccw = 0;
+    pt->tid = id;
+#ifdef DCCE_STATS
+    pt->num_direct_calls = 0;
+    pt->num_indirect_calls = 0;
+    pt->stack_depth = 0;
+#endif
 
     //dr_fprintf(STDOUT, "drmgr_set_tls_field tls_idx: %d\n", tls_idx);
     /* store it in the slot provided in the drcontext */
@@ -363,7 +425,13 @@ event_thread_exit(void *drcontext)
 {
     //dr_fprintf(STDOUT, "event_thread_exit tls_idx: %d\n", tls_idx);
     per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
-    dr_close_file((file_t)(ptr_uint_t)drmgr_get_tls_field(drcontext, tls_idx));
+#ifdef DCCE_STATS
+    tid2numcalls[pt->tid] = std::make_pair(pt->num_direct_calls, pt->num_indirect_calls);
+    if (pt->stack_depth > max_stack_depth) {
+        max_stack_depth = pt->stack_depth;
+    }
+#endif
+    //dr_close_file((file_t)(ptr_uint_t)drmgr_get_tls_field(drcontext, tls_idx));
     dr_global_free(pt, sizeof(per_thread_t));
 }
 
@@ -415,10 +483,57 @@ client_exit(void)
 
     uint64_t execution_time = process_end_time - process_start_time;
     dr_fprintf(STDOUT,
+               "================== BEGIN STATISTICS ==================\n");
+    dr_fprintf(STDOUT,
                "process_start_time: %llu, process_end_time: %llu, execution_time: %llu ms\n",
                process_start_time,
                process_end_time,
                execution_time);
+
+    struct rusage rusage;
+    getrusage(RUSAGE_SELF, &rusage);
+    dr_fprintf(STDOUT, "PeakRSS = %zu\n", (size_t)rusage.ru_maxrss);
+
+#ifdef DCCE_STATS
+    uint64_t total_calls = 0;
+    for (auto tid2ncall : tid2numcalls) {
+        total_calls += (tid2ncall.second.first + tid2ncall.second.second);
+        dr_fprintf(STDOUT,
+                   "[t%lu] Direct calls: %lu Indirect calls: %lu\n",
+                   tid2ncall.first, tid2ncall.second.first, tid2ncall.second.second);
+    }
+    dr_fprintf(STDOUT, "Total calls: %lu\n", total_calls);
+
+    uint64_t size_ccw_direct = CCW_DIRECT.size() * sizeof(uint64_t) * 2;
+
+    uint64_t num_cs = CCW_INDIRECT.size();
+    uint64_t num_callees = 0;
+    for (auto cs2clnw : CCW_INDIRECT) {
+        num_callees += cs2clnw.second.size();
+    }
+    uint64_t size_ccw_indirect = num_cs * num_callees * sizeof(uint64_t) * 3;
+    dr_fprintf(STDOUT,
+               "Size of CCW_DIRECT: %lu bytes (%lu * %lu * 2)\n",
+               size_ccw_direct, CCW_DIRECT.size(), sizeof(uint64_t));
+    dr_fprintf(STDOUT,
+               "Size of CCW_INDIRECT: %lu bytes (%lu * %lu * %lu * 3)\n",
+               size_ccw_indirect, num_cs, num_callees, sizeof(uint64_t));
+    dr_fprintf(STDOUT, "Max Stack depth: %lu\n", max_stack_depth);
+    //dr_fprintf(STDOUT, "-------------------------\n");
+    //dr_fprintf(STDOUT, "callsite | counts\n");
+    //dr_fprintf(STDOUT, "-------------------------\n");
+    //for (auto item : cs2cnt) {
+    //    dr_fprintf(STDOUT, "%p,%lu\n", item.first, item.second);
+    //}
+
+    //dr_fprintf(STDOUT, "-------------------------\n");
+    //dr_fprintf(STDOUT, "barrier | counts\n");
+    //dr_fprintf(STDOUT, "-------------------------\n");
+    //for (auto item : barrier2cnt) {
+    //    dr_fprintf(STDOUT, "%p,%lu\n", item.first, item.second);
+    //}
+
+#endif
 
     drsym_exit();
     drmgr_unregister_tls_field(tls_idx);

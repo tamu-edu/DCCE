@@ -212,11 +212,18 @@ def parse_bin(binary_path, caller2off2callee2ccw, outfile):
 
     fout = open(outfile, 'w')
     assert(first_callsite != None and ret_target != None)
-    fout.write(f'{hex(first_callsite)},{hex(ret_target)}\n')
+
+    #print(fname2entry['barrier_call'])
+
+    if "barrier_call" in fname2entry:
+        fout.write(f'{hex(first_callsite)},{hex(ret_target)},{hex(fname2entry["barrier_call"])}\n')
+    else:
+        fout.write(f'{hex(first_callsite)},{hex(ret_target)}\n')
     for caller, off2callee2ccw in caller2off2callee2ccw.items():
         print(f'{caller}:')
         cs_idx = 0
 
+        str_to_write = ''
         for offset, callee2ccw in off2callee2ccw.items():
             print(f'caller: {caller}, cs_idx: {cs_idx}')
             callsite_addr_from_exe = fname2callsites[caller][cs_idx]
@@ -225,15 +232,25 @@ def parse_bin(binary_path, caller2off2callee2ccw, outfile):
                 print(f'mismatch callsite_addr {hex(callsite_addr_from_bc)} - {hex(callsite_addr_from_exe)}')
                 exit(1)
 
-            fout.write(f'{hex(callsite_addr_from_bc)}:')
+            all_ccw_zero = True
+            str_to_write = f'{hex(callsite_addr_from_bc)}:'
+            #fout.write(f'{hex(callsite_addr_from_bc)}:')
             if 'empty' == callee2ccw:
-                fout.write(f'0-0,')
+                #fout.write(f'0-0,')
+                all_ccw_zero = True
             else:
                 for callee, ccw in callee2ccw.items():
                     callee_addr = fname2entry[callee]
-                    fout.write(f'{hex(callee_addr)}-{ccw},')
+                    if int(ccw) != 0:
+                        all_ccw_zero = False
+                        str_to_write += f'{hex(callee_addr)}-{ccw},'
+                        #fout.write(f'{hex(callee_addr)}-{ccw},')
             cs_idx += 1
-            fout.write('\n')
+            str_to_write += '\n'
+            #fout.write('\n')
+            if not all_ccw_zero:
+                fout.write(str_to_write)
+            
         
         num_callsite_from_bc = len(caller2off2callee2ccw[caller]) 
         num_callsite_from_exe = len(fname2callsites[caller])
