@@ -80,9 +80,6 @@ export OUTPUT_DYN_EXP=${OUTPUT_DYN}/experiment
 #export VALENCE_BIN_DIR=${VALENCE_OUT_DIR}/bin
 #
 #export BASE2_RTLIB_DIR=${RTLIB_ROOT}/base2
-#export DCCE_RTLIB_DIR=${RTLIB_ROOT}/dcce
-#export PCCE_RTLIB_DIR=${RTLIB_ROOT}/pcce
-#export VALENCE_RTLIB_DIR=${RTLIB_ROOT}/valence
 #
 #export BASE_STATS_DIR=${BASE_OUT_DIR}/stats
 #export BASE2_STATS_DIR=${BASE2_OUT_DIR}/stats
@@ -100,9 +97,14 @@ export OUTPUT_DYN_EXP=${OUTPUT_DYN}/experiment
 # runtime
 ##############
 #export BASE2_RTLIB_BUILD_DIR=${BASE2_RTLIB_DIR}/build
-#export DCCE_RTLIB_BUILD_DIR=${DCCE_RTLIB_DIR}/build
-#export PCCE_RTLIB_BUILD_DIR=${PCCE_RTLIB_DIR}/build
-#export VALENCE_RTLIB_BUILD_DIR=${VALENCE_RTLIB_DIR}/build
+export DCCE_RTLIB_DIR=${RTLIB_ROOT}/dcce
+export DCCE_RTLIB_BUILD_DIR=${DCCE_RTLIB_DIR}/build
+
+export PCCE_RTLIB_DIR=${RTLIB_ROOT}/pcce
+export PCCE_RTLIB_BUILD_DIR=${PCCE_RTLIB_DIR}/build
+
+export VALENCE_RTLIB_DIR=${RTLIB_ROOT}/valence
+export VALENCE_RTLIB_BUILD_DIR=${VALENCE_RTLIB_DIR}/build
 
 ##############
 # test

@@ -26,42 +26,36 @@ import pcce
 
 def main(args):
 
-    c_cg, c_dcg, node2id = utils.make_callgraph(args.trace, args.scheme, args.root)
+    # dynamic
     if args.scheme == 'dcce':
-        print("dcce")
+        c_cg, c_dcg, node2id = utils.make_callgraph_dynamic(args.trace, args.scheme, args.root)
         ## caculate maxid of cc encoding
         c_encode = dcce()
         max_id = c_encode.maxid(c_cg, args.root)
         c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cg', args.trace)
-        print(f'{args.bench} max_id is {max_id}')
+        print(f'{args.bench} dynamic max_id is {max_id}')
         sys.stdout.flush()
-
-        #print ('[%s] num_node       %d' % (args.bench, len(c_cg.nodes())))
-        #print ('[%s] num_callsite   %d' % (args.bench, len(c_cg.edges())))
-        #print ('[%s] backedge_id is %d' % (args.bench, c_backedge_id))
-        #print ('[%s] max_neighbors is %d' % (args.bench, max_neighbors))
-        #print ('[%s] mn_maxid is %d' % (args.bench, mn_maxid))
-        #print ('[%s] max_incidents is %d' % (args.bench, max_incidents))
-        #print ('[%s] mi_maxid is %d' % (args.bench, mi_maxid))
-        #render_callgraph(c_cg, args, c_maxids)
-        #write_cc_file(args, c_cg, c_maxids[args.root], node2id)
-        #write_stats_file(args, c_maxids[args.root]+c_backedge_id, c_backedge_id, \
-        #        max_neighbors, max_neighbors_name, mn_maxid, \
-        #        max_incidents, max_incidents_name, mi_maxid)
-        #write_connectivity(args, connectivity)
-        #write_backedge_file(args, c_backedge)
-        #write_funcptr_file(args, c_cg)
-
+        
+        c_cg, c_dcg, node2id = utils.make_callgraph_static(args.trace, args.scheme, args.root)
+        ## caculate maxid of cc encoding
+        c_encode = dcce()
+        max_id = c_encode.maxid(c_cg, args.root)
+        c_encode.write_static_cc(c_cg, f'{args.outdir}/{args.bench}.cc')
+        print(f'{args.bench} static max_id is {max_id}')
+        sys.stdout.flush()
     elif args.scheme == 'pcce':
+        c_cg, c_dcg, node2id = utils.make_callgraph_static(args.trace, args.scheme, args.root)
         c_encode = pcce.pcce()
         c_encode.instrument_recursive(c_cg, c_dcg)
-        c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cg')
+        non_zero_edges = c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cc')
         max_id = c_encode.write_numcc(c_dcg, f'{args.outdir}/{args.bench}.numcc')
-        print(f'{args.bench} max_id is {max_id}')
+        print(f'{args.bench} static max_id is {max_id}')
+        print(f'{args.bench} static non-zero edges is {non_zero_edges}')
     else:
         print(f"unkonwn scheme {args.scheme}")
         sys.stdout.flush()
         exit(1)
+    
 
 if __name__== "__main__":
     parser = argparse.ArgumentParser(\

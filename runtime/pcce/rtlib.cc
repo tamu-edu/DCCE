@@ -8,38 +8,44 @@
 #include <set>
 #include <vector>
 #include <cassert>
+#include <functional>
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-uint64_t ccid = 0;
+int64_t ccid = 0;
 bool initialized = false;
+
+//std::vector<std::pair<int64_t,int64_t>> stack;
+
 
 void Split(const std::string& str, std::vector<std::string>& cont, char delim = ' ')
 {
     std::stringstream ss(str);
     std::string token;
+    //printf("debug4 - process line %s\n", str.c_str());
     while (std::getline(ss, token, delim)) {
+        //printf("debug5 - token %s\n", token.c_str());
         cont.push_back(token);
     }
 }
 
 typedef struct Edge
 {
-    Edge(uint64_t _id, uint64_t _p, uint64_t _n, uint64_t _w)
+    Edge(int64_t _id, int64_t _p, int64_t _n, int64_t _w)
         : id(_id), p(_p), n(_n), w(_w) {}
-    uint64_t id; // callsite id
-    uint64_t p;  // caller
-    uint64_t n;  // callee
-    uint64_t w;  // weight
+    int64_t id; // callsite id
+    int64_t p;  // caller
+    int64_t n;  // callee
+    int64_t w;  // weight
 } Edge;
 
 typedef struct Node
 {
-    Node(uint64_t _id, uint64_t _numCC, std::string _name)
+    Node(int64_t _id, int64_t _numCC, std::string _name)
         : id(_id), numCC(_numCC), name(_name) {}
-    uint64_t id;
-    uint64_t numCC;
+    int64_t id;
+    int64_t numCC;
     std::string name;
 } Node;
 
@@ -52,20 +58,20 @@ class CallGraph
             // TODO: delete nodes and edges
         }
 
-        void AddEdge(uint64_t id, uint64_t n, uint64_t p, uint64_t w)
+        void AddEdge(int64_t id, int64_t n, int64_t p, int64_t w)
         {
             assert(m_edges.find(id) == m_edges.end());
             m_edges.insert(std::make_pair(id, new Edge(id, n, p, w)));
         }
 
-        void AddNode(uint64_t id, uint64_t numCC, std::string name)
+        void AddNode(int64_t id, int64_t numCC, std::string name)
         {
             if (m_nodes.find(id) == m_nodes.end()) {
                 m_nodes.insert(std::make_pair(id, new Node(id, numCC, name)));
             }
         }
 
-        void AddNeighbor(uint64_t p, uint64_t n, uint64_t l)
+        void AddNeighbor(int64_t p, int64_t n, int64_t l)
         {
             // p (incident) --l--> n (neighbor)
 
@@ -74,7 +80,7 @@ class CallGraph
             m_neighbors[p].insert(std::make_pair(m_nodes[n], m_edges[l]));
         }
 
-        void AddIncident(uint64_t p, uint64_t n, uint64_t l)
+        void AddIncident(int64_t p, int64_t n, int64_t l)
         {
             // p (incident) --l(cs)-> n (neighbor)
 
@@ -83,7 +89,7 @@ class CallGraph
             m_incidents[n].insert(std::make_pair(m_nodes[p], m_edges[l]));
         }
 
-        std::set<std::pair<Node*, Edge*> > GetIncidents(uint64_t n)
+        std::set<std::pair<Node*, Edge*> > GetIncidents(int64_t n)
         {
             if (m_incidents.find(n) == m_incidents.end()) {
                 //printf("Not found indicents of node %d %s\n", n, GetNodeName(n).c_str());
@@ -92,16 +98,16 @@ class CallGraph
             return m_incidents[n];
         }
 
-        std::set<std::pair<Node*, Edge*> > GetNeighbors(uint64_t p)
+        std::set<std::pair<Node*, Edge*> > GetNeighbors(int64_t p)
         {
             assert(m_incidents.find(p) != m_incidents.end());
             return m_neighbors[p];
         }
 
-        std::string GetNodeName(uint64_t n)
+        std::string GetNodeName(int64_t n)
         {
-            if (m_nodes.find(n) == m_nodes.end()) {
-                //printf("unknown node : %d\n", n);
+            if (!initialized || m_nodes.find(n) == m_nodes.end()) {
+                //printf("unknown node : %ld\n", n);
                 // TODO: find better solution
                 return "danguria-skip";
             }
@@ -109,18 +115,18 @@ class CallGraph
             return m_nodes[n]->name;
         }
 
-        void SetNumCC(uint64_t n, uint64_t numcc)
+        void SetNumCC(int64_t n, int64_t numcc)
         {
             assert(m_nodes.find(n) != m_nodes.end());
             m_nodes[n]->numCC = numcc;
         }
 
     private:
-        std::unordered_map<uint64_t, Edge*> m_edges;
-        std::unordered_map<uint64_t, Node*> m_nodes;
+        std::unordered_map<int64_t, Edge*> m_edges;
+        std::unordered_map<int64_t, Node*> m_nodes;
 
-        std::unordered_map<uint64_t, std::set<std::pair<Node*, Edge*> > > m_neighbors;  // node id -> [ (node, edge), ..]
-        std::unordered_map<uint64_t, std::set<std::pair<Node*, Edge*> > > m_incidents;  // node id -> [ (node, edge), ..]
+        std::unordered_map<int64_t, std::set<std::pair<Node*, Edge*> > > m_neighbors;  // node id -> [ (node, edge), ..]
+        std::unordered_map<int64_t, std::set<std::pair<Node*, Edge*> > > m_incidents;  // node id -> [ (node, edge), ..]
 
 
 };
@@ -129,58 +135,89 @@ CallGraph cg;
 std::unordered_map<unsigned int, std::string> input_map;
 void initCallgraph(unsigned int bench_code)
 {
+    //printf("Initialze the graph: code: %u\n", bench_code);
     initialized = true;
-    std::string cc_root = "./output/pcce/ccenc/";
-    input_map[600] = cc_root + "600.perlbench_s";
-    input_map[602] = cc_root + "602.gcc_s";
-    input_map[605] = cc_root + "605.mcf_s";
-    input_map[607] = cc_root + "607.cactuBSSN_s";
-    input_map[619] = cc_root + "619.lbm_s";
-    input_map[620] = cc_root + "620.omnetpp_s";
-    input_map[623] = cc_root + "623.xalancbmk_s";
-    input_map[625] = cc_root + "625.x264_s";
-    input_map[631] = cc_root + "631.deepsjeng_s";
-    input_map[638] = cc_root + "638.imagick_s";
-    input_map[641] = cc_root + "641.leela_s";
-    input_map[644] = cc_root + "644.nab_s";
-    input_map[657] = cc_root + "657.xz_s";
-    input_map[998] = cc_root + "998.specrand_is";
-    input_map[100] = cc_root + "100.test";
+    return;
+    std::string cc_root = "/home/ksungkeun84/git/DCCE/output/ccenc/pcce";
+    input_map[100] = cc_root + "/test/100.test-pcce-fig-4";
+    input_map[101] = cc_root + "/test/101.test-pcce-fig-5a";
+    input_map[102] = cc_root + "/test/102.test-indirect-call";
+    input_map[103] = cc_root + "/test/103.test-libc-nostatic-nodebug";
+    input_map[103] = cc_root + "/test/103.test-libc-static-nodebug";
+    input_map[103] = cc_root + "/test/103.test-libc-static-debug";
+    input_map[104] = cc_root + "/test/104.test-backedge";
+    input_map[105] = cc_root + "/test/105.test-functionname";
+    input_map[106] = cc_root + "/test/106.test-machinecode";
+    input_map[108] = cc_root + "/test/108.test-mleak";
+    input_map[109] = cc_root + "/test/109.test-matadd";
+    input_map[110] = cc_root + "/test/110.test-tail-call";
+
+    input_map[505] = cc_root + "/SPEC2017/505.mcf_r";
+    input_map[508] = cc_root + "/SPEC2017/508.namd_r";
+    input_map[510] = cc_root + "/SPEC2017/510.parest_r";
+    input_map[519] = cc_root + "/SPEC2017/519.lbm_r";
+    input_map[523] = cc_root + "/SPEC2017/523.xalancbmk_r";
+    input_map[525] = cc_root + "/SPEC2017/525.x264_r";
+    input_map[541] = cc_root + "/SPEC2017/541.leela_r";
+    input_map[557] = cc_root + "/SPEC2017/557.xz_r";
+    input_map[605] = cc_root + "/SPEC2017/605.mcf_s";
+    input_map[619] = cc_root + "/SPEC2017/619.lbm_s";
+    input_map[623] = cc_root + "/SPEC2017/623.xalancbmk_s";
+    input_map[625] = cc_root + "/SPEC2017/625.x264_s";
+    input_map[641] = cc_root + "/SPEC2017/641.leela_s";
+    input_map[657] = cc_root + "/SPEC2017/657.xz_s";
+        
+    input_map[701] = cc_root + "/Splash-3/701.BARNES";
+    input_map[702] = cc_root + "/Splash-3/702.CHOLESKY";
+    input_map[703] = cc_root + "/Splash-3/703.FFT";
+    input_map[704] = cc_root + "/Splash-3/704.FMM";
+    input_map[705] = cc_root + "/Splash-3/705.LU-CB";
+    input_map[706] = cc_root + "/Splash-3/706.LU-NCB";
+    input_map[707] = cc_root + "/Splash-3/707.OCEAN-CP";
+    input_map[708] = cc_root + "/Splash-3/708.OCEAN-NCP";
+    input_map[709] = cc_root + "/Splash-3/709.RADIOSITY";
+    input_map[710] = cc_root + "/Splash-3/710.RADIX";
+    input_map[713] = cc_root + "/Splash-3/713.WATER-NSQUARED";
+    input_map[714] = cc_root + "/Splash-3/714.WATER-SPATIAL";
     
 
-    std::string ccinput = input_map[bench_code];
-    std::ifstream inf(ccinput + ".cc");
+    //printf("debug1\n");
+    std::string ccinput = input_map[bench_code] + ".cc";
+    std::ifstream inf(ccinput);
     if (!inf.is_open()) {
-        printf("unabled to open file %s\n", (ccinput + ".cc").c_str());
+        //printf("unable to open file %s\n", ccinput.c_str());
         exit(1);
     }
+    //printf("debug2\n");
 
     // 19-_GLOBAL__sub_I_test.cc:0-__cxx_global_var_init:35
     std::string line;
     while (std::getline(inf, line)) {
         std::vector<std::string> list;
+        //printf("debug3\n");
         Split(line, list, ':');
+        //printf("debug4\n");
 
         std::vector<std::string> caller_list;
         Split(list[0], caller_list, '-');
-        uint64_t caller_id = std::stoul(caller_list[0], NULL, 10);
+        int64_t caller_id = std::stol(caller_list[0], NULL, 10);
         std::string caller_name = caller_list[1];
 
         std::vector<std::string> callee_list;
         Split(list[1], callee_list, '-');
-        uint64_t callee_id = std::stoul(callee_list[0], NULL, 10);
+        int64_t callee_id = std::stol(callee_list[0], NULL, 10);
         std::string callee_name = callee_list[1];
 
-        uint64_t callsite_id  = std::stoul(list[2], NULL, 10);
+        int64_t callsite_id  = std::stol(list[2], NULL, 10);
 
-        uint64_t weight = 0;
+        int64_t weight = 0;
         try {
             weight = std::stoul(list[3], NULL, 10);
         } catch (const std::out_of_range& oor) {
-            //printf("weight out of range!!!\n");
+            printf("weight out of range!!!\n");
         }
 
-        //printf("%d-%s:%d-%s:%d\n",
+        //printf("%lu-%s:%lu-%s:%lu\n",
         //        caller_id, caller_name.c_str(),
         //        callee_id, callee_name.c_str(),
         //        callsite_id);
@@ -193,81 +230,135 @@ void initCallgraph(unsigned int bench_code)
     }
     inf.close();
 
-    std::ifstream inf2(ccinput + ".numcc");
+    ccinput = input_map[bench_code] + ".numcc";
+    std::ifstream inf2(ccinput);
     if (!inf2.is_open()) {
-        //printf("unabled to open numccfile\n");
+        printf("unable to open numccfile %s\n", ccinput.c_str());
         exit(1);
     }
 
     //printf("\nnumCC's\n");
     while (std::getline(inf2, line)) {
+        //printf("processing %s\n", line.c_str());
         std::vector<std::string> list;
         Split(line, list, ':');
 
         std::vector<std::string> node_list;
-        Split(list[0], node_list, '-');
-        uint64_t nid = std::stoul(node_list[0], NULL, 10);
+        Split(list[0], node_list, '=');
+        int64_t nid = std::stol(node_list[0], NULL, 10);
         std::string name = node_list[1];
 
-        uint64_t numcc = 0;
+        int64_t numcc = 0;
         try {
             numcc = std::stoul(list[1], NULL, 10);
         } catch (const std::out_of_range& oor) {
-            //printf("numcc out of range!!!\n");
+            printf("numcc out of range!!!\n");
         }
 
-        //printf("%d-%s:%d\n", nid, name.c_str(), numcc);
-        //printf("Setting numcc(%d) to %s\n", numcc, cg.GetNodeName(nid).c_str());
+        //printf("%lu-%s:%lu\n", nid, name.c_str(), numcc);
+        //printf("Setting numcc(%lu) to %s\n", numcc, cg.GetNodeName(nid).c_str());
         cg.SetNumCC(nid, numcc);
     }
     inf2.close();
+    //printf("Initialze done\n");
 }
 
-void decode(uint64_t nid)
+std::hash<std::string> cchash;
+void getCCID(int64_t nid)
 {
+    //printf("getCCID(%ld)\n", nid);
     if (!initialized) return;
-    uint64_t n = nid;
-    std::string cc = cg.GetNodeName(n);
-    uint64_t id = ccid;
-
-    //printf("Starting decoding for node %d (%s) - \n", nid, cg.GetNodeName(nid).c_str(), cc.c_str());
-
-    while (cg.GetNodeName(n) != "main" && cg.GetNodeName(n) != "danguria-skip") {
-        Node* p = NULL;
-        Edge* e = NULL;
-        //printf("For node %s and current id: %d\n", cg.GetNodeName(n).c_str(), id);
-        for (auto &node_edge : cg.GetIncidents(n)) {
-            p = node_edge.first;
-            e = node_edge.second;
-            //printf("    check incomming edge(id:%d, w:%d) from node (%s, %d)\n",
-            //        e->id, e->w,
-            //        (p->name).c_str(), p->numCC);
-            if (e->w <= id && id < e->w + p->numCC) {
-                cc = p->name + " -> " + cc;
-                id = id - e->w ;
-
-                //printf("    move up to node (%s, %d)\n",
-                //        (p->name).c_str(), p->numCC);
-                break;
-            }
-        }
-        if (p == NULL) return;
-        n = p->id;
-    }
-    //printf("Decoded cc: %s\n", cc.c_str());
+    //std::string fname = cg.GetNodeName(nid) + std::to_string(ccid);
+    //uint64_t h = cchash(fname);
+    uint64_t h = cchash("test-function");
+    //printf("hash(%s) = %ld\n", fname.c_str(), h);
 }
 
-void addWeight(uint64_t weight)
+//void getCCID(int64_t nid)
+//{
+//    //printf("getCCID(%lu)\n", nid);
+//    if (!initialized) return;
+//    int64_t n = nid;
+//    std::string cc = cg.GetNodeName(n);
+//    int64_t id = ccid;
+//
+//    std::vector<std::pair<int64_t,int64_t>> tmp_stack(stack);
+//    //printf("Starting decoding for node %ld (%s) - \n", nid, cg.GetNodeName(nid).c_str());
+//
+//    while (true) {
+//        // BEGIN decode
+//        while (cg.GetNodeName(n) != "main" && cg.GetNodeName(n) != "danguria-skip") {
+//            Node* p = NULL;
+//            Edge* e = NULL;
+//            //printf("For node %s and current id: %ld\n", cg.GetNodeName(n).c_str(), id);
+//            for (auto &node_edge : cg.GetIncidents(n)) {
+//                if (node_edge.second->w == -1) continue;
+//                p = node_edge.first;
+//                e = node_edge.second;
+//                //printf("    check incomming edge(id:%ld, w:%ld) from node (%s, %ld) -- %ld <= %ld < %ld\n",
+//                //        e->id, e->w,
+//                //        (p->name).c_str(), p->numCC,
+//                //       e->w, id, e->w + p->numCC);
+//                if (e->w <= id && id <  e->w + p->numCC) {
+//                    cc = p->name + " -> " + cc;
+//                    id = id - e->w;
+//
+//                    //printf("    move up to node (%s, %ld)\n",
+//                    //        (p->name).c_str(), p->numCC);
+//                    break;
+//                }
+//            }
+//            if (p == NULL) return;
+//            n = p->id;
+//        }
+//        // END decode
+//
+//        int top = tmp_stack.size();
+//        if (top == 0) {
+//            //printf("no more recursive call\n");
+//            break;
+//        }
+//        int64_t id = tmp_stack[top-1].first;
+//        int64_t n = tmp_stack[top-1].second;
+//        tmp_stack.pop_back();
+//        //printf("decode more for recursive call cc so far : %s, new_id: %ld, n: %ld\n", cc.c_str(), id, n);
+//    }
+//    //printf("Decoded cc: %s\n", cc.c_str());
+//}
+
+void addWeight(int64_t weight, int64_t nid)
 {
-    //printf("%llu + %llu = %llu\n", ccid, weight, ccid + weight);
+    //printf("Before callsite, [nid:%ld] %lu + %lu => %lu\n", nid, ccid, weight, ccid + weight);
     ccid += weight;
 }
 
-void removeWeight(uint64_t weight)
+void addWeightRec(int64_t weight, int64_t nid)
 {
-    //printf("%llu - %llu = %llu\n", ccid, weight, ccid - weight);
+    //stack.push_back(std::make_pair(ccid, nid));
+    //ccid = 0;
+    //printf("Before callsite, backedge, push ccid: %ld nid: %ld [top:%ld]\n", ccid, nid, stack.size());
+}
+
+void removeWeight(int64_t weight, int64_t nid)
+{
+    //printf("After callsite [nid:%ld] %lu - %lu => %lu\n", nid, ccid, weight, ccid - weight);
     ccid -= weight;
 }
+
+void removeWeightRec(int64_t weight, int64_t nid)
+{
+    //unsigned long top = stack.size();
+    //// FIXME
+    ////assert(top > 0);
+    //if (top > 0) {
+    //    ccid = stack[top-1].first;
+    //    stack.pop_back();
+    //    printf("After callsite, backedge, pop ccid: %ld [top:%ld]\n", ccid, top);
+
+    //}
+}
+
 #ifdef __cplusplus
 }
+
 #endif

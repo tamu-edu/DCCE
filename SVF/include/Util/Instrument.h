@@ -168,6 +168,39 @@ namespace SVFUtil
         rawstr << "--------------------------------------------\n";
         printf("%s", rawstr.str().c_str());
     }
+    
+    void parse_static_ccfile(const std::string& ccinput, std::unordered_map<int64_t,int64_t>& cs2w)
+    {
+        std::string str;
+        raw_string_ostream rawstr(str);
+
+        std::ifstream inf(ccinput);
+        if (!inf.is_open()) {
+            std::cout << "unable to open file " << ccinput << std::endl;
+            exit(1);
+        }
+
+        rawstr << "--------------------------------------------\n";
+        rawstr << "Parsing cc file " << ccinput << "\n";
+        printf("--------------------------------------------\n");
+        printf("Parsing cc file %s\n", ccinput.c_str());
+        std::string line;
+
+        while (std::getline(inf, line)) {
+            std::vector<std::string> list;
+            Split(line, list, ':');
+
+            int64_t cs = std::stol(list[2], NULL, 10);
+            int64_t w = std::stol(list[3], NULL, 10);
+
+            //assert(cs2w.find(cs) == cs2w.end());
+            cs2w[cs] = w;
+            //std::cout << "cs: " << cs << ", w: " << w << std::endl;
+        }
+        inf.close();
+
+        printf("%s", rawstr.str().c_str());
+    }
 
     void parse_ccfile(const std::string& ccinput, std::unordered_map<uint64_t,uint64_t>& cs2w)
     {
@@ -188,6 +221,7 @@ namespace SVFUtil
 
         while (std::getline(inf, line)) {
             rawstr << "Processing line: " << line << "\n";
+        
             std::vector<std::string> caller_cs_callees;
             Split(line, caller_cs_callees, ':');
 

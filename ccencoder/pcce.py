@@ -68,13 +68,16 @@ class pcce:
         print(f'Writing calling context file')
         print(f'---------------------------------')
         f = open(filename, 'w')
+        non_zero_edges = 0
         for u in cg.nodes():
             if cg.isDummyNode(u): continue
             for v, cs in cg.neighbors(u):
                 wt = cg.edge_weight((u,v,cs))
                 f.write(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
-                print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}')
+                print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
+                if wt > 0: non_zero_edges += 1
         f.close()
+        return non_zero_edges
 
     def write_numcc(self, cg, filename):
         print(f'---------------------------------')
@@ -84,8 +87,11 @@ class pcce:
         f = open(filename, 'w')
         for n in cg.reachable_nodes():
             numcc = cg.getnumCC(n)
-            f.write(f'{n}:{numcc}\n')
-            print(f'{n}:{numcc}')
+            if cg.isDummyNode(n):
+                continue
+            else:
+                f.write(f'{cg.node2id[n]}={n}:{numcc}\n')
+                print(f'{cg.node2id[n]}={n}:{numcc}\n')
             if not cg.isDummyNode(n):
                 max_id += numcc
         f.close()

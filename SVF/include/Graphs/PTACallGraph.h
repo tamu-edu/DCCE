@@ -451,6 +451,9 @@ public:
 
     /// View the graph from the debugger
     void view();
+    void instrument(const std::string& ccinput,
+                    const unsigned int bench_code,
+                    const unsigned int scheme);
     void instrument_dcce(const std::string& ccinput);
     void instrument_pcce(const std::string& ccinput, unsigned int bench_code);
     void add_ccweights(const std::string& ccinput);

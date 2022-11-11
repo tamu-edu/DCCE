@@ -31,6 +31,7 @@ class dcce:
         for n, cs in g.neighbors(p):
             if g.isBackEdge((p, n, cs)):
                 print(f'{p}--{cs}-->{n} is backedge.')
+                g.set_edge_weight((p,n,cs), -1)
                 continue
 
             self.max_id[p] += 1
@@ -46,6 +47,18 @@ class dcce:
                 #print("update3 %s.maxid=%d" %(p, self.max_id[p]))
         
         return self.max_id[p]
+
+    def write_static_cc(self, cg, filename):
+         print(f'---------------------------------')
+         print(f'Writing calling context file to {filename}')
+         print(f'---------------------------------')
+         f = open(filename, 'w')
+         for u in cg.nodes():
+             for v, cs in cg.neighbors(u):
+                wt = cg.edge_weight((u,v,cs))
+                f.write(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
+                print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
+         f.close()
 
     def write_cc(self, cg, outfile, input_cg_file):
         print(f'---------------------------------')

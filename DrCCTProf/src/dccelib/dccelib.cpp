@@ -41,6 +41,10 @@ void (*InsTransEventCallback)(void *, instrlist_t*, instr_t*);
 //std::unordered_map<uint64_t, uint64_t> cs2cnt;
 std::unordered_map<uint64_t, std::pair<uint64_t,uint64_t>> tid2numcalls;
 static uint64_t max_stack_depth = 0;
+uint64_t ccw_lookup_time_direct = 0;
+uint64_t num_ccw_lookup_direct = 0;
+uint64_t ccw_lookup_time_indirect = 0;
+uint64_t num_ccw_lookup_indirect = 0;
 #endif
 uint64_t read_ccw_start_time = 0;
 uint64_t read_ccw_end_time = 0;
@@ -81,8 +85,20 @@ void split(std::string str, std::string delimiter, std::vector<std::string> &lis
 uint64_t
 get_ccw_direct(uint64_t callsite, uint64_t callee)
 {
+
+#ifdef DCCE_STATS
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    uint64_t lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000);
+    num_ccw_lookup_direct++;
+#endif
     //dr_fprintf(STDOUT, "get_ccw %p -> %p\n", callsite, callee);
     if (CCW_DIRECT.find(callsite) != CCW_DIRECT.end()) {
+#ifdef DCCE_STATS
+        gettimeofday(&tv, NULL);
+        lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
+        ccw_lookup_time_direct += lookup_time;
+#endif
         return CCW_DIRECT[callsite];
     } else {
         //dr_fprintf(STDOUT,
@@ -90,15 +106,31 @@ get_ccw_direct(uint64_t callsite, uint64_t callee)
         //           callsite, callee);
         //DR_ASSERT(false);
     }
+#ifdef DCCE_STATS
+    gettimeofday(&tv, NULL);
+    lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
+    ccw_lookup_time_direct += lookup_time;
+#endif
     return 0; //make compiler happy
 }
 
 uint64_t
 get_ccw_indirect(uint64_t callsite, uint64_t callee)
 {
+#ifdef DCCE_STATS
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    uint64_t lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000);
+    num_ccw_lookup_indirect++;
+#endif
     //dr_fprintf(STDOUT, "get_ccw %p -> %p\n", callsite, callee);
     if (CCW_INDIRECT.find(callsite) != CCW_INDIRECT.end()) {
         if (CCW_INDIRECT[callsite].find(callee) != CCW_INDIRECT[callsite].end()) {
+#ifdef DCCE_STATS
+            gettimeofday(&tv, NULL);
+            lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
+            ccw_lookup_time_indirect += lookup_time;
+#endif
             return CCW_INDIRECT[callsite][callee];
         } else {
             //dr_fprintf(STDOUT,
@@ -113,6 +145,11 @@ get_ccw_indirect(uint64_t callsite, uint64_t callee)
         //DR_ASSERT(false);
     }
 
+#ifdef DCCE_STATS
+            gettimeofday(&tv, NULL);
+            lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
+            ccw_lookup_time_indirect += lookup_time;
+#endif
     return 0; //make compiler happy
 }
 
@@ -397,6 +434,16 @@ dccelib_exit(void)
                "Size of CCW_INDIRECT: %lu bytes (%lu * %lu * %lu * 3)\n",
                size_ccw_indirect, num_cs, num_callees, sizeof(uint64_t));
     dr_fprintf(STDOUT, "Max Stack depth: %lu\n", max_stack_depth);
+    
+    dr_fprintf(STDOUT, "ccw lookup direct = %lf (%ld/%ld) ms / calls\n",
+               ((double)ccw_lookup_time_direct/num_ccw_lookup_direct),
+               ccw_lookup_time_direct, num_ccw_lookup_direct);
+    dr_fprintf(STDOUT, "ccw lookup indirect = %lf (%ld/%ld) ms / calls\n",
+               ((double)ccw_lookup_time_indirect/num_ccw_lookup_indirect),
+               ccw_lookup_time_indirect, num_ccw_lookup_indirect);
+    dr_fprintf(STDOUT, "ccw lookup = %lf (%ld/%ld) ms / calls\n",
+               ((double)(ccw_lookup_time_indirect+ccw_lookup_time_direct))/(num_ccw_lookup_indirect+num_ccw_lookup_direct),
+               (ccw_lookup_time_indirect+ccw_lookup_time_direct), (num_ccw_lookup_indirect+num_ccw_lookup_direct));
     //dr_fprintf(STDOUT, "-------------------------\n");
     //dr_fprintf(STDOUT, "callsite | counts\n");
     //dr_fprintf(STDOUT, "-------------------------\n");

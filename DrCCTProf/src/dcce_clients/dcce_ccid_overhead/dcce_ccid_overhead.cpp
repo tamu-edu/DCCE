@@ -36,6 +36,13 @@ static client_id_t my_id;
 uint64_t process_start_time;
 uint64_t process_end_time;
 
+uint64_t inscount = 0;
+static void
+instcount(app_pc instr_addr, app_pc target_addr)
+{
+    inscount++;
+}
+
 static void
 at_call(app_pc instr_addr, app_pc target_addr)
 {
@@ -50,6 +57,9 @@ at_call_ind(app_pc instr_addr, app_pc target_addr)
 
 void InsTransEventCallback(void* drcontext, instrlist_t* bb, instr_t* instr)
 {
+
+    dr_insert_call_instrumentation(drcontext, bb, instr, (app_pc)instcount);
+
     if (instr_is_call_direct(instr)) {
         dr_insert_call_instrumentation(drcontext, bb, instr, (app_pc)at_call);
     } else if (instr_is_call_indirect(instr)) {
@@ -90,6 +100,8 @@ client_exit(void)
                process_start_time,
                process_end_time,
                execution_time);
+    dr_fprintf(STDOUT,
+               "inscount %ld\n", inscount);
     dccelib_exit();
 }
 

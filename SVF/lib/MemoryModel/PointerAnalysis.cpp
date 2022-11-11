@@ -264,10 +264,22 @@ void PointerAnalysis::finalize()
 
     if (!Options::InstrMethod.getValue().empty()) {
         assert(!Options::CCInput.getValue().empty() && "CCInput must be provided to run instrumentation");
-        if (Options::InstrMethod.getValue() == "dcce") {
-            getPTACallGraph()->instrument_dcce(Options::CCInput.getValue());
-        } else if (Options::InstrMethod.getValue() == "pcce") {
-            getPTACallGraph()->instrument_pcce(Options::CCInput.getValue(), Options::BenchCode.getValue());
+        if (Options::InstrMethod.getValue() == "dcce_ccid_overhead_only_update") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          0/*dcce_ccid_overhead_only_update*/);
+        } else if (Options::InstrMethod.getValue() == "dcce_ccid_overhead") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          1/*dcce_ccid_overhead*/);
+        } else if (Options::InstrMethod.getValue() == "pcce_ccid_overhead_only_update") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          2/*pcce_ccid_overhead_only_update*/);
+        } else if (Options::InstrMethod.getValue() == "pcce_ccid_overhead") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          3/*pcce_ccid_overhead*/);
         } else {
             printf("Unknown instrument method: %s\n", Options::InstrMethod.getValue().c_str());
             exit(1);
