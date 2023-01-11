@@ -474,7 +474,7 @@ def run_static_exp(args):
                 cmd = f'/usr/bin/time -v {output_static_bin}/{scheme}/{client}/{suite_name}/{bench} {cmd_options[bench]} > {output_static_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
                 print(cmd)
                 os.system(cmd)
-                #os.system('sleep 10')
+                os.system('sleep 10')
 
 def run_dyn_exp(args):
     output_ccenc = os.getenv("OUTPUT_CCENC")
@@ -485,9 +485,11 @@ def run_dyn_exp(args):
         #for client in ['drclient_empty', 'dcce_ccid_overhead_only_update', 'dcce_ccid_overhead', 'drcctlib_ccid_overhead_only_update', 'drcctlib_ccid_overhead']:
         for client in ['dcce_ccid_overhead']:
             for suite_name, bench in foreach_bench():
-                makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
+                makedirs(f'{output_dyn_exp}/{scheme}/{client}/{suite_name}')
+                #makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
             for suite_name, bench in foreach_bench():
-                cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
+                cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
+                #cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
                 print(cmd)
                 os.system(cmd)
                 os.system('sleep 10')

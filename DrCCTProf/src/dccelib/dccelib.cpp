@@ -35,21 +35,6 @@ std::unordered_map<uint64_t, std::unordered_map<uint64_t, uint64_t>> CCW_INDIREC
 void (*InsTransEventCallback)(void *, instrlist_t*, instr_t*);
 
 //------------------------------------------------------
-// Statistics
-//------------------------------------------------------
-#ifdef DCCE_STATS
-//std::unordered_map<uint64_t, uint64_t> cs2cnt;
-std::unordered_map<uint64_t, std::pair<uint64_t,uint64_t>> tid2numcalls;
-static uint64_t max_stack_depth = 0;
-uint64_t ccw_lookup_time_direct = 0;
-uint64_t num_ccw_lookup_direct = 0;
-uint64_t ccw_lookup_time_indirect = 0;
-uint64_t num_ccw_lookup_indirect = 0;
-#endif
-uint64_t read_ccw_start_time = 0;
-uint64_t read_ccw_end_time = 0;
-
-//------------------------------------------------------
 // Thread Local Storage
 //------------------------------------------------------
 #define ATOMIC_ADD_THREAD_ID_MAX(origin) dr_atomic_add32_return_sum(&origin, 1)
@@ -59,12 +44,29 @@ typedef struct _per_thread_t {
     uint64_t ccid;
     uint64_t ccw;
 #ifdef DCCE_STATS
-    uint64_t num_direct_calls;
-    uint64_t num_indirect_calls;
+    uint64_t num_ccw_lookup_direct;
+    uint64_t num_ccw_lookup_indirect;
+    uint64_t ccw_lookup_time_direct;
+    uint64_t ccw_lookup_time_indirect;
+    uint64_t num_direct_ccw_lookup_fails;
+    uint64_t num_indirect_ccw_lookup_fails;
     uint64_t stack_depth;
+    uint64_t max_stack_depth;
+
 #endif
 } per_thread_t;
 static int global_thread_id_max = 0;
+
+//------------------------------------------------------
+// Statistics
+//------------------------------------------------------
+#ifdef DCCE_STATS
+static void *thread_sync_lock;
+std::vector<per_thread_t*> per_thread_stats;
+#endif
+uint64_t read_ccw_start_time = 0;
+uint64_t read_ccw_end_time = 0;
+
 
 //------------------------------------------------------
 // Functions for CCW
@@ -83,21 +85,26 @@ void split(std::string str, std::string delimiter, std::vector<std::string> &lis
 }
 
 uint64_t
-get_ccw_direct(uint64_t callsite, uint64_t callee)
+get_ccw_direct(uint64_t callsite, uint64_t callee, per_thread_t *pt)
 {
 
 #ifdef DCCE_STATS
+    pt->num_ccw_lookup_direct++;
+    pt->stack_depth++;
+    if (pt->stack_depth > pt->max_stack_depth) {
+        pt->max_stack_depth = pt->stack_depth;
+    }
+  
     struct timeval tv;
     gettimeofday(&tv, NULL);
     uint64_t lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000);
-    num_ccw_lookup_direct++;
 #endif
     //dr_fprintf(STDOUT, "get_ccw %p -> %p\n", callsite, callee);
     if (CCW_DIRECT.find(callsite) != CCW_DIRECT.end()) {
 #ifdef DCCE_STATS
         gettimeofday(&tv, NULL);
         lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
-        ccw_lookup_time_direct += lookup_time;
+        pt->ccw_lookup_time_direct += lookup_time;
 #endif
         return CCW_DIRECT[callsite];
     } else {
@@ -109,19 +116,24 @@ get_ccw_direct(uint64_t callsite, uint64_t callee)
 #ifdef DCCE_STATS
     gettimeofday(&tv, NULL);
     lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
-    ccw_lookup_time_direct += lookup_time;
+    pt->ccw_lookup_time_direct += lookup_time;
+    pt->num_direct_ccw_lookup_fails++;
 #endif
     return 0; //make compiler happy
 }
 
 uint64_t
-get_ccw_indirect(uint64_t callsite, uint64_t callee)
+get_ccw_indirect(uint64_t callsite, uint64_t callee, per_thread_t* pt)
 {
 #ifdef DCCE_STATS
+    pt->num_ccw_lookup_indirect++;
+    pt->stack_depth++;
+    if (pt->stack_depth > pt->max_stack_depth) {
+        pt->max_stack_depth = pt->stack_depth;
+    }
     struct timeval tv;
     gettimeofday(&tv, NULL);
     uint64_t lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000);
-    num_ccw_lookup_indirect++;
 #endif
     //dr_fprintf(STDOUT, "get_ccw %p -> %p\n", callsite, callee);
     if (CCW_INDIRECT.find(callsite) != CCW_INDIRECT.end()) {
@@ -129,7 +141,7 @@ get_ccw_indirect(uint64_t callsite, uint64_t callee)
 #ifdef DCCE_STATS
             gettimeofday(&tv, NULL);
             lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
-            ccw_lookup_time_indirect += lookup_time;
+            pt->ccw_lookup_time_indirect += lookup_time;
 #endif
             return CCW_INDIRECT[callsite][callee];
         } else {
@@ -148,7 +160,8 @@ get_ccw_indirect(uint64_t callsite, uint64_t callee)
 #ifdef DCCE_STATS
             gettimeofday(&tv, NULL);
             lookup_time = (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000) - lookup_time;
-            ccw_lookup_time_indirect += lookup_time;
+            pt->ccw_lookup_time_indirect += lookup_time;
+            pt->num_indirect_ccw_lookup_fails++;
 #endif
     return 0; //make compiler happy
 }
@@ -224,7 +237,7 @@ at_call(app_pc instr_addr, app_pc target_addr)
    
     //if (0 == g_prog_status) {
     //    if (g_first_call == (uint64_t)instr_addr) {
-    //        //dr_fprintf(STDOUT, "Start main function\n");
+    //        dr_fprintf(STDOUT, "Start main function\n");
     //        g_prog_status = 1;
     //    }
     //}
@@ -233,20 +246,16 @@ at_call(app_pc instr_addr, app_pc target_addr)
     //    return;
     //}
 
-    uint64_t ccw_value = get_ccw_direct((uint64_t)instr_addr, (uint64_t)target_addr);
-    // TODO: is it possible to skip updateing ccid if ccw is zero?
     void *drcontext = dr_get_current_drcontext();
     per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
-    DR_ASSERT(pt != NULL); // TODO: remove it when getting the final result
+
+    uint64_t ccw_value = get_ccw_direct((uint64_t)instr_addr, (uint64_t)target_addr, pt);
+
+    // TODO: is it possible to skip updateing ccid if ccw is zero?
     //dr_fprintf(STDOUT, "at_call %p->%p (%lu--%lu-->%lu)\n", instr_addr, target_addr, pt->ccid, ccw_value, pt->ccid + ccw_value);
     pt->ccid += ccw_value;
     pt->ccw = ccw_value;
 #ifdef DCCE_STATS
-    pt->num_direct_calls++;
-    pt->stack_depth++;
-    if (pt->stack_depth > max_stack_depth) {
-        max_stack_depth = pt->stack_depth;
-    }
     //if (cs2cnt.find((uint64_t)instr_addr) == cs2cnt.end()) {
     //    cs2cnt[(uint64_t)instr_addr] = 0;
     //}
@@ -272,18 +281,13 @@ at_call_ind(app_pc instr_addr, app_pc target_addr)
     //    return;
     //}
 
-    uint64_t ccw_value = get_ccw_indirect((uint64_t)instr_addr, (uint64_t)target_addr);
     void *drcontext = dr_get_current_drcontext();
     per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
-    DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
+
+    uint64_t ccw_value = get_ccw_indirect((uint64_t)instr_addr, (uint64_t)target_addr, pt);
     pt->ccid += ccw_value;
     pt->ccw = ccw_value;
 #ifdef DCCE_STATS
-    pt->num_indirect_calls++;
-    pt->stack_depth++;
-    if (pt->stack_depth > max_stack_depth) {
-        max_stack_depth = pt->stack_depth;
-    }
     //if (cs2cnt.find((uint64_t)instr_addr) == cs2cnt.end()) {
     //    cs2cnt[(uint64_t)instr_addr] = 0;
     //}
@@ -298,11 +302,10 @@ at_return(app_pc instr_addr, app_pc target_addr)
 
     //if ((uint64_t)target_addr == g_last_call) {
     //    g_prog_status = 2;
-    //    //dr_fprintf(STDOUT, "Finished main function\n");
+    //    dr_fprintf(STDOUT, "Finished main function\n");
     //}
     void *drcontext = dr_get_current_drcontext();
     per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
-    DR_ASSERT(pt != NULL); // TODO: remove it when geeting the final result
     pt->ccid -= pt->ccw;
 #ifdef DCCE_STATS
     pt->stack_depth--;
@@ -350,9 +353,17 @@ event_thread_init(void *drcontext)
     pt->ccw = 0;
     pt->tid = id;
 #ifdef DCCE_STATS
-    pt->num_direct_calls = 0;
-    pt->num_indirect_calls = 0;
+    pt->num_ccw_lookup_direct = 0;
+    pt->num_ccw_lookup_indirect = 0;
+    pt->ccw_lookup_time_direct = 0;
+    pt->ccw_lookup_time_indirect = 0;
+    pt->num_direct_ccw_lookup_fails = 0;
+    pt->num_indirect_ccw_lookup_fails = 0;
     pt->stack_depth = 0;
+    pt->max_stack_depth = 0;
+    dr_mutex_lock(thread_sync_lock);
+    per_thread_stats.push_back(pt);
+    dr_mutex_unlock(thread_sync_lock);
 #endif
 
     /* store it in the slot provided in the drcontext */
@@ -362,17 +373,17 @@ event_thread_init(void *drcontext)
 static void
 event_thread_exit(void *drcontext)
 {
-    per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
-#ifdef DCCE_STATS
-    tid2numcalls[pt->tid] = std::make_pair(pt->num_direct_calls, pt->num_indirect_calls);
-#endif
-    dr_global_free(pt, sizeof(per_thread_t));
+    //per_thread_t *pt = (per_thread_t *)drmgr_get_tls_field(drcontext, tls_idx);
+    //dr_global_free(pt, sizeof(per_thread_t));
 }
 
 DR_EXPORT
 void
 dccelib_init(std::string ccw_file_path, void (*pFunc)(void *, instrlist_t*, instr_t*))
 {
+#ifdef DCCE_STATS
+    thread_sync_lock = dr_mutex_create();
+#endif
     struct timeval tv;
     gettimeofday(&tv, NULL);
     read_ccw_start_time =  (tv.tv_sec * (uint64_t)1000) + (tv.tv_usec / 1000);
@@ -403,24 +414,52 @@ dccelib_exit(void)
 {
     dr_fprintf(STDOUT,
                "================== BEGIN STATISTICS ==================\n");
-    dr_fprintf(STDOUT, "Time to read_ccw = %lu\n", read_ccw_end_time - read_ccw_start_time);
-
-    struct rusage rusage;
-    getrusage(RUSAGE_SELF, &rusage);
-    dr_fprintf(STDOUT, "PeakRSS = %zu\n", (size_t)rusage.ru_maxrss);
-
 #ifdef DCCE_STATS
-    uint64_t total_calls = 0;
-    for (auto tid2ncall : tid2numcalls) {
-        total_calls += (tid2ncall.second.first + tid2ncall.second.second);
-        dr_fprintf(STDOUT,
-                   "[t%lu] Direct calls: %lu Indirect calls: %lu\n",
-                   tid2ncall.first, tid2ncall.second.first, tid2ncall.second.second);
+    uint64_t num_ccw_lookup_direct_total = 0;
+    uint64_t num_ccw_lookup_indirect_total = 0;
+    uint64_t ccw_lookup_time_direct_total = 0;
+    uint64_t ccw_lookup_time_indirect_total = 0;
+    uint64_t num_direct_ccw_lookup_fails_total = 0;
+    uint64_t num_indirect_ccw_lookup_fails_total = 0;
+    uint64_t max_stack_depth = 0;
+
+    for (unsigned long i = 0; i < per_thread_stats.size(); i++) {
+      per_thread_t *pt = per_thread_stats[i];
+
+      dr_fprintf(STDOUT,
+          "================== THREAD [%d] ==================\n", pt->tid);
+      dr_fprintf(STDOUT, "Direc Calls: %lu Indirect Calls: %lu Total Calls: %lu\n",
+          pt->num_ccw_lookup_direct, pt->num_ccw_lookup_indirect,
+          (pt->num_ccw_lookup_direct + pt->num_ccw_lookup_indirect));
+
+      dr_fprintf(STDOUT, "CCW Lookup Direct: %lf (%ld/%ld) ms/ calls\n",
+          ((double)pt->ccw_lookup_time_direct/pt->ccw_lookup_time_direct),
+          pt->ccw_lookup_time_direct,pt->ccw_lookup_time_direct);
+
+      dr_fprintf(STDOUT, "CCW Lookup Indirect: %lf (%ld/%ld) ms/ calls\n",
+          ((double)pt->ccw_lookup_time_indirect/pt->num_ccw_lookup_indirect),
+          pt->ccw_lookup_time_indirect, pt->num_ccw_lookup_indirect);
+
+      dr_fprintf(STDOUT, "Maximum Stack depth: %lu\n", pt->max_stack_depth);
+      dr_fprintf(STDOUT, "CCW Lookup Failes Direct: %lu\n", pt->num_direct_ccw_lookup_fails);
+      dr_fprintf(STDOUT, "CCW Lookup Failes Inirect: %lu\n", pt->num_indirect_ccw_lookup_fails);
+
+      num_ccw_lookup_direct_total += pt->num_ccw_lookup_direct;
+      num_ccw_lookup_indirect_total += pt->num_ccw_lookup_indirect;
+      ccw_lookup_time_direct_total += pt->ccw_lookup_time_direct;
+      ccw_lookup_time_indirect_total += pt->ccw_lookup_time_indirect;
+      num_direct_ccw_lookup_fails_total += pt->num_direct_ccw_lookup_fails;
+      num_indirect_ccw_lookup_fails_total += pt->num_indirect_ccw_lookup_fails;
+      if (max_stack_depth < pt->max_stack_depth) max_stack_depth = pt->max_stack_depth;
     }
-    dr_fprintf(STDOUT, "Total calls: %lu\n", total_calls);
+
+
+      dr_fprintf(STDOUT, "================== TOTAL ==================\n");
+      dr_fprintf(STDOUT, "[TOTAL] Direct Calls: %lu Indirect Calls: %lu, Total calls: %lu\n",
+          num_ccw_lookup_direct_total, num_ccw_lookup_indirect_total,
+          (num_ccw_lookup_direct_total + num_ccw_lookup_indirect_total));
 
     uint64_t size_ccw_direct = CCW_DIRECT.size() * sizeof(uint64_t) * 2;
-
     uint64_t num_cs = CCW_INDIRECT.size();
     uint64_t num_callees = 0;
     for (auto cs2clnw : CCW_INDIRECT) {
@@ -428,39 +467,42 @@ dccelib_exit(void)
     }
     uint64_t size_ccw_indirect = num_cs * num_callees * sizeof(uint64_t) * 3;
     dr_fprintf(STDOUT,
-               "Size of CCW_DIRECT: %lu bytes (%lu * %lu * 2)\n",
+               "[TOTAL] Size of CCW_DIRECT: %lu bytes (%lu * %lu * 2)\n",
                size_ccw_direct, CCW_DIRECT.size(), sizeof(uint64_t));
     dr_fprintf(STDOUT,
-               "Size of CCW_INDIRECT: %lu bytes (%lu * %lu * %lu * 3)\n",
+               "[TOTAL] Size of CCW_INDIRECT: %lu bytes (%lu * %lu * %lu * 3)\n",
                size_ccw_indirect, num_cs, num_callees, sizeof(uint64_t));
-    dr_fprintf(STDOUT, "Max Stack depth: %lu\n", max_stack_depth);
     
-    dr_fprintf(STDOUT, "ccw lookup direct = %lf (%ld/%ld) ms / calls\n",
-               ((double)ccw_lookup_time_direct/num_ccw_lookup_direct),
-               ccw_lookup_time_direct, num_ccw_lookup_direct);
-    dr_fprintf(STDOUT, "ccw lookup indirect = %lf (%ld/%ld) ms / calls\n",
-               ((double)ccw_lookup_time_indirect/num_ccw_lookup_indirect),
-               ccw_lookup_time_indirect, num_ccw_lookup_indirect);
-    dr_fprintf(STDOUT, "ccw lookup = %lf (%ld/%ld) ms / calls\n",
-               ((double)(ccw_lookup_time_indirect+ccw_lookup_time_direct))/(num_ccw_lookup_indirect+num_ccw_lookup_direct),
-               (ccw_lookup_time_indirect+ccw_lookup_time_direct), (num_ccw_lookup_indirect+num_ccw_lookup_direct));
-    //dr_fprintf(STDOUT, "-------------------------\n");
-    //dr_fprintf(STDOUT, "callsite | counts\n");
-    //dr_fprintf(STDOUT, "-------------------------\n");
-    //for (auto item : cs2cnt) {
-    //    dr_fprintf(STDOUT, "%p,%lu\n", item.first, item.second);
-    //}
+    dr_fprintf(STDOUT, "[TOTAL] CCW Lookup Direct: %lf (%ld/%ld) ms / calls\n",
+               ((double)ccw_lookup_time_direct_total/num_ccw_lookup_direct_total),
+               ccw_lookup_time_direct_total, num_ccw_lookup_direct_total);
+    dr_fprintf(STDOUT, "[TOTAL] CCW Lookup indirect: %lf (%ld/%ld) ms / calls\n",
+               ((double)ccw_lookup_time_indirect_total/num_ccw_lookup_indirect_total),
+               ccw_lookup_time_indirect_total, num_ccw_lookup_indirect_total);
+    dr_fprintf(STDOUT, "[TOTAL] CCW Lookup = %lf (%ld/%ld) ms / calls\n",
+        ((double)(ccw_lookup_time_indirect_total+ccw_lookup_time_direct_total))/(num_ccw_lookup_indirect_total+num_ccw_lookup_direct_total),
+        (ccw_lookup_time_indirect_total+ccw_lookup_time_direct_total), (num_ccw_lookup_indirect_total+num_ccw_lookup_direct_total));
 
-    //dr_fprintf(STDOUT, "-------------------------\n");
-    //dr_fprintf(STDOUT, "barrier | counts\n");
-    //dr_fprintf(STDOUT, "-------------------------\n");
-    //for (auto item : barrier2cnt) {
-    //    dr_fprintf(STDOUT, "%p,%lu\n", item.first, item.second);
-    //}
+    dr_fprintf(STDOUT, "[TOTAL] Max Stack depth: %lu\n", max_stack_depth);
+    dr_fprintf(STDOUT, "[TOTAL] CCW Lookup Failes Direct: %lu\n", num_direct_ccw_lookup_fails_total);
+    dr_fprintf(STDOUT, "[TOTAL] CCW Lookup Failes Inirect: %lu\n", num_indirect_ccw_lookup_fails_total);
 
 #endif
+    dr_fprintf(STDOUT, "[TOTAL] Time to read_ccw = %lu\n", read_ccw_end_time - read_ccw_start_time);
+
+    struct rusage rusage;
+    getrusage(RUSAGE_SELF, &rusage);
+    dr_fprintf(STDOUT, "[TOTAL] PeakRSS = %zu\n", (size_t)rusage.ru_maxrss);
+
     dr_fprintf(STDOUT,
                "================== END STATISTICS ==================\n");
+
+#ifdef DCCE_STATS
+    for (unsigned long i = 0; i < per_thread_stats.size(); i++) {
+      dr_global_free(per_thread_stats[i], sizeof(per_thread_t));
+    }
+    dr_mutex_destroy(thread_sync_lock);
+#endif
 
     drsym_exit();
     drmgr_unregister_tls_field(tls_idx);
