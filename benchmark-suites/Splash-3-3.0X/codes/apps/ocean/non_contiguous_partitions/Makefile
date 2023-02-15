@@ -1,4 +1,4 @@
-TARGET = $(BIN_ROOT)/Splash-3/708.OCEAN-NCP
+TARGET = $(OUTPUT_BIN)/Splash-3/708.OCEAN-NCP
 OBJS = jacobcalc.o laplacalc.o main.o multi.o slave1.o slave2.o
 
 include ../../../Makefile.config

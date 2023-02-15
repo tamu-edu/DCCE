@@ -1,4 +1,4 @@
-TARGET = $(BIN_ROOT)/Splash-3/711.RAYTRACE
+TARGET = $(OUTPUT_BIN)/Splash-3/711.RAYTRACE
 
 OBJS = bbox.o cr.o env.o fbuf.o geo.o huprn.o husetup.o hutv.o isect.o \
 	main.o matrix.o memory.o poly.o raystack.o shade.o sph.o trace.o \
@@ -26,3 +26,5 @@ trace.c: trace.c.in rt.h
 tri.c:	tri.c.in rt.h
 workpool.c: workpool.c.in rt.h
 
+copy:
+	cp -r ./inputs $(OUTPUT_BIN)/Splash-3/

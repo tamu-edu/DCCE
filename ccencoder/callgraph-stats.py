@@ -9,7 +9,7 @@ from callgraph import pccegraph as pccegraph
 from dcce import dcce as dcce
 
 def main(args):
-    c_cg, c_dcg, node2id = utils.make_callgraph(args.trace, 'dcce', args.root)
+    c_cg, c_dcg, node2id = utils.make_callgraph_dynamic(args.trace, 'dcce', args.root)
 
     filename = f'{args.outdir}/{args.bench}.stats'
     f = open(filename, 'w')

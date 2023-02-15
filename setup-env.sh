@@ -29,11 +29,6 @@ export LLVM_ROOT=${SVF_ROOT}/llvm-12.0.0
 cd ${SVF_ROOT}
 source ${SVF_ROOT}/setup.sh
 cd ${DCCE_ROOT}
-##############
-# cpu2017
-##############
-export CPU2017_MAKE_DIR=${CPU2017_ROOT}/makeouts
-export CPU2017_BIN_DIR=${CPU2017_ROOT}/bin
 
 ##############
 # output
@@ -119,7 +114,10 @@ export drrun=$PWD/DrCCTProf/build/bin64/drrun
 ##############
 # Benchmarks
 #############
-export SPLASH3_ROOT=${DCCE_ROOT}/benchmark-suites/Splash-3-3.0X/codes
-export SPLASH3_BARRIER_ELISION_ROOT=${DCCE_ROOT}/benchmark-suites/Splash-3-3.0X-barrier-elision/codes
+export BENCH_ROOT=${DCCE_ROOT}/benchmark-suites
+export CPU2017_ROOT=${BENCH_ROOT}/cpu2017
+export SPLASH3_ROOT=${BENCH_ROOT}/Splash-3-3.0X/codes
+#export SPLASH3_BARRIER_ELISION_ROOT=${DCCE_ROOT}/benchmark-suites/Splash-3-3.0X-barrier-elision/codes
+
 
 export PATH=${PATH}:${DCCE_ROOT}

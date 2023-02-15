@@ -1,4 +1,4 @@
-TARGET = $(BIN_ROOT)/Splash-3/714.WATER-SPATIAL
+TARGET = $(OUTPUT_BIN)/Splash-3/714.WATER-SPATIAL
 OBJS = bndry.o cnstnt.o cshift.o initia.o interf.o intraf.o kineti.o mdmain.o poteng.o predcor.o syscons.o water.o
 
 include ../../Makefile.config
