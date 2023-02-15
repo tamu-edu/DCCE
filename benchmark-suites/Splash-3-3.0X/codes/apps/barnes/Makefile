@@ -1,4 +1,4 @@
-TARGET = $(BIN_ROOT)/Splash-3/701.BARNES
+TARGET = $(OUTPUT_BIN)/Splash-3/701.BARNES
 OBJS = code.o code_io.o load.o grav.o getparam.o util.o
 
 include ../../Makefile.config

@@ -1,4 +1,4 @@
-TARGET = $(BIN_ROOT)/Splash-3/702.CHOLESKY
+TARGET = $(OUTPUT_BIN)/Splash-3/702.CHOLESKY
 OBJS = amal.o assign.o bfac.o bksolve.o block2.o fo.o malloc.o \
        mf.o numLL.o parts.o seg.o solve.o tree.o util.o
 

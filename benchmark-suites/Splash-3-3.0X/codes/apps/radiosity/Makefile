@@ -1,4 +1,4 @@
-TARGET = $(BIN_ROOT)/Splash-3/709.RADIOSITY
+TARGET = $(OUTPUT_BIN)/Splash-3/709.RADIOSITY
 
 OBJS = display.o elemman.o modelman.o patchman.o rad_main.o rad_tools.o room_model.o smallobj.o taskman.o visible.o
 HHS = model.h.in parallel.h.in patch.h.in radiosity.h.in task.h.in structs.h.in

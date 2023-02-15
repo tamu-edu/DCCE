@@ -28,20 +28,20 @@ benchmark_suites = {
     #],
 
     'Splash-3' : [
-       #'701.BARNES',
-        #'702.CHOLESKY',
-        #'703.FFT',
-        #'704.FMM',
-        #'705.LU-CB',
-        #'706.LU-NCB',
+        '701.BARNES',
+        '702.CHOLESKY',
+        '703.FFT',
+        '704.FMM',
+        '705.LU-CB',
+        '706.LU-NCB',
         '707.OCEAN-CP',
         '708.OCEAN-NCP',
-        #'709.RADIOSITY',
-        #'710.RADIX',
-        ##'711.RAYTRACE', # link time error
-        ##'712.VOLREND', # link time error
-        #'713.WATER-NSQUARED',
-        #'714.WATER-SPATIAL',
+        '709.RADIOSITY',
+        '710.RADIX',
+        '711.RAYTRACE',
+        '712.VOLREND',
+        '713.WATER-NSQUARED',
+        '714.WATER-SPATIAL',
     ],
     #'Splash-3-barrier-elision' : [
     #    '701.BARNES',
@@ -58,36 +58,36 @@ benchmark_suites = {
     #    '714.WATER-SPATIAL',
     #],
 
-    #'SPEC2017' : [
-    #    #'500.perlbench_r', # MAXID Overflow
-    #    #'502.gcc_r',
-    #    '505.mcf_r',
-    #    '508.namd_r',
-    #    '510.parest_r',  # segfault at initi
-    #    #'511.povray_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    #    '519.lbm_r',
-    #    #'520.omnetpp_r', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    #    '523.xalancbmk_r',
-    #    '525.x264_r',
-    #    #'526.blender_r',
-    #    #'531.deepsjeng_r',  # OOM
-    #    #'538.imagick_r', # MAXID Overflow
-    #    '541.leela_r',
-    #    #'544.nab_r',  # never finished
-    #    '557.xz_r',
-    #    #'600.perlbench_s', # MAXID Overflow
-    #    #'602.gcc_s',
-    #    '605.mcf_s',
-    #    '619.lbm_s',
-    #    #'620.omnetpp_s', # Function.h:781: llvm::Argument* llvm::Function::getArg(unsigned int) const: Assertion `i < NumArgs && "getArg() out of range!"' failed.
-    #    '623.xalancbmk_s',
-    #    '625.x264_s',
-    #    #'631.deepsjeng_s', # OOM
-    #    #'638.imagick_s', # MAXID Overflow
-    #    '641.leela_s',
-    #    #'644.nab_s', # never finished
-    #    '657.xz_s',
-    #],
+    'SPEC2017' : [
+        #'500.perlbench_r', # MAXID Overflow
+        #'502.gcc_r', # OOM
+        '505.mcf_r',
+        '508.namd_r',
+        '510.parest_r',
+        #'511.povray_r',  # MAXID Overflow
+        '519.lbm_r',
+        '520.omnetpp_r',
+        '523.xalancbmk_r',
+        '525.x264_r',
+        #'526.blender_r',
+        #'531.deepsjeng_r',  # OOM
+        #'538.imagick_r', # MAXID Overflow
+        '541.leela_r',
+        #'544.nab_r',  # never finished
+        '557.xz_r',
+        #'600.perlbench_s', # MAXID Overflow
+        #'602.gcc_s',
+        '605.mcf_s',
+        '619.lbm_s',
+        '620.omnetpp_s',
+        '623.xalancbmk_s',
+        '625.x264_s',
+        #'631.deepsjeng_s', # OOM
+        #'638.imagick_s', # MAXID Overflow
+        '641.leela_s',
+        #'644.nab_s', # never finished
+        '657.xz_s',
+    ],
 }
 
 cmd_options = {
@@ -151,7 +151,7 @@ cmd_options = {
         '708.OCEAN-NCP'      : f' -p2 -n4098',
         '709.RADIOSITY'      : f' -p 2 -tq 200 -ae 5000 -bf 0.1 -en 0.05 -room -batch',
         '710.RADIX'          : f' -p2 -n92048576',  #n1048576
-        #'711.RAYTRACE', # link time error
+        '711.RAYTRACE'       : f' -p2 -m64 {os.getenv("SPLASH3_ROOT")}/apps/raytrace/inputs/balls4.env',
         '712.VOLREND'        : f' 16 {os.getenv("SPLASH3_ROOT")}/apps/volrend/inputs/head 8',
         '713.WATER-NSQUARED' : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-nsquared/inputs/n4096-p2',
         '714.WATER-SPATIAL'  : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-spatial/inputs/n4096-p2',
@@ -163,11 +163,11 @@ def foreach_bench():
             yield suite_name, bench
 
 # FIXME: make parall run available
-def run_cmd_foreach_bench(cmd_log, parallel=False):
+def run_cmd_foreach_bench(cmd_log, parallel=False, force_exit=True):
     if parallel:
         threads = []
         for cmd, log in cmd_log:
-            th = threading.Thread(target=run_cmd, args=(cmd, log))
+            th = threading.Thread(target=run_cmd, args=(cmd, log, force_exit))
             threads.append(th)
             th.start()
 
@@ -177,9 +177,9 @@ def run_cmd_foreach_bench(cmd_log, parallel=False):
         for cmd, log in cmd_log:
             #command = f'{cmd} > {log} 2>&1'
             #print(command)
-            run_cmd(cmd, log)
+            run_cmd(cmd, log, force_exit)
 
-def run_cmd(cmd, log=None):
+def run_cmd(cmd, log=None, force_exit=True):
     print(cmd)
     if log:
         output = open(log, 'w')
@@ -191,7 +191,8 @@ def run_cmd(cmd, log=None):
     exit_code = process.wait()
     if (exit_code != 0):
         print('Execution Failed with error %d. See %s' % (exit_code, log))
-        exit(1)
+        if force_exit:
+            exit(1)
 
 def build():
     makedirs(os.getenv('DCCE_RTLIB_BUILD_DIR'))
@@ -282,14 +283,14 @@ def callgraph():
         cmd = f'wpa -ander -dump-callgraph {output_cg}/{suite_name}/{bench} {output_bitcode}/{suite_name}/{bench}.bc'
         log = f'{output_cg}/{suite_name}/{bench}.callgraph.log'
         cmd_log.append((cmd, log))
-    run_cmd_foreach_bench(cmd_log, False)
+    run_cmd_foreach_bench(cmd_log, False, False)
 
-    #cmd_log = []
-    #for suite_name, bench in foreach_bench():
-    #    cmd = f'python ccencoder/callgraph-stats.py {output_cg}/{suite_name}/{bench}-final.cg {bench} main {output_cg}/{suite_name}'
-    #    log = f'{output_cg}/{suite_name}/{bench}.stats.log'
-    #    cmd_log.append((cmd, log))
-    #run_cmd_foreach_bench(cmd_log, False)
+    cmd_log = []
+    for suite_name, bench in foreach_bench():
+        cmd = f'python ccencoder/callgraph-stats.py {output_cg}/{suite_name}/{bench}-final.cg {bench} main {output_cg}/{suite_name}'
+        log = f'{output_cg}/{suite_name}/{bench}.stats.log'
+        cmd_log.append((cmd, log))
+    run_cmd_foreach_bench(cmd_log, False)
 
     print(f'Callgraphs are generated in {output_cg}')
 
@@ -560,7 +561,7 @@ def makedirs(dir):
 
 if __name__== "__main__":
     if os.getenv('DCCE_ENV_SETUP') != 'YES':
-        print("Environment Variabls are not set. run 'source %s' first." % 'setup_env.sh')
+        print("Environment Variabls are not set. run 'source %s' first." % 'setup-env.sh')
         exit(1)
 
     parser = argparse.ArgumentParser(\

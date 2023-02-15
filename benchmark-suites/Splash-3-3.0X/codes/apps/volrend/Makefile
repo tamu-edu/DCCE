@@ -1,4 +1,4 @@
-TARGET = $(BIN_ROOT)/Splash-3/712.VOLREND
+TARGET = $(OUTPUT_BIN)/Splash-3/712.VOLREND
 OBJS = adaptive.o file.o main.o map.o normal.o octree.o opacity.o option.o raytrace.o render.o view.o libtiff/libtiff.a
 
 include ../../Makefile.config
