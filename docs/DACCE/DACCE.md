@@ -60,7 +60,7 @@ style: |
 ---
 # Dynamically linking library (via PLT).
 * Hook PLT call to do the followings
-  * get the real target address of PTL call.
+  * get the real target address of PLT call.
   * edge between callsite and the real target is added to the call graph.
   * Not encoded until the next re-encoding process.
   * Instrement code as normal call (Figure 2.b)
@@ -83,10 +83,13 @@ style: |
   * Assign 0 weight to frequently invoked call (edge).
 * Adjust ccStack.
   * If calls are highly repetitive (many recursive calls), adjust the encoding algorithm on recursive calls to compress the saved contexts on ccStack.
+
+---
+# Adaptive Encoding Process
 * Instrument the program with the new encodings.
 * After instrumentation, the currend id and entries on ccStack are regenerated according to the new encodings.
----
 
+---
 ## Timing of Re-encode
   * The number of identified call edges reaches a threshold.
   * The frequently invoked call paths have changed.
