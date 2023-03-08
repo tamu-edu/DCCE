@@ -1,5 +1,5 @@
 TARGET = $(OUTPUT_BIN)/Splash-3/701.BARNES
-OBJS = code.o code_io.o load.o grav.o getparam.o util.o
+OBJS = code.o code_io.o load.o grav.o getparam.o util.o sk_barrier.o
 
 include ../../Makefile.config
 
@@ -10,4 +10,5 @@ getparam.o: getparam.c.in stdinc.h
 grav.o: grav.c.in stdinc.h
 load.o: load.c.in stdinc.h
 util.o: util.c.in stdinc.h
+sk_barrier.o: sk_barrier.c.in sk_barrier.h
 

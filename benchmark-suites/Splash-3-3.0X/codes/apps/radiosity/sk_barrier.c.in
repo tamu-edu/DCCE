@@ -1,0 +1,8 @@
+#include <stdio.h>
+
+void sk_barrier()
+{
+  //printf("sk_barrier\n");
+  volatile int dummy;
+  dummy ^= 0;
+}

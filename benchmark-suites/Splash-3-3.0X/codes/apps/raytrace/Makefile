@@ -2,7 +2,7 @@ TARGET = $(OUTPUT_BIN)/Splash-3/711.RAYTRACE
 
 OBJS = bbox.o cr.o env.o fbuf.o geo.o huprn.o husetup.o hutv.o isect.o \
 	main.o matrix.o memory.o poly.o raystack.o shade.o sph.o trace.o \
-	tri.o workpool.o
+	tri.o workpool.o sk_barrier.o
 
 include ../../Makefile.config
 
@@ -25,6 +25,7 @@ sph.c:	sph.c.in rt.h
 trace.c: trace.c.in rt.h
 tri.c:	tri.c.in rt.h
 workpool.c: workpool.c.in rt.h
+sk_barrier.o: sk_barrier.c.in sk_barrier.h
 
 copy:
 	cp -r ./inputs $(OUTPUT_BIN)/Splash-3/

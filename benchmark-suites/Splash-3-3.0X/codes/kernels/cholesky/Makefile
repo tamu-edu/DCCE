@@ -1,6 +1,6 @@
 TARGET = $(OUTPUT_BIN)/Splash-3/702.CHOLESKY
 OBJS = amal.o assign.o bfac.o bksolve.o block2.o fo.o malloc.o \
-       mf.o numLL.o parts.o seg.o solve.o tree.o util.o
+       mf.o numLL.o parts.o seg.o solve.o tree.o util.o sk_barrier.o
 
 include ../../Makefile.config
 
@@ -18,4 +18,4 @@ seg.c: matrix.h
 bksolve.c: matrix.h
 mf.c: matrix.h
 solve.c: matrix.h
-
+sk_barrier.o: sk_barrier.c.in sk_barrier.h

@@ -1,5 +1,8 @@
 TARGET = $(OUTPUT_BIN)/Splash-3/703.FFT
-OBJS = fft.o
+OBJS = fft.o sk_barrier.o
+
 
 include ../../Makefile.config
+
+sk_barrier.o: sk_barrier.c.in sk_barrier.h
 

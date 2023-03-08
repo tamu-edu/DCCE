@@ -1,5 +1,5 @@
 TARGET = $(OUTPUT_BIN)/Splash-3/712.VOLREND
-OBJS = adaptive.o file.o main.o map.o normal.o octree.o opacity.o option.o raytrace.o render.o view.o libtiff/libtiff.a
+OBJS = adaptive.o file.o main.o map.o normal.o octree.o opacity.o option.o raytrace.o render.o view.o libtiff/libtiff.a sk_barrier.o
 
 include ../../Makefile.config
 
@@ -17,6 +17,7 @@ view.c:	view.c.in incl.h
 render.c: render.c.in incl.h
 adaptive.c: adaptive.c.in incl.h anl.h
 raytrace.c: raytrace.c.in incl.h address.h
+sk_barrier.o: sk_barrier.c.in sk_barrier.h
 
 incl.h:	user_options.h const.h my_types.h global.h macros.h address.h
 

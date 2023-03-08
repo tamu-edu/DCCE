@@ -1,6 +1,6 @@
 TARGET = $(OUTPUT_BIN)/Splash-3/709.RADIOSITY
 
-OBJS = display.o elemman.o modelman.o patchman.o rad_main.o rad_tools.o room_model.o smallobj.o taskman.o visible.o
+OBJS = display.o elemman.o modelman.o patchman.o rad_main.o rad_tools.o room_model.o smallobj.o taskman.o visible.o sk_barrier.o
 HHS = model.h.in parallel.h.in patch.h.in radiosity.h.in task.h.in structs.h.in
 HS = model.h parallel.h patch.h radiosity.h task.h structs.h
 
@@ -29,6 +29,7 @@ display.c: display.c.in $(HS)
 visible.c: visible.c.in $(HS)
 rad_tools.c: rad_tools.c.in $(HS)
 room_model.c: room_model.c.in $(HS)
+sk_barrier.o: sk_barrier.c.in sk_barrier.h
 
 glibdumb/glib.a:
 	$(MAKE) -C glibdumb

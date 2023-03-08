@@ -39,7 +39,7 @@ benchmark_suites = {
         '709.RADIOSITY',
         '710.RADIX',
         '711.RAYTRACE',
-        '712.VOLREND',
+        #'712.VOLREND', # /home/ksungkeun84/git/DCCE/output-issue59-exp1/dynamic_instrument/bin/dcce/Splash-3/712.VOLREND.offset
         '713.WATER-NSQUARED',
         '714.WATER-SPATIAL',
     ],
@@ -58,36 +58,36 @@ benchmark_suites = {
     #    '714.WATER-SPATIAL',
     #],
 
-    'SPEC2017' : [
-        #'500.perlbench_r', # MAXID Overflow
-        #'502.gcc_r', # OOM
-        '505.mcf_r',
-        '508.namd_r',
-        '510.parest_r',
-        #'511.povray_r',  # MAXID Overflow
-        '519.lbm_r',
-        '520.omnetpp_r',
-        '523.xalancbmk_r',
-        '525.x264_r',
-        #'526.blender_r',
-        #'531.deepsjeng_r',  # OOM
-        #'538.imagick_r', # MAXID Overflow
-        '541.leela_r',
-        #'544.nab_r',  # never finished
-        '557.xz_r',
-        #'600.perlbench_s', # MAXID Overflow
-        #'602.gcc_s',
-        '605.mcf_s',
-        '619.lbm_s',
-        '620.omnetpp_s',
-        '623.xalancbmk_s',
-        '625.x264_s',
-        #'631.deepsjeng_s', # OOM
-        #'638.imagick_s', # MAXID Overflow
-        '641.leela_s',
-        #'644.nab_s', # never finished
-        '657.xz_s',
-    ],
+    #'SPEC2017' : [
+    #    #'500.perlbench_r', # MAXID Overflow
+    #    #'502.gcc_r', # OOM
+    #    '505.mcf_r',
+    #    '508.namd_r',
+    #    '510.parest_r',
+    #    #'511.povray_r',  # MAXID Overflow
+    #    '519.lbm_r',
+    #    '520.omnetpp_r',
+    #    '523.xalancbmk_r',
+    #    '525.x264_r',
+    #    #'526.blender_r',
+    #    #'531.deepsjeng_r',  # OOM
+    #    #'538.imagick_r', # MAXID Overflow
+    #    '541.leela_r',
+    #    #'544.nab_r',  # never finished
+    #    '557.xz_r',
+    #    #'600.perlbench_s', # MAXID Overflow
+    #    #'602.gcc_s',
+    #    '605.mcf_s',
+    #    '619.lbm_s',
+    #    '620.omnetpp_s',
+    #    '623.xalancbmk_s',
+    #    '625.x264_s',
+    #    #'631.deepsjeng_s', # OOM
+    #    #'638.imagick_s', # MAXID Overflow
+    #    '641.leela_s',
+    #    #'644.nab_s', # never finished
+    #    '657.xz_s',
+    #],
 }
 
 cmd_options = {
@@ -155,10 +155,27 @@ cmd_options = {
         '712.VOLREND'        : f' 16 {os.getenv("SPLASH3_ROOT")}/apps/volrend/inputs/head 8',
         '713.WATER-NSQUARED' : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-nsquared/inputs/n4096-p2',
         '714.WATER-SPATIAL'  : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-spatial/inputs/n4096-p2',
+        
+        #'701.BARNES'         : f' < {os.getenv("SPLASH3_ROOT")}/apps/barnes/inputs/n8k-p8',
+        #'702.CHOLESKY'       : f' -p8 < {os.getenv("SPLASH3_ROOT")}/kernels/cholesky/inputs/tk29.O',
+        #'703.FFT'            : f' -p8 -m28',
+        #'704.FMM'            : f' < {os.getenv("SPLASH3_ROOT")}/apps/fmm/inputs/input.8.16384',
+        #'705.LU-CB'          : f' -p8 -n4096',
+        #'706.LU-NCB'         : f' -p8 -n4096',
+        #'707.OCEAN-CP'       : f' -p8 -n4098', 
+        #'708.OCEAN-NCP'      : f' -p8 -n4098',
+        #'709.RADIOSITY'      : f' -p 8 -tq 200 -ae 5000 -bf 0.1 -en 0.05 -room -batch',
+        #'710.RADIX'          : f' -p8 -n92048576',  #n1048576
+        #'711.RAYTRACE'       : f' -p8 -m64 {os.getenv("SPLASH3_ROOT")}/apps/raytrace/inputs/balls4.env',
+        #'712.VOLREND'        : f' 16 {os.getenv("SPLASH3_ROOT")}/apps/volrend/inputs/head 8',
+        #'713.WATER-NSQUARED' : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-nsquared/inputs/n512-p8',
+        #'714.WATER-SPATIAL'  : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-spatial/inputs/n512-p8',
     }
 
-def foreach_bench():
+def foreach_bench(only_this_suite=None):
     for suite_name, benches in benchmark_suites.items():
+        if only_this_suite != None and only_this_suite != suite_name:
+            continue
         for bench in benches:
             yield suite_name, bench
 
@@ -420,6 +437,7 @@ def dyn_instr(args):
                     -Wno-return-type \
                     -DUSE_OPENMP \
                     -lm \
+                    -g \
                     -L/usr/lib/llvm-10/lib \
                     -I/usr/lib/llvm-10/include/openmp \
                     -fopenmp=libomp \
@@ -495,6 +513,23 @@ def run_dyn_exp(args):
                 os.system(cmd)
                 os.system('sleep 10')
 
+def run_dyn_barrier_elision(args):
+    output_ccenc = os.getenv("OUTPUT_CCENC")
+    output_dyn_bin = os.getenv("OUTPUT_DYN_BIN")
+    output_dyn_exp = os.getenv("OUTPUT_DYN_EXP")
+
+    for scheme in dynamic_schemes:
+        #for client in ['drclient_empty']: #, 'dcce_barrier_elision', 'drcctlib_barrier_elision']:
+        for client in ['dcce_barrier_elision', 'drcctlib_barrier_elision']:
+            for suite_name, bench in foreach_bench('Splash-3'):
+                makedirs(f'{output_dyn_exp}/{scheme}/{client}/{suite_name}')
+                #makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
+            for suite_name, bench in foreach_bench('Splash-3'):
+                cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
+                #cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
+                print(cmd)
+                os.system(cmd)
+                #os.system('sleep 10')
 
 #def run_gprof(stats_dir, bin_dir, num_tests):
 #    cmd_log = []
@@ -523,7 +558,8 @@ def main(args):
             and not args.dyn_instr \
             and not args.run_native_exp \
             and not args.run_static_exp \
-            and not args.run_dyn_exp):
+            and not args.run_dyn_exp \
+            and not args.run_dyn_barrier_elision):
         print("Nothing to do ...\nrun 'run_dcce -h' to see how to use.")
         exit(1)
 
@@ -553,6 +589,8 @@ def main(args):
         run_static_exp(args)
     if (args.run_dyn_exp):
         run_dyn_exp(args)
+    if (args.run_dyn_barrier_elision):
+        run_dyn_barrier_elision(args)
     
 
 def makedirs(dir):
@@ -601,6 +639,9 @@ if __name__== "__main__":
             help='run static instrument experiments')
     parser.add_argument('-run-dyn-exp', action='store_true',
             help='run dynamic instrument experiments')
+    
+    parser.add_argument('-run-dyn-barrier-elision', action='store_true',
+            help='run barrier elision with dynamic instrument')
 
     args = parser.parse_args()
 

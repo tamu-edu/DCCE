@@ -26,7 +26,12 @@ def load_clang_ccw(fname):
                         caller2off2callee2ccw[caller][offset] = 'empty'
                         print(f'caller: {caller}, offset: {offset}, callee-ccw: empty')
                     else:
-                        _, callee, ccw = callee_ccw.split('-')
+                        if len(callee_ccw.split('-')) == 3:
+                            _, callee, ccw = callee_ccw.split('-')
+                        else:
+                            # processing 685:140-find_my_bodies--1,
+                            _, callee, _, _ = callee_ccw.split('-')
+                            ccw = 0
                         assert(callee not in caller2off2callee2ccw[caller][offset])
                         caller2off2callee2ccw[caller][offset][callee] = ccw;
                         print(f'caller: {caller}, offset: {offset}, callee: {callee}, ccw: {ccw}')

@@ -15,7 +15,7 @@ if (UNIX)
 endif (UNIX)
 
 
-add_definitions(-DDCCE_STATS)
+# add_definitions(-DDCCE_STATS)
 
 set(DynamoRIO_USE_LIBC OFF)
 

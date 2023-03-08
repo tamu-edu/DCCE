@@ -1,0 +1,5 @@
+#ifndef __SK_BARRIER__
+#define __SK_BARRIER__
+
+void sk_barrier();
+#endif

@@ -13,6 +13,7 @@
 #include <map>
 #include <unordered_map>
 #include <unistd.h>
+#include <string.h>
 #include <fstream>
 
 #include "libelf.h"
@@ -24,6 +25,10 @@
 #include "drutil.h"
 #include "drwrap.h"
 
+#include "dccelib.h"
+
+#define MAXIMUM_SYMNAME 256
+#define MAXIMUM_FILEPATH 1024
 //------------------------------------------------------
 // Global Variables
 //------------------------------------------------------
@@ -62,7 +67,7 @@ static int global_thread_id_max = 0;
 //------------------------------------------------------
 #ifdef DCCE_STATS
 static void *thread_sync_lock;
-std::vector<per_thread_t*> per_thread_stats;
+static std::vector<per_thread_t*> per_thread_stats;
 #endif
 uint64_t read_ccw_start_time = 0;
 uint64_t read_ccw_end_time = 0;
@@ -395,17 +400,21 @@ dccelib_init(std::string ccw_file_path, void (*pFunc)(void *, instrlist_t*, inst
     drmgr_register_bb_instrumentation_event(
             NULL, event_app_instruction, NULL);
 
-    // for threads
-    dr_fprintf(STDOUT, "drmgr_register_thread_init_event\n");
-    drmgr_register_thread_init_event(event_thread_init);
-    dr_fprintf(STDOUT, "drmgr_register_thread_exit_event\n");
-    drmgr_register_thread_exit_event(event_thread_exit);
-    // init drsym
-    drsym_init(0);
-
     // thread local storage (tls)
     tls_idx = drmgr_register_tls_field();
     DR_ASSERT(tls_idx > -1);
+
+    // for threads
+    drmgr_priority_t thread_init_pri = { sizeof(thread_init_pri), "dccelib_thread_init",
+                                         NULL, NULL, DCCELIB_THREAD_EVENT_PRI };
+    drmgr_priority_t thread_exit_pri = { sizeof(thread_exit_pri), "dceelib_thread_exit",
+                                         NULL, NULL, DCCELIB_THREAD_EVENT_PRI };
+    DR_ASSERT(drmgr_register_thread_init_event(event_thread_init) != 0);
+    DR_ASSERT(drmgr_register_thread_exit_event(event_thread_exit) != 0);
+
+    // init drsym
+    DR_ASSERT(drsym_init(0) == DRSYM_SUCCESS);
+
 }
 
 DR_EXPORT

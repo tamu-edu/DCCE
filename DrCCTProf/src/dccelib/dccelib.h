@@ -13,6 +13,7 @@
 
 #include "dr_api.h"
 
+#define DCCELIB_THREAD_EVENT_PRI 5
 
 DR_EXPORT
 void
