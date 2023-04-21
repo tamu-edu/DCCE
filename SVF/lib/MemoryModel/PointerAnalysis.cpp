@@ -280,6 +280,22 @@ void PointerAnalysis::finalize()
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
                                           3/*pcce_ccid_overhead*/);
+        } else if (Options::InstrMethod.getValue() == "dcce_profile_ecc") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          4/*dcce_profile_ecc*/);
+        } else if (Options::InstrMethod.getValue() == "pcce_profile_ecc") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          5/*pcce_profile_ecc*/);
+        } else if (Options::InstrMethod.getValue() == "dcce_barrier_elider") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          6/*dcce_barrier_elider*/);
+        } else if (Options::InstrMethod.getValue() == "pcce_barrier_elider") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          7/*pcce_barrier_elider*/);
         } else {
             printf("Unknown instrument method: %s\n", Options::InstrMethod.getValue().c_str());
             exit(1);

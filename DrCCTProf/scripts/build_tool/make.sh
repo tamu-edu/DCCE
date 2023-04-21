@@ -12,6 +12,10 @@ for i in "$@"; do
       DEBUG="${i#*=}"
       shift # past argument=value
       ;;
+    --stats=*)
+      STATS="${i#*=}"
+      shift # past argument=value
+      ;;
     -*|--*)
       echo "Unknown option $i"
       exit 1
@@ -61,12 +65,22 @@ if [ "$DEBUG" == "true" ] ; then
         -DCMAKE_C_COMPILER=gcc >$CMAKE_LOG_FILE 2>&1 && \
         echo -e "\033[32m Cmake successfully! \033[0m" || (echo -e "\033[31m Cmake fail! \033[0m"; exit -1)
 else
+  if [ "$STATS" == "true" ] ; then
     cmake $DYNAMORIO_ROOT_PATH \
-        -DBUILD_DOCS=OFF \
-        -DBUILD_SAMPLES=OFF \
-        -DBUILD_TESTS=OFF \
-        -DCMAKE_C_COMPILER=gcc >$CMAKE_LOG_FILE 2>&1 && \
-        echo -e "\033[32m Cmake successfully! \033[0m" || (echo -e "\033[31m Cmake fail! \033[0m"; exit -1)
+      -DSTATS=ON \
+      -DBUILD_DOCS=OFF \
+      -DBUILD_SAMPLES=OFF \
+      -DBUILD_TESTS=OFF \
+      -DCMAKE_C_COMPILER=gcc >$CMAKE_LOG_FILE 2>&1 && \
+      echo -e "\033[32m Cmake successfully! \033[0m" || (echo -e "\033[31m Cmake fail! \033[0m"; exit -1)
+  else
+    cmake $DYNAMORIO_ROOT_PATH \
+      -DBUILD_DOCS=OFF \
+      -DBUILD_SAMPLES=OFF \
+      -DBUILD_TESTS=OFF \
+      -DCMAKE_C_COMPILER=gcc >$CMAKE_LOG_FILE 2>&1 && \
+      echo -e "\033[32m Cmake successfully! \033[0m" || (echo -e "\033[31m Cmake fail! \033[0m"; exit -1)
+  fi
 fi
 
 # start make

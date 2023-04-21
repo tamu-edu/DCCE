@@ -11,39 +11,24 @@ dynamic_schemes = ['dcce']
 
 
 benchmark_suites = {
-    #'test' : [
-    #    '100.test-pcce-fig-4',
-    #    '101.test-pcce-fig-5a',
-    #    '102.test-indirect-call',
-    #    '103.test-libc-nostatic-nodebug',
-    #    '103.test-libc-static-nodebug',
-    #    '103.test-libc-static-debug',
-    #    '104.test-backedge',
-    #    '105.test-functionname',
-    #    '106.test-machinecode',
-    #    #'107.test-memset',
-    #    '108.test-mleak',
-    #    '109.test-matadd',
-    #    #'110.test-tail-call',
-    #],
-
-    'Splash-3' : [
-        '701.BARNES',
-        '702.CHOLESKY',
-        '703.FFT',
-        '704.FMM',
-        '705.LU-CB',
-        '706.LU-NCB',
-        '707.OCEAN-CP',
-        '708.OCEAN-NCP',
-        '709.RADIOSITY',
-        '710.RADIX',
-        '711.RAYTRACE',
-        #'712.VOLREND', # /home/ksungkeun84/git/DCCE/output-issue59-exp1/dynamic_instrument/bin/dcce/Splash-3/712.VOLREND.offset
-        '713.WATER-NSQUARED',
-        '714.WATER-SPATIAL',
+    'test' : [
+        '100.test-pcce-fig-4',
+        #'101.test-pcce-fig-5a',
+        #'102.test-indirect-call',
+        #'103.test-libc-nostatic-nodebug',
+        ##'103.test-libc-static-nodebug',
+        ##'103.test-libc-static-debug',
+        #'104.test-backedge',
+        #'105.test-functionname',
+        #'106.test-machinecode',
+        ##'107.test-memset',
+        #'108.test-mleak',
+        #'109.test-matadd',
+        ##'110.test-tail-call',
+        #'111.test-barrier-elision',
     ],
-    #'Splash-3-barrier-elision' : [
+
+    #'Splash-3' : [
     #    '701.BARNES',
     #    '702.CHOLESKY',
     #    '703.FFT',
@@ -54,6 +39,8 @@ benchmark_suites = {
     #    '708.OCEAN-NCP',
     #    '709.RADIOSITY',
     #    '710.RADIX',
+    #    '711.RAYTRACE',
+    #    #'712.VOLREND',
     #    '713.WATER-NSQUARED',
     #    '714.WATER-SPATIAL',
     #],
@@ -61,20 +48,20 @@ benchmark_suites = {
     #'SPEC2017' : [
     #    #'500.perlbench_r', # MAXID Overflow
     #    #'502.gcc_r', # OOM
-    #    '505.mcf_r',
+    #    #'505.mcf_r',
     #    '508.namd_r',
     #    '510.parest_r',
     #    #'511.povray_r',  # MAXID Overflow
-    #    '519.lbm_r',
-    #    '520.omnetpp_r',
-    #    '523.xalancbmk_r',
-    #    '525.x264_r',
+    #    #'519.lbm_r',
+    #    #'520.omnetpp_r',
+    #    #'523.xalancbmk_r',
+    #    #'525.x264_r',
     #    #'526.blender_r',
     #    #'531.deepsjeng_r',  # OOM
     #    #'538.imagick_r', # MAXID Overflow
-    #    '541.leela_r',
+    #    #'541.leela_r',
     #    #'544.nab_r',  # never finished
-    #    '557.xz_r',
+    #    #'557.xz_r',
     #    #'600.perlbench_s', # MAXID Overflow
     #    #'602.gcc_s',
     #    '605.mcf_s',
@@ -87,6 +74,14 @@ benchmark_suites = {
     #    '641.leela_s',
     #    #'644.nab_s', # never finished
     #    '657.xz_s',
+    #],
+
+    #'extra': [
+    #    #'801.backprop',
+    #    '802.lud',
+    #    #'803.pagerank',
+    #    #'804.sgemm',
+    #    #'805.spmv',
     #],
 }
 
@@ -141,6 +136,8 @@ cmd_options = {
         '108.test-mleak': '57374182', #'1073741823', 
         '109.test-matadd': '',
         '110.test-tail-call': '',
+        '111.test-barrier-elision': '',
+
         '701.BARNES'         : f' < {os.getenv("SPLASH3_ROOT")}/apps/barnes/inputs/n8k-p2',
         '702.CHOLESKY'       : f' -p2 < {os.getenv("SPLASH3_ROOT")}/kernels/cholesky/inputs/tk29.O',
         '703.FFT'            : f' -p2 -m28',
@@ -170,6 +167,12 @@ cmd_options = {
         #'712.VOLREND'        : f' 16 {os.getenv("SPLASH3_ROOT")}/apps/volrend/inputs/head 8',
         #'713.WATER-NSQUARED' : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-nsquared/inputs/n512-p8',
         #'714.WATER-SPATIAL'  : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-spatial/inputs/n512-p8',
+
+        #'801.backprop': '2097152 8',        # 8 is num_thread
+        '802.lud':     '-s4096 -n8 -f 0.75 -t 1000', # -n8 is num_thread
+        '803.pagerank': '1 8 ./sample.txt', # 8 is num_thread
+        #'804.sgemm':   '-i 4096,4096,4096 -n 8 -s 1 -t', # 8 is num_thread
+        '805.spmv': '4096 8 0.3', # 8 is num_thread
     }
 
 def foreach_bench(only_this_suite=None):
@@ -211,46 +214,38 @@ def run_cmd(cmd, log=None, force_exit=True):
         if force_exit:
             exit(1)
 
-def build():
+def build(debug=False):
     makedirs(os.getenv('DCCE_RTLIB_BUILD_DIR'))
     makedirs(os.getenv('PCCE_RTLIB_BUILD_DIR'))
 
-    cmd = f'cd {os.getenv("SVF_ROOT")} && bash build.sh; cd {os.getenv("DCCE_ROOT")}'
-    run_cmd(cmd)
+    # Build benchmarks
+    cmd = f'cd {os.getenv("CPU2017_ROOT")} && bash cp_bin.sh /home/ksungkeun84/benchmarks/cpu2017-dcce; cd {os.getenv("DCCE_ROOT")}'
+    os.system(cmd)
 
-    cmd = f'cd {os.getenv("DCCE_RTLIB_BUILD_DIR")} && cmake .. && make -j4; cd {os.getenv("DCCE_ROOT")}'
-    run_cmd(cmd)
-
-    cmd = f'cd {os.getenv("PCCE_RTLIB_BUILD_DIR")} && cmake .. && make -j4; cd {os.getenv("DCCE_ROOT")}'
-    run_cmd(cmd)
-    
     cmd = f'cd {os.getenv("TEST_ROOT")} && make ; cd {os.getenv("DCCE_ROOT")}'
-    run_cmd(cmd)
+    os.system(cmd)
     
     cmd = f'cd {os.getenv("SPLASH3_ROOT")} && make ; cd {os.getenv("DCCE_ROOT")}'
-    run_cmd(cmd)
-    
-    cmd = f'cd {os.getenv("SPLASH3_BARRIER_ELISION_ROOT")} && make ; cd {os.getenv("DCCE_ROOT")}'
-    run_cmd(cmd)
+    os.system(cmd)
 
-def build_llvm():
+    if debug:
+        cmd = f'cd {os.getenv("DCCE_RTLIB_BUILD_DIR")} && cmake .. -DCMAKE_BUILD_TYPE=Debug && make -j4; cd {os.getenv("DCCE_ROOT")}'
+    else:
+        cmd = f'cd {os.getenv("DCCE_RTLIB_BUILD_DIR")} && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4; cd {os.getenv("DCCE_ROOT")}'
+    os.system(cmd)
+
+    if debug:
+        cmd = f'cd {os.getenv("PCCE_RTLIB_BUILD_DIR")} && cmake .. -DCMAKE_BUILD_TYPE=Debug && make -j4; cd {os.getenv("DCCE_ROOT")}'
+    else:
+        cmd = f'cd {os.getenv("PCCE_RTLIB_BUILD_DIR")} && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4; cd {os.getenv("DCCE_ROOT")}'
+    os.system(cmd)
+    
     cmd = f'cd {os.getenv("LLVM_ROOT")} && build compile.sh; cd {os.getenv("DCCE_ROOT")}'
     os.system(cmd)
-
-def build_svf():
-    cmd = f'cd {os.getenv("SVF_ROOT")} && bash build.sh ; cd {os.getenv("DCCE_ROOT")}'
+    
+    cmd = f'cd {os.getenv("SVF_ROOT")} && bash build.sh; cd {os.getenv("DCCE_ROOT")}'
     os.system(cmd)
 
-
-def build_runtime():
-    makedirs(os.getenv('DCCE_RTLIB_BUILD_DIR'))
-    makedirs(os.getenv('PCCE_RTLIB_BUILD_DIR'))
-
-    cmd = f'cd {os.getenv("DCCE_RTLIB_BUILD_DIR")} && cmake .. && make -j4; cd {os.getenv("DCCE_ROOT")}'
-    os.system(cmd)
-
-    cmd = f'cd {os.getenv("PCCE_RTLIB_BUILD_DIR")} && cmake .. && make -j4; cd {os.getenv("DCCE_ROOT")}'
-    os.system(cmd)
 
 def clean():
     run_cmd('rm -rf %s' % os.getenv('DCCE_RTLIB_BUILD_DIR'))
@@ -332,7 +327,9 @@ def static_instr():
     output_bitcode = os.getenv("OUTPUT_BITCODE")
     output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
 
-    clients = ['ccid_overhead_only_update', 'ccid_overhead']
+    clients = ['ccid_overhead']
+    #clients = ['ccid_overhead_only_update', 'ccid_overhead']
+    #clients = ['profile_ecc', 'barrier_elider']
     for scheme in static_schemes:
         for client in clients:
             for suite_name, _ in benchmark_suites.items():
@@ -364,7 +361,7 @@ def static_instr():
                             -fno-strict-aliasing \
                             -fuse-ld=lld \
                             -lm \
-                            -lrtlib \
+                            -lrtlib_{scheme} \
                             -L{rtlib_path} \
                             -o {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}'
                 else:
@@ -377,11 +374,12 @@ def static_instr():
                             -Wno-return-type \
                             -DUSE_OPENMP \
                             -lm \
-                            -lrtlib \
+                            -lrtlib_{scheme} \
                             -L/usr/lib/llvm-10/lib \
                             -L{rtlib_path} \
                             -I/usr/lib/llvm-10/include/openmp \
                             -fopenmp=libomp \
+                            -lpthread \
                             -o {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}'
 
                 log = f'{output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.build.log'
@@ -437,7 +435,6 @@ def dyn_instr(args):
                     -Wno-return-type \
                     -DUSE_OPENMP \
                     -lm \
-                    -g \
                     -L/usr/lib/llvm-10/lib \
                     -I/usr/lib/llvm-10/include/openmp \
                     -fopenmp=libomp \
@@ -484,7 +481,9 @@ def run_static_exp(args):
     output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
     output_static_exp = os.getenv("OUTPUT_STATIC_EXP")
 
-    clients = ['ccid_overhead', 'ccid_overhead_only_update']
+    clients = ['profile_ecc', 'barrier_elider']
+    #clients = ['ccid_overhead', 'ccid_overhead_only_update']
+    #clients = ['ccid_overhead']
     for scheme in static_schemes:
         for client in clients:
             for suite_name, bench in foreach_bench():
@@ -495,6 +494,20 @@ def run_static_exp(args):
                 os.system(cmd)
                 os.system('sleep 10')
 
+#def run_static_barrier_elision(args):
+#    output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
+#    output_static_exp = os.getenv("OUTPUT_STATIC_EXP")
+#
+#    clients = ['profile_ecc', 'barrier_elider']
+#    for scheme in static_schemes:
+#        for client in clients:
+#            for suite_name, bench in foreach_bench():
+#                makedirs(f'{output_static_exp}/{scheme}/{client}/{suite_name}')
+#            for suite_name, bench in foreach_bench():
+#                cmd = f'/usr/bin/time -v {output_static_bin}/{scheme}/{client}/{suite_name}/{bench} {cmd_options[bench]} > {output_static_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
+#                print(cmd)
+#                os.system(cmd)
+
 def run_dyn_exp(args):
     output_ccenc = os.getenv("OUTPUT_CCENC")
     output_dyn_bin = os.getenv("OUTPUT_DYN_BIN")
@@ -502,7 +515,7 @@ def run_dyn_exp(args):
 
     for scheme in dynamic_schemes:
         #for client in ['drclient_empty', 'dcce_ccid_overhead_only_update', 'dcce_ccid_overhead', 'drcctlib_ccid_overhead_only_update', 'drcctlib_ccid_overhead']:
-        for client in ['dcce_ccid_overhead']:
+        for client in ['drclient_empty', 'dcce_barrier_elision', 'drcctlib_barrier_elision']:
             for suite_name, bench in foreach_bench():
                 makedirs(f'{output_dyn_exp}/{scheme}/{client}/{suite_name}')
                 #makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
@@ -513,23 +526,23 @@ def run_dyn_exp(args):
                 os.system(cmd)
                 os.system('sleep 10')
 
-def run_dyn_barrier_elision(args):
-    output_ccenc = os.getenv("OUTPUT_CCENC")
-    output_dyn_bin = os.getenv("OUTPUT_DYN_BIN")
-    output_dyn_exp = os.getenv("OUTPUT_DYN_EXP")
-
-    for scheme in dynamic_schemes:
-        #for client in ['drclient_empty']: #, 'dcce_barrier_elision', 'drcctlib_barrier_elision']:
-        for client in ['dcce_barrier_elision', 'drcctlib_barrier_elision']:
-            for suite_name, bench in foreach_bench('Splash-3'):
-                makedirs(f'{output_dyn_exp}/{scheme}/{client}/{suite_name}')
-                #makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
-            for suite_name, bench in foreach_bench('Splash-3'):
-                cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
-                #cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
-                print(cmd)
-                os.system(cmd)
-                #os.system('sleep 10')
+#def run_dyn_barrier_elision(args):
+#    output_ccenc = os.getenv("OUTPUT_CCENC")
+#    output_dyn_bin = os.getenv("OUTPUT_DYN_BIN")
+#    output_dyn_exp = os.getenv("OUTPUT_DYN_EXP")
+#
+#    for scheme in dynamic_schemes:
+#        #for client in ['drclient_empty']: #, 'dcce_barrier_elision', 'drcctlib_barrier_elision']:
+#        for client in ['dcce_barrier_elision', 'drcctlib_barrier_elision']:
+#            for suite_name, bench in foreach_bench():
+#                makedirs(f'{output_dyn_exp}/{scheme}/{client}/{suite_name}')
+#                #makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
+#            for suite_name, bench in foreach_bench():
+#                cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
+#                #cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
+#                print(cmd)
+#                os.system(cmd)
+#                #os.system('sleep 10')
 
 #def run_gprof(stats_dir, bin_dir, num_tests):
 #    cmd_log = []
@@ -546,9 +559,7 @@ def run_dyn_barrier_elision(args):
 #    print('Running gprof is done')
 
 def main(args):
-    if (not args.build \
-            and not args.build_llvm \
-            and not args.build_svf \
+    if (not args.build_debug \
             and not args.build_runtime \
             and not args.clean \
             and not args.extract_bitcode \
@@ -558,21 +569,17 @@ def main(args):
             and not args.dyn_instr \
             and not args.run_native_exp \
             and not args.run_static_exp \
-            and not args.run_dyn_exp \
-            and not args.run_dyn_barrier_elision):
+            and not args.run_dyn_exp):
         print("Nothing to do ...\nrun 'run_dcce -h' to see how to use.")
         exit(1)
 
-    if (args.build):
-        build()
-    if (args.build_llvm):
-        build_llvm()
-    if (args.build_svf):
-        build_svf()
+    if (args.build_debug):
+        build(True)
     if (args.build_runtime):
-        build_runtime()
+        build(False)
     if (args.clean):
         clean()
+
     if (args.extract_bitcode):
         extract_bitcode()
     if (args.callgraph):
@@ -589,8 +596,6 @@ def main(args):
         run_static_exp(args)
     if (args.run_dyn_exp):
         run_dyn_exp(args)
-    if (args.run_dyn_barrier_elision):
-        run_dyn_barrier_elision(args)
     
 
 def makedirs(dir):
@@ -605,14 +610,10 @@ if __name__== "__main__":
     parser = argparse.ArgumentParser(\
             description='Main program to run DCCE project.')
 
-    parser.add_argument('-build', action='store_true',
-            help='build SVF')
-    parser.add_argument('-build-llvm', action='store_true',
-            help='build llvm.')
-    parser.add_argument('-build-svf', action='store_true',
-            help='build svf binaries.')
+    parser.add_argument('-build-debug', action='store_true',
+            help='build benchmarks, LLVM, SVF, and runtime with debug and static flag')
     parser.add_argument('-build-runtime', action='store_true',
-            help='build runtime.')
+            help='build benchmarks, LLVM, SVF, and runtime without release and static flag')
     parser.add_argument('-clean', action='store_true',
             help='clean all the output files.')
    
@@ -640,8 +641,10 @@ if __name__== "__main__":
     parser.add_argument('-run-dyn-exp', action='store_true',
             help='run dynamic instrument experiments')
     
-    parser.add_argument('-run-dyn-barrier-elision', action='store_true',
-            help='run barrier elision with dynamic instrument')
+    #parser.add_argument('-run-dyn-barrier-elision', action='store_true',
+    #        help='run barrier elision with dynamic instrument')
+    #parser.add_argument('-run-static-barrier-elision', action='store_true',
+    #        help='run barrier elision with static instrument')
 
     args = parser.parse_args()
 

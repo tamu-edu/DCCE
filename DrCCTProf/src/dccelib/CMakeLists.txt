@@ -15,7 +15,10 @@ if (UNIX)
 endif (UNIX)
 
 
-# add_definitions(-DDCCE_STATS)
+if (STATS)
+  message (WARNING "building with DCCE_STATS")
+  add_definitions(-DDCCE_STATS)
+endif (STATS)
 
 set(DynamoRIO_USE_LIBC OFF)
 

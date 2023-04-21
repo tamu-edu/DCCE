@@ -16,6 +16,10 @@ for i in "$@"; do
       DEBUG="${i#*=}"
       shift # past argument=value
       ;;
+    --stats=*)
+      STATS="${i#*=}"
+      shift # past argument=value
+      ;;
     -*|--*)
       echo "Unknown option $i"
       exit 1
@@ -35,7 +39,7 @@ echo -e "init env..."
 $CUR_DIR/scripts/build_tool/env_init.sh
 
 echo -e "make..."
-$CUR_DIR/scripts/build_tool/make.sh --debug=${DEBUG}
+$CUR_DIR/scripts/build_tool/make.sh --debug=${DEBUG} --stats=${STATS}
 
 echo -e "make test..."
 $CUR_DIR/scripts/build_tool/make_tests.sh --debug=${DEBUG}

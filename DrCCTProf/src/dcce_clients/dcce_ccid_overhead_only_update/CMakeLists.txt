@@ -29,7 +29,10 @@ add_library(dcce_ccid_overhead_only_update SHARED
 dcce_ccid_overhead_only_update.cpp
   )
 
-#add_definitions(-DDCCE_STATS)
+if (STATS)
+  message(WARNING "building with DCCE_STATS")
+  add_definitions(-DDCCE_STATS)
+endif (STATS)
 
 configure_DynamoRIO_client(dcce_ccid_overhead_only_update)
 use_DynamoRIO_extension(dcce_ccid_overhead_only_update dccelib)

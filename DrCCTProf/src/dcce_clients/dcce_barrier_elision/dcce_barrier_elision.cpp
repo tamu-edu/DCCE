@@ -59,41 +59,8 @@ static void *thread_sync_lock;
 static std::vector<per_thread_t*> per_thread_stats;
 #endif
 
-bool isBarrierCall(app_pc addr)
-{
-#define MAXIMUM_SYMNAME 256
-#define MAXIMUM_FILEPATH 1024
-  module_data_t *data = NULL;
-  data = dr_lookup_module(addr);
-  if (data == NULL) {
-    return false;
-  }
-
-  drsym_error_t symres;
-  drsym_info_t sym;
-  char name[MAXIMUM_SYMNAME];
-  char file[MAXIMUM_FILEPATH];
-
-  sym.struct_size = sizeof(sym);
-  sym.name = name;
-  sym.name_size = MAXIMUM_SYMNAME;
-  sym.file = file;
-  sym.file_size = MAXIMUM_FILEPATH;
-  symres = drsym_lookup_address(
-      data->full_path, addr - data->start, &sym,
-      DRSYM_LEAVE_MANGLED);
-
-  if (symres == DRSYM_SUCCESS && strstr(sym.name, "sk_barrier") != NULL) {
-    dr_free_module_data(data);
-    return true;
-  }
-
-  dr_free_module_data(data);
-  return false;
-}
-
-void
-CallbackOnBarrier(app_pc instr_addr, app_pc target_addr)
+static void
+pthread_create_called(void *wrapcxt, void **user_data)
 {
 #ifdef BARRIER_STATS
   void *drcontext = dr_get_current_drcontext();
@@ -114,22 +81,61 @@ CallbackOnBarrier(app_pc instr_addr, app_pc target_addr)
 #endif
 }
 
+app_pc GetFuncEntry(const module_data_t *info, const char* funcName) {
+    app_pc func_entry;
+    size_t offs;
+    if (drsym_lookup_symbol(info->full_path, funcName, &offs, DRSYM_DEMANGLE) == DRSYM_SUCCESS) {
+      func_entry = offs + info->start;
+    } else {
+      func_entry = NULL;
+    }
+
+    return func_entry;
+}
+
+static void
+EventModuleLoad(void *drcontext, const module_data_t *info, bool loaded)
+{
+#define PTHREAD_CREATE ("pthread_create")
+#define PTHREAD_COND_BROADCASE ("pthread_cond_broadcase")
+#define PTHREAD_COND_WAIT ("pthread_cond_wait")
+
+    app_pc func_entry = GetFuncEntry(info, PTHREAD_CREATE);
+    if (func_entry != NULL) {
+      if (drwrap_wrap(func_entry, pthread_create_called, NULL)) {
+        dr_fprintf(STDOUT, "Success Hooking %s\n", PTHREAD_CREATE);
+      } else {
+        dr_fprintf(STDOUT, "Fail Hooking %s\n", PTHREAD_CREATE);
+      }
+    }
+    
+    func_entry = GetFuncEntry(info, PTHREAD_COND_BROADCASE);
+    if (func_entry != NULL) {
+      if (drwrap_wrap(func_entry, pthread_create_called, NULL)) {
+        dr_fprintf(STDOUT, "Success Hooking %s\n", PTHREAD_COND_BROADCASE);
+      } else {
+        dr_fprintf(STDOUT, "Fail Hooking %s\n", PTHREAD_COND_BROADCASE);
+      }
+    }
+
+    func_entry = GetFuncEntry(info, PTHREAD_COND_WAIT);
+    if (func_entry != NULL) {
+      if (drwrap_wrap(func_entry, pthread_create_called, NULL)) {
+        dr_fprintf(STDOUT, "Success Hooking %s\n", PTHREAD_COND_WAIT);
+      } else {
+        dr_fprintf(STDOUT, "Fail Hooking %s\n", PTHREAD_COND_WAIT);
+      }
+    }
+}
+
+static void
+EventModuleUnload(void *drcontext, const module_data_t *info)
+{
+}
+
   void
 InsTransEventCallback(void* drcontext, instrlist_t* bb, instr_t* instr)
 {
-  app_pc address = instr_get_app_pc(instr);
-
-  if (instr_is_call_direct(instr) || instr_is_call_indirect(instr)) {
-    app_pc target_addr = opnd_get_pc(instr_get_target(instr));
-    if (isBarrierCall(target_addr)) {
-      dr_insert_clean_call(
-          drcontext, bb, instr,
-          (void *)CallbackOnBarrier, false,
-          2,
-          OPND_CREATE_INTPTR(address),
-          OPND_CREATE_INTPTR(target_addr));
-    }
-  }
 }
 
   static void
@@ -167,9 +173,9 @@ EventThreadExit(void *drcontext)
 ClientInit(int argc, const char *argv[])
 {
   dr_fprintf(STDOUT, "Starting client dcce_barrier_elision %d\n", my_id);
-  if (!drmgr_init()) {
+  if (!drmgr_init() || !drwrap_init()) {
     dr_fprintf(STDOUT,
-        "ERROR: unable to initialize drmgr");
+        "ERROR: unable to initialize drmgr or drwrap");
     exit(1);
   }
 #ifdef BARRIER_STATS
@@ -182,6 +188,15 @@ ClientInit(int argc, const char *argv[])
     dr_fprintf(STDERR, "Usage error: %s\n", parse_err.c_str());
     dr_abort();
   }
+    
+  drwrap_set_global_flags(DRWRAP_SAFE_READ_RETADDR);
+  drwrap_set_global_flags(DRWRAP_SAFE_READ_ARGS);
+  drmgr_priority_t module_load_pri = { sizeof(module_load_pri), "dcce_barrier_elision_load",
+    NULL, NULL, DCCELIB_MODULE_REGISTER_PRI+1 };
+    drmgr_priority_t module_unload_pri = { sizeof(module_unload_pri), "dcce_barrier_elision_unload",
+      NULL, NULL, DCCELIB_MODULE_REGISTER_PRI+1 };
+  drmgr_register_module_load_event_ex(EventModuleLoad, &module_load_pri);
+  drmgr_register_module_unload_event_ex(EventModuleUnload, &module_unload_pri);
 
   drmgr_priority_t thread_init_pri = { sizeof(thread_init_pri),
     "dccelib_barrier_thread_init", NULL, NULL,
@@ -249,6 +264,9 @@ ClientExit(void)
     dr_fprintf(STDOUT,
         "ERROR: failed to unregister in ClientExit");
   }
+
+  drmgr_unregister_module_load_event(EventModuleLoad);
+  drmgr_unregister_module_unload_event(EventModuleUnload);
 }
 
 #ifdef __cplusplus

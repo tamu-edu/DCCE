@@ -24,12 +24,15 @@ if (UNIX)
 endif (UNIX)
 
 # add third-party libraries
+if (STATS)
+  message(WARNING "building with BARRIER_STATS")
+  add_definitions(-DBARRIER_STATS)
+endif (STATS)
 
 add_library(drcctlib_barrier_elision SHARED
 drcctlib_barrier_elision.cpp
   )
 
-add_definitions(-DBARRIER_STATS)
 
 configure_DynamoRIO_client(drcctlib_barrier_elision)
 use_DynamoRIO_extension(drcctlib_barrier_elision drcctlib)

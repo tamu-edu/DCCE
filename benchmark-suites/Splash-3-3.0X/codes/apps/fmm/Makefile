@@ -1,5 +1,5 @@
 TARGET = $(OUTPUT_BIN)/Splash-3/704.FMM
-OBJS = box.o construct_grid.o cost_zones.o defs.o fmm.o interactions.o memory.o particle.o partition_grid.o sk_barrier.o
+OBJS = box.o construct_grid.o cost_zones.o defs.o fmm.o interactions.o memory.o particle.o partition_grid.o
 
 include ../../Makefile.config
 
@@ -24,4 +24,3 @@ particle.o: particle.c.in defs.h memory.h particle.h
 memory.o: memory.c.in defs.h memory.h
 defs.o: defs.c.in defs.h memory.h
 memory.h: defs.h particle.h box.h
-sk_barrier.o: sk_barrier.c.in sk_barrier.h

@@ -26,7 +26,8 @@ all: 100.test-pcce-fig-4 \
 	107.test-memset \
 	108.test-mleak \
 	109.test-matadd \
-	110.test-tail-call
+	110.test-tail-call \
+	111.test-barrier-elision
 
 ${OBJ_DIR}/100.test-pcce-fig-4.o: ${TEST_ROOT}/100.test-pcce-fig-4.c 
 	${dir_guard}
@@ -84,6 +85,10 @@ ${OBJ_DIR}/110.test-tail-call-foo.o: ${TEST_ROOT}/110.test-tail-call-foo.c
 	${dir_guard}
 	clang  ${CFLAGS} -I${OPENMP_INCLUDE_DIR} -fopenmp=libomp -c $^ -o $@ -O3
 
+${OBJ_DIR}/111.test-barrier-elision.o: ${TEST_ROOT}/111.test-barrier-elision.c
+	${dir_guard}
+	clang ${CFLAGS} -c $^ -o $@ -g
+
 100.test-pcce-fig-4: ${OBJ_DIR}/100.test-pcce-fig-4.o
 	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@
 
@@ -122,6 +127,9 @@ ${OBJ_DIR}/110.test-tail-call-foo.o: ${TEST_ROOT}/110.test-tail-call-foo.c
 
 110.test-tail-call: ${OBJ_DIR}/110.test-tail-call-main.o ${OBJ_DIR}/110.test-tail-call-foo.o
 	clang ${CFLAGS} ${LTO_OPTION} $^ -o ${TEST_BIN_ROOT}/$@ -O3
+
+111.test-barrier-elision: ${OBJ_DIR}/111.test-barrier-elision.o
+	clang ${CFLAGS} ${LTO_OPTION} $^ -lpthread -o ${TEST_BIN_ROOT}/$@ -g
 
 .PHONY: clean
 	

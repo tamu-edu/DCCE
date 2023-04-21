@@ -24,3 +24,7 @@ Copy executable to output directory
 ```sh
 ./cp_bin.sh [cpu2017 install path]
 ```
+
+```sh
+./cpu_bin.sh /home/ksungkeun84/benchmarks/cpu2017-dcce
+```

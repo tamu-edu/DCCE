@@ -1,5 +1,5 @@
 TARGET = $(OUTPUT_BIN)/Splash-3/714.WATER-SPATIAL
-OBJS = bndry.o cnstnt.o cshift.o initia.o interf.o intraf.o kineti.o mdmain.o poteng.o predcor.o syscons.o water.o sk_barrier.o
+OBJS = bndry.o cnstnt.o cshift.o initia.o interf.o intraf.o kineti.o mdmain.o poteng.o predcor.o syscons.o water.o
 
 include ../../Makefile.config
 
@@ -15,4 +15,3 @@ poteng.o: poteng.c.in global.h split.h mdvar.h frcnst.h water.h wwpot.h paramete
 predcor.o: predcor.c.in split.h mdvar.h parameters.h mddata.h global.h
 syscons.o: syscons.c.in parameters.h mdvar.h water.h wwpot.h cnst.h mddata.h global.h
 water.o: water.c.in parameters.h mdvar.h water.h wwpot.h cnst.h mddata.h fileio.h frcnst.h randno.h global.h split.h
-sk_barrier.o: sk_barrier.c.in sk_barrier.h

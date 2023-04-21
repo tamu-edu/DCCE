@@ -30,7 +30,10 @@ add_library(drclient_barrier_profile SHARED
 drclient_barrier_profile.cpp
   )
 
-add_definitions(-DDCCE_STATS)
+if (STATS)
+  message(WARNING "building with DCCE_STATS")
+  add_definitions(-DDCCE_STATS)
+endif (STATS)
 
 configure_DynamoRIO_client(drclient_barrier_profile)
 #use_DynamoRIO_extension(drclient_barrier_profile drcctlib)
