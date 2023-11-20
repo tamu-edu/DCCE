@@ -6,5 +6,9 @@ if (CMAKE_BUILD_TYPE MATCHES Debug)
 add_definitions(-DDEBUG)
 endif()
 
+if (CMAKE_BUILD_TYPE MATCHES Verbose)
+  add_definitions(-DVERBOSE)
+endif()
+
 include_directories(../utils)
 add_library(rtlib_dcce SHARED rtlib.cc ../utils/utils.cc)

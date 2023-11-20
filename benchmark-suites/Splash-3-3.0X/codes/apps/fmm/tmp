@@ -1,0 +1,51 @@
+Creating a two cluster, non uniform distribution for 2048 particles
+[Thread-140326421534528] Entered Barrier
+Starting FMM with 1 processor
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+[Thread-140326421534528] Entered Barrier
+Finished FMM
+                                   PROCESS STATISTICS
+             Track        Tree        List        Part        Pass       Inter        Bar        Intra       Other
+ Proc        Time         Time        Time        Time        Time       Time         Time       Time        Time
+    0            0           0           0           0           0           0           0           0           0
+
+                                   TIMING INFORMATION
+Start time                        :       1692714546
+Initialization finish time        :       1692714546
+Overall finish time               :       1692714546
+Total time with initialization    :                0
+Total time without initialization :                0
+
+Total time for steps 3 to 5 :            0
+

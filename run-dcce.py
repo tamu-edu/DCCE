@@ -5,28 +5,30 @@ import argparse
 import shlex
 import threading
 from subprocess import Popen, PIPE
+import time
+
 
 static_schemes = ['pcce', 'dcce']
 dynamic_schemes = ['dcce']
 
 
 benchmark_suites = {
-    'test' : [
-        '100.test-pcce-fig-4',
-        #'101.test-pcce-fig-5a',
-        #'102.test-indirect-call',
-        #'103.test-libc-nostatic-nodebug',
-        ##'103.test-libc-static-nodebug',
-        ##'103.test-libc-static-debug',
-        #'104.test-backedge',
-        #'105.test-functionname',
-        #'106.test-machinecode',
-        ##'107.test-memset',
-        #'108.test-mleak',
-        #'109.test-matadd',
-        ##'110.test-tail-call',
-        #'111.test-barrier-elision',
-    ],
+    #'test' : [
+    #    '100.test-pcce-fig-4',
+    #    '101.test-pcce-fig-5a',
+    #    '102.test-indirect-call',
+    #    '103.test-libc-nostatic-nodebug',
+    #    #'103.test-libc-static-nodebug',
+    #    #'103.test-libc-static-debug',
+    #    '104.test-backedge',
+    #    '105.test-functionname',
+    #    '106.test-machinecode',
+    #    #'107.test-memset',
+    #    '108.test-mleak',
+    #    '109.test-matadd',
+    #    #'110.test-tail-call',
+    #    '111.test-barrier-elision',
+    #],
 
     #'Splash-3' : [
     #    '701.BARNES',
@@ -45,36 +47,36 @@ benchmark_suites = {
     #    '714.WATER-SPATIAL',
     #],
 
-    #'SPEC2017' : [
-    #    #'500.perlbench_r', # MAXID Overflow
-    #    #'502.gcc_r', # OOM
-    #    #'505.mcf_r',
-    #    '508.namd_r',
-    #    '510.parest_r',
-    #    #'511.povray_r',  # MAXID Overflow
-    #    #'519.lbm_r',
-    #    #'520.omnetpp_r',
-    #    #'523.xalancbmk_r',
-    #    #'525.x264_r',
-    #    #'526.blender_r',
-    #    #'531.deepsjeng_r',  # OOM
-    #    #'538.imagick_r', # MAXID Overflow
-    #    #'541.leela_r',
-    #    #'544.nab_r',  # never finished
-    #    #'557.xz_r',
-    #    #'600.perlbench_s', # MAXID Overflow
-    #    #'602.gcc_s',
-    #    '605.mcf_s',
-    #    '619.lbm_s',
-    #    '620.omnetpp_s',
-    #    '623.xalancbmk_s',
-    #    '625.x264_s',
-    #    #'631.deepsjeng_s', # OOM
-    #    #'638.imagick_s', # MAXID Overflow
-    #    '641.leela_s',
-    #    #'644.nab_s', # never finished
-    #    '657.xz_s',
-    #],
+    'SPEC2017' : [
+        #'500.perlbench_r', # MAXID Overflow
+        #'502.gcc_r', # OOM
+        '505.mcf_r',
+        '508.namd_r',
+        '510.parest_r',
+        #'511.povray_r',  # MAXID Overflow
+        '519.lbm_r',
+        '520.omnetpp_r',
+        '523.xalancbmk_r',
+        '525.x264_r',
+        #'526.blender_r',
+        #'531.deepsjeng_r',  # OOM
+        #'538.imagick_r', # MAXID Overflow
+        '541.leela_r',
+        #'544.nab_r',  # never finished
+        '557.xz_r',
+        ##'600.perlbench_s', # MAXID Overflow
+        ##'602.gcc_s',
+        ##'605.mcf_s',
+        ##'619.lbm_s',
+        ##'620.omnetpp_s',
+        ##'623.xalancbmk_s',
+        ##'625.x264_s',
+        ##'631.deepsjeng_s', # OOM
+        ##'638.imagick_s', # MAXID Overflow
+        ##'641.leela_s',
+        ##'644.nab_s', # never finished
+        ##'657.xz_s',
+    ],
 
     #'extra': [
     #    #'801.backprop',
@@ -138,20 +140,20 @@ cmd_options = {
         '110.test-tail-call': '',
         '111.test-barrier-elision': '',
 
-        '701.BARNES'         : f' < {os.getenv("SPLASH3_ROOT")}/apps/barnes/inputs/n8k-p2',
+        '701.BARNES'         : f' < {os.getenv("SPLASH3_ROOT")}/apps/barnes/inputs/n2097152-p8',
         '702.CHOLESKY'       : f' -p2 < {os.getenv("SPLASH3_ROOT")}/kernels/cholesky/inputs/tk29.O',
         '703.FFT'            : f' -p2 -m28',
-        '704.FMM'            : f' < {os.getenv("SPLASH3_ROOT")}/apps/fmm/inputs/input.2.16384',
+        '704.FMM'            : f' < {os.getenv("SPLASH3_ROOT")}/apps/fmm/inputs/input.8.2097152',
         '705.LU-CB'          : f' -p2 -n4096',
         '706.LU-NCB'         : f' -p2 -n4096',
         '707.OCEAN-CP'       : f' -p2 -n4098', 
         '708.OCEAN-NCP'      : f' -p2 -n4098',
-        '709.RADIOSITY'      : f' -p 2 -tq 200 -ae 5000 -bf 0.1 -en 0.05 -room -batch',
+        '709.RADIOSITY'      : f' -p 8 -tq 200 -ae 5000 -bf 0.0005 -en 0.05 -largeroom -batch',
         '710.RADIX'          : f' -p2 -n92048576',  #n1048576
         '711.RAYTRACE'       : f' -p2 -m64 {os.getenv("SPLASH3_ROOT")}/apps/raytrace/inputs/balls4.env',
         '712.VOLREND'        : f' 16 {os.getenv("SPLASH3_ROOT")}/apps/volrend/inputs/head 8',
-        '713.WATER-NSQUARED' : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-nsquared/inputs/n4096-p2',
-        '714.WATER-SPATIAL'  : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-spatial/inputs/n4096-p2',
+        '713.WATER-NSQUARED' : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-nsquared/inputs/n8000-p8',
+        '714.WATER-SPATIAL'  : f' < {os.getenv("SPLASH3_ROOT")}/apps/water-spatial/inputs/n32768-p8',
         
         #'701.BARNES'         : f' < {os.getenv("SPLASH3_ROOT")}/apps/barnes/inputs/n8k-p8',
         #'702.CHOLESKY'       : f' -p8 < {os.getenv("SPLASH3_ROOT")}/kernels/cholesky/inputs/tk29.O',
@@ -284,6 +286,8 @@ def extract_bitcode():
     run_cmd_foreach_bench(cmd_log)
 
 def callgraph():
+    start_time = time.time()
+
     output_cg = os.getenv("OUTPUT_CG")
     output_bitcode = os.getenv("OUTPUT_BITCODE")
     for suite_name, _ in benchmark_suites.items():
@@ -304,9 +308,12 @@ def callgraph():
         cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
 
-    print(f'Callgraphs are generated in {output_cg}')
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f'Callgraphs are generated in {output_cg}, execution time: {execution_time}')
 
 def ccenc(args):
+    start_time = time.time()
     ccenc_root = os.getenv("OUTPUT_CCENC")
     for scheme in static_schemes:
         for suite_name, _ in benchmark_suites.items():
@@ -320,16 +327,20 @@ def ccenc(args):
             log = f'{ccenc_root}/{scheme}/{suite_name}/{bench}.ccenc.log'
             cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
-    print(f'Calling context encoding is done and outputs are stored in {ccenc_root}')
+    
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f'Calling context encoding is done and outputs are stored in {ccenc_root}, execution time: {execution_time}')
 
 def static_instr():
+    start_time = time.time()
     output_ccenc = os.getenv("OUTPUT_CCENC")
     output_bitcode = os.getenv("OUTPUT_BITCODE")
     output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
 
-    clients = ['ccid_overhead']
-    #clients = ['ccid_overhead_only_update', 'ccid_overhead']
-    #clients = ['profile_ecc', 'barrier_elider']
+    clients = ['profile_func_acc']
+    #clients = ['ccid_overhead_only_update', 'ccid_overhead', 'profile_ecc', 'barrier_elider', 'profile_func_acc']
+    #clients = ['profile_func_acc']
     for scheme in static_schemes:
         for client in clients:
             for suite_name, _ in benchmark_suites.items():
@@ -400,9 +411,12 @@ def static_instr():
                 cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
 
-    print('Instrumentation is done')
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print('Instrumentation is done, execution time: {execution_time}')
 
 def dyn_instr(args):
+    start_time = time.time()
     output_ccenc = os.getenv("OUTPUT_CCENC")
     output_bitcode = os.getenv("OUTPUT_BITCODE")
     output_dyn_bin = os.getenv("OUTPUT_DYN_BIN")
@@ -463,36 +477,39 @@ def dyn_instr(args):
             cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
 
-    print('CCW file is created.')
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print('CCW file is created. execution time: {execution_time}')
 
 def run_native_exp(args):
     output_bin = os.getenv("OUTPUT_BIN")
     output_native_exp = os.getenv("OUTPUT_NATIVE_EXP")
 
-    for suite_name, bench in foreach_bench():
-        makedirs(f'{output_native_exp}/{suite_name}')
-    for suite_name, bench in foreach_bench():
-        cmd = f'/usr/bin/time -v {output_bin}/{suite_name}/{bench} {cmd_options[bench]} > {output_native_exp}/{suite_name}/{bench}.out 2>&1'
-        print(cmd)
-        os.system(cmd)
-        os.system('sleep 10')
+    for i in range(5):
+        for suite_name, bench in foreach_bench():
+            makedirs(f'{output_native_exp}/{suite_name}')
+        for suite_name, bench in foreach_bench():
+            cmd = f'/usr/bin/time -v {output_bin}/{suite_name}/{bench} {cmd_options[bench]} > {output_native_exp}/{suite_name}/{bench}_{i}.out 2>&1'
+            print(cmd)
+            os.system(cmd)
+            os.system('sleep 10')
 
 def run_static_exp(args):
     output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
     output_static_exp = os.getenv("OUTPUT_STATIC_EXP")
 
-    clients = ['profile_ecc', 'barrier_elider']
-    #clients = ['ccid_overhead', 'ccid_overhead_only_update']
-    #clients = ['ccid_overhead']
-    for scheme in static_schemes:
-        for client in clients:
-            for suite_name, bench in foreach_bench():
-                makedirs(f'{output_static_exp}/{scheme}/{client}/{suite_name}')
-            for suite_name, bench in foreach_bench():
-                cmd = f'/usr/bin/time -v {output_static_bin}/{scheme}/{client}/{suite_name}/{bench} {cmd_options[bench]} > {output_static_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
-                print(cmd)
-                os.system(cmd)
-                os.system('sleep 10')
+    #clients = ['ccid_overhead_only_update', 'profile_ecc', 'barrier_elider', 'profile_func_acc']
+    clients = ['profile_func_acc']
+    for i in range(1):
+        for scheme in static_schemes:
+            for client in clients:
+                for suite_name, bench in foreach_bench():
+                    makedirs(f'{output_static_exp}/{scheme}/{client}/{suite_name}')
+                for suite_name, bench in foreach_bench():
+                    cmd = f'/usr/bin/time -v {output_static_bin}/{scheme}/{client}/{suite_name}/{bench} {cmd_options[bench]} > {output_static_exp}/{scheme}/{client}/{suite_name}/{bench}_{i}.out 2>&1'
+                    print(cmd)
+                    os.system('sleep 10')
+                    os.system(cmd)
 
 #def run_static_barrier_elision(args):
 #    output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
@@ -515,16 +532,21 @@ def run_dyn_exp(args):
 
     for scheme in dynamic_schemes:
         #for client in ['drclient_empty', 'dcce_ccid_overhead_only_update', 'dcce_ccid_overhead', 'drcctlib_ccid_overhead_only_update', 'drcctlib_ccid_overhead']:
-        for client in ['drclient_empty', 'dcce_barrier_elision', 'drcctlib_barrier_elision']:
-            for suite_name, bench in foreach_bench():
-                makedirs(f'{output_dyn_exp}/{scheme}/{client}/{suite_name}')
-                #makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
-            for suite_name, bench in foreach_bench():
-                cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}/{suite_name}/{bench}.out 2>&1'
-                #cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
-                print(cmd)
-                os.system(cmd)
-                os.system('sleep 10')
+                #'drcctlib_barrier_elision',
+                #'dcce_barrier_elision',
+        for i in range(1):
+            #for client in ['drclient_empty', 'drcctlib_ccid_overhead', 'dcce_ccid_overhead', 'drcctlib_whistle', 'dcce_whistle']:
+            #for client in ['drcctlib_whistle']:
+            for client in ['drcctlib_barrier_elision']:
+                for suite_name, bench in foreach_bench():
+                    makedirs(f'{output_dyn_exp}/{scheme}/{client}/{suite_name}')
+                    #makedirs(f'{output_dyn_exp}/{scheme}/{client}-stat/{suite_name}')
+                for suite_name, bench in foreach_bench():
+                    cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}/{suite_name}/{bench}_{i}.out 2>&1'
+                    #cmd = f'/usr/bin/time -v $drrun -t {client} -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw -bench {bench} -- {output_dyn_bin}/{scheme}/{suite_name}/{bench} {cmd_options[bench]} > {output_dyn_exp}/{scheme}/{client}-stat/{suite_name}/{bench}.out 2>&1'
+                    print(cmd)
+                    os.system(cmd)
+                    os.system('sleep 10')
 
 #def run_dyn_barrier_elision(args):
 #    output_ccenc = os.getenv("OUTPUT_CCENC")

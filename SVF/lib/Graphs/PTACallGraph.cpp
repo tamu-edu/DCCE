@@ -564,7 +564,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                               const unsigned int scheme)
 {
     std::unordered_map<int64_t, int64_t> cs2w;
-    SVFUtil::parse_static_ccfile(ccinput, cs2w);
+    std::unordered_map<int64_t, int64_t> cs2type;
+    SVFUtil::parse_static_ccfile(ccinput, cs2w, cs2type);
+    //SVFUtil::parse_static_ccfile(ccinput, cs2w);
 
     Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
     LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
@@ -577,6 +579,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
     FunctionCallee      initCallgraph = mod->getOrInsertFunction("initCallgraph", initCallgraph_funcType);
     FunctionCallee      initRuntime = mod->getOrInsertFunction("initRuntime", initCallgraph_funcType);
     FunctionCallee      saveECC = mod->getOrInsertFunction("saveECC", initCallgraph_funcType);
+    FunctionCallee      saveFuncAcc = mod->getOrInsertFunction("saveFuncAcc", initCallgraph_funcType);
     FunctionCallee      loadECC = mod->getOrInsertFunction("loadECC", initCallgraph_funcType);
     FunctionCallee      printStats = mod->getOrInsertFunction("printStats", initCallgraph_funcType);
 
@@ -594,6 +597,11 @@ void PTACallGraph::instrument(const std::string& ccinput,
     Type*               barrierElider_retType       = Type::getInt64Ty(ctx);
     FunctionType*       barrierElider_funcType      = FunctionType::get(barrierElider_retType, barrierElider_paramTypes, false);
     FunctionCallee      barrierElider       = mod->getOrInsertFunction("barrierElider", barrierElider_funcType);
+    
+    std::vector<Type*>  profileFuncAcc_paramTypes    = {Type::getInt64Ty(ctx)};
+    Type*               profileFuncAcc_retType       = Type::getInt64Ty(ctx);
+    FunctionType*       profileFuncAcc_funcType      = FunctionType::get(profileFuncAcc_retType, profileFuncAcc_paramTypes, false);
+    FunctionCallee      profileFuncAcc       = mod->getOrInsertFunction("profileFuncAcc", profileFuncAcc_funcType);
 
 
     std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx),Type::getInt64Ty(ctx)};
@@ -603,6 +611,21 @@ void PTACallGraph::instrument(const std::string& ccinput,
     FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
     FunctionCallee      addWeightRec     = mod->getOrInsertFunction("addWeightRec", funcType);
     FunctionCallee      removeWeightRec  = mod->getOrInsertFunction("removeWeightRec", funcType);
+    
+    FunctionCallee      addWeightEntry  = mod->getOrInsertFunction("addWeightEntry", funcType);
+    FunctionCallee      removeWeightEntry = mod->getOrInsertFunction("removeWeightEntry", funcType);
+    FunctionCallee      addWeightEB = mod->getOrInsertFunction("addWeightEB", funcType);
+    FunctionCallee      removeWeightEB = mod->getOrInsertFunction("removeWeightEB", funcType);
+	//4-D:6-F:5-EB:1
+	//4-D:1-E:4-R:3
+	//8-main:2-C:10-E:1
+	//8-main:0-B:9-R:9
+	//6-F:7-H:8-R:1
+	//6-F:2-C:7-B:-1
+	//0-B:1-E:1-R:1
+	//5-G:6-F:6-EB:1
+	//2-C:5-G:3-R:1
+	//2-C:4-D:2-R:4
 
     bool insert_loadecc = false;
     bool insert_init_runtime = false;
@@ -614,6 +637,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
     for (auto& F : *mod) {
         rawstr << "In Function " << F.getName() << "\n";
         bool insert_getccid = false;
+        bool insert_func_acc = false;
         for (auto &B : F) {
           rawstr << "Found Basic Block \n";
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
@@ -662,6 +686,18 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     Value* args[] = {i64_val};
                     builder.CreateCall(getCCID, args);
                     insert_getccid = true;
+                } else if ((scheme == 8 || scheme == 9) && !insert_func_acc) {
+                    rawstr << "Inserting profileFuncAcc\n";
+                    PTACallGraphNode* node = getCallGraphNode(&F);
+                    IRBuilder builder(&I);
+                    builder.SetInsertPoint(&I);
+
+                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
+                    Value* args[] = {i64_val};
+                    builder.CreateCall(profileFuncAcc, args);
+                    insert_func_acc = true;
+
                 }
                        
                 // Check is the current instruction is return or exit call in main
@@ -695,6 +731,14 @@ void PTACallGraph::instrument(const std::string& ccinput,
                       llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
                       Value* args[] = {i64_val};
                       builder.CreateCall(saveECC, args);
+                    } else if (scheme == 8 || scheme == 9) {
+                      rawstr << "Inserting saveFuncAcc for " << I << "\n";
+                      IRBuilder builder(&I);
+                      builder.SetInsertPoint(&I);
+                      llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                      llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
+                      Value* args[] = {i64_val};
+                      builder.CreateCall(saveFuncAcc, args);
                     }
 
                     rawstr << "Inserting printStats for " << I << "\n";
@@ -739,7 +783,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     const CallBlockNode* cbnode = idToCSMap.find(csID)->second.first;
 
                     if (callerName == "addWeight" || callerName == "removeWeight" || callerName == "addWeightRec" || callerName == "removeWeightRec"
-                        || calleeName == "addWeight" || calleeName == "removeWeight" || calleeName == "addWeightRec" || calleeName == "removeWeightRec") {
+                        || calleeName == "addWeight" || calleeName == "removeWeight" || calleeName == "addWeightRec" || calleeName == "removeWeightRec"
+                        || calleeName == "addWeightEntry" || calleeName == "removeWeightEntry" || calleeName == "addWeightEB" || calleeName == "removeWeightEB") {
+                      // FIXME: check both calleeName and callerName
                         rawstr << "Skip addWeight or removeWeight\n";
                         continue;
                     }
@@ -750,12 +796,15 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     //-----------------------------
                     assert (cs2w.find(csID) != cs2w.end());
                     int64_t weight = cs2w[csID];
+                    int edgeType = cs2type[csID];
+
                     bool recursive = false;
                     if (weight == 0) {
                         continue;
                     }
                     if (weight == -1) {
                         recursive = true;
+			weight = 0; // Without Recursive
                     }
 
                     // using rtlib
@@ -769,9 +818,28 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     llvm::Constant *i64_val_w = llvm::ConstantInt::get(i64_type_w, weight, true);
                     llvm::Constant *i64_val_nid = llvm::ConstantInt::get(i64_type_nid, node->getId(), true);
                     Value* args[] = {i64_val_w,i64_val_nid};
+		    // With Recursive 
+                    //switch (edgeType) {
+                    //  case 1 /*Regular Edge (R)*/:
+                    //    builder.CreateCall(addWeight, args);
+                    //    break;
+                    //  case 2 /*Back Edge (B)*/:
+                    //    builder.CreateCall(addWeightRec, args);
+                    //    break;
+                    //  case 3 /*Entry Edge (E)*/:
+                    //    builder.CreateCall(addWeightEntry, args);
+                    //    break;
+                    //  case 4 /*Entry or Back Edge (EB)*/:
+                    //    builder.CreateCall(addWeightEB, args);
+                    //    break;
+                    //  default:
+                    //    assert(false && "Unknown edgeType");
+                    //}
+
+		    // Without Recursive
                     if (recursive) {
                       rawstr << "Inserting addWeightRec(" << weight << ", " << node->getId() << ") before " << I << "\n";
-                      builder.CreateCall(addWeightRec, args);
+                      builder.CreateCall(addWeight, args);
                     } else {
                       rawstr << "Inserting addWeight(" << weight << ", " << node->getId() << ") before " << I << "\n";
                       builder.CreateCall(addWeight, args);
@@ -780,13 +848,32 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
                       IRBuilder builder(SI);
                       builder.SetInsertPoint(SI);
-                        if (recursive) {
-                            rawstr << "Inserting removeWeightRec(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
-                            builder.CreateCall(removeWeightRec, args);
-                        } else {
-                            rawstr << "Inserting removeWeight(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
-                            builder.CreateCall(removeWeight, args);
-                        }
+		      // With Recursive
+                      //switch (edgeType) {
+                      //  case 1 /*Regular Edge (R)*/:
+                      //    builder.CreateCall(removeWeight, args);
+                      //    break;
+                      //  case 2 /*Back Edge (B)*/:
+                      //    builder.CreateCall(removeWeightRec, args);
+                      //    break;
+                      //  case 3 /*Entry Edge (E)*/:
+                      //    builder.CreateCall(removeWeightEntry, args);
+                      //    break;
+                      //  case 4 /*Entry or Back Edge (EB)*/:
+                      //    builder.CreateCall(removeWeightEB, args);
+                      //    break;
+                      //  default:
+                      //    assert(false && "Unknown edgeType");
+                      //}
+		      
+		      // Without Recursive
+		      if (recursive) {
+		          rawstr << "Inserting removeWeightRec(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
+		          builder.CreateCall(removeWeight, args);
+		      } else {
+		          rawstr << "Inserting removeWeight(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
+		          builder.CreateCall(removeWeight, args);
+		      }
                     }
 
                     // Inserting Callback function for Barrier Elision

@@ -296,6 +296,14 @@ void PointerAnalysis::finalize()
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
                                           7/*pcce_barrier_elider*/);
+        } else if (Options::InstrMethod.getValue() == "dcce_profile_func_acc") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          8/*dcce_func_acc*/);
+        } else if (Options::InstrMethod.getValue() == "pcce_profile_func_acc") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          9/*pcce_func_acc*/);
         } else {
             printf("Unknown instrument method: %s\n", Options::InstrMethod.getValue().c_str());
             exit(1);

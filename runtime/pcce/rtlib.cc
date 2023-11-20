@@ -22,6 +22,7 @@ extern "C" {
   __thread uint64_t ccid;
 
   pthread_mutex_t lock_ecc;
+  pthread_mutex_t lock_func_acc;
   pthread_mutex_t lock_stats;
 
 #ifdef DEBUG
@@ -111,20 +112,25 @@ extern "C" {
 
   uint64_t barrierElider(uint64_t funcEntry/*same as nid*/)
   {
-    uint64_t ccid = getCCID(funcEntry);
     pthread_mutex_lock(&lock_ecc);
+    uint64_t ccid = getCCID(funcEntry);
     volatile uint64_t junk; // to avoid if statement below
-    if (ecc.find(funcEntry) != ecc.end() && ecc[funcEntry].find(ccid) != ecc[funcEntry].end()) {
-#ifdef DEBUG
-      printf("barrierElider funcEntry: %lu, ccid: %lu Found\n", funcEntry, ccid);
-#endif
-      junk ^= ccid;
-    } else {
-#ifdef DEBUG
-      printf("barrierElider funcEntry: %lu, ccid: %lu Not Found\n", funcEntry, ccid);
-#endif
-      junk ^= ~ccid;
-    }
+    ccid++;
+    junk ^= ~ccid;
+//    pthread_mutex_lock(&lock_ecc);
+//    uint64_t ccid = getCCID(funcEntry);
+//    volatile uint64_t junk; // to avoid if statement below
+//    if (ecc.find(funcEntry) != ecc.end() && ecc[funcEntry].find(ccid) != ecc[funcEntry].end()) {
+//#ifdef DEBUG
+//      printf("barrierElider funcEntry: %lu, ccid: %lu Found\n", funcEntry, ccid);
+//#endif
+//      junk ^= ccid;
+//    } else {
+//#ifdef DEBUG
+//      printf("barrierElider funcEntry: %lu, ccid: %lu Not Found\n", funcEntry, ccid);
+//#endif
+//      junk ^= ~ccid;
+//    }
     pthread_mutex_unlock(&lock_ecc);
     return 0;
   }
@@ -290,6 +296,20 @@ extern "C" {
     fclose(fptr);
     pthread_mutex_unlock(&lock_ecc);
   }
+  
+  std::unordered_set<uint64_t> funcAcc;
+  uint64_t profileFuncAcc(uint64_t funcEntry/*same as nid*/)
+  {
+    pthread_mutex_lock(&lock_func_acc);
+    uint64_t ccid = getCCID(funcEntry);
+    ccid++;
+    pthread_mutex_unlock(&lock_func_acc);
+//#ifdef DEBUG
+//    printf("profileFuncAcc %lu\n", ccid);
+//#endif
+    //funcAcc.insert(ccid);
+    return 0;
+  }
 
   void printStats(unsigned int bench_code) {
 #ifdef DEBUG
@@ -299,8 +319,12 @@ extern "C" {
     printf("------ END OF STATS -----\n");
 #endif
   }
+  void saveFuncAcc(unsigned int bench_code)
+  {
+    return;
+  }
+
 
 #ifdef __cplusplus
 }
-
 #endif

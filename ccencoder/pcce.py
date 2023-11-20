@@ -1,8 +1,15 @@
 from callgraph import callgraph as callgraph
 from callgraph import pccegraph as pccegraph
+from johnson import simple_cycles
 import callgraph
 
 class pcce:
+
+    nodes_with_back_edge = set()
+    set_of_back_edges = set()
+    set_of_entry_edges = set()
+    number_of_back_edges = {}
+
     def __init__(self):
         pass
 
@@ -63,6 +70,58 @@ class pcce:
                 cg.set_edge_weight((p, n, l), s)
                 s = s + cg.numCC[p]
 
+    def setBackEdges(self, g):
+        for n in g.nodes():
+            self.number_of_back_edges[n] = 0
+        
+        for cycle in self.findCycles(g):
+            for idx in range(0, len(cycle)):
+                u = cycle[idx]
+                if(idx == len(cycle)-1):
+                    v = cycle[0]
+                else:
+                    v = cycle[idx+1]
+        
+                for first, second in g.incidents(v):
+                    if(u == first and (  len(g.incidents(v)) >=2) and u!=v and (u,v) not in self.set_of_back_edges):
+                        self.number_of_back_edges[v] += 1
+                        self.nodes_with_back_edge.add(v)
+                        self.set_of_back_edges.add((u,v))  #,second))
+
+
+    def getBackEdges(self, g):
+        print('All nodes with a back edge')
+        print(self.nodes_with_back_edge)
+        print('All back edges in format (p,n)')
+        print(self.set_of_back_edges)
+        return self.set_of_back_edges
+
+    def setEntryEdges(self, g):
+        for m in self.nodes_with_back_edge:
+            if(self.number_of_back_edges[m] >= 2):
+                for p, cs in g.incidents(m):
+                    self.set_of_entry_edges.add((p,m))
+            else:
+                for p, cs in g.incidents(m):
+                    if (p,m) not in self.set_of_back_edges:
+                        self.set_of_entry_edges.add((p,m))#,cs))
+
+    def getEntryEdges(self, g):
+        print('All entry edges in format (p,n)')
+        print(self.set_of_entry_edges)
+        return self.set_of_entry_edges
+
+    def findCycles(self, g):
+        adj_list = {}
+        for node in g.nodes():
+            adj_list[node] = []
+            for neighbor, callsite in g.neighbors(node):
+                adj_list[node].append(neighbor)
+
+        temp = simple_cycles(adj_list)[0]
+        print(temp)
+        return temp
+
     def write_cc(self, cg, filename):
         print(f'---------------------------------')
         print(f'Writing calling context file')
@@ -73,8 +132,19 @@ class pcce:
             if cg.isDummyNode(u): continue
             for v, cs in cg.neighbors(u):
                 wt = cg.edge_weight((u,v,cs))
-                f.write(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
-                print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
+                #f.write(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
+                #print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}:{wt}\n')
+
+                x = 'R'
+                #print(f'This is the node i am setting boi: {u} {v} {cs}')
+                if( (u,v) in self.set_of_entry_edges and (u,v) in self.set_of_back_edges):
+                    x = 'EB'
+                elif( (u,v) in self.set_of_entry_edges): 
+                    x = 'E'
+                elif( (u,v) in self.set_of_back_edges ): 
+                    x = 'B'
+                f.write(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}-{x}:{wt}\n')
+                print(f'{cg.node2id[u]}-{u}:{cg.node2id[v]}-{v}:{cs}-{x}:{wt}\n')
                 if wt > 0: non_zero_edges += 1
         f.close()
         return non_zero_edges

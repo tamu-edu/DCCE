@@ -169,7 +169,10 @@ namespace SVFUtil
         printf("%s", rawstr.str().c_str());
     }
     
-    void parse_static_ccfile(const std::string& ccinput, std::unordered_map<int64_t,int64_t>& cs2w)
+    //void parse_static_ccfile(const std::string& ccinput, std::unordered_map<int64_t,int64_t>& cs2w)
+    void parse_static_ccfile(const std::string& ccinput,
+        std::unordered_map<int64_t,int64_t>& cs2w,
+        std::unordered_map<int64_t,int64_t>& cs2type)
     {
         std::string str;
         raw_string_ostream rawstr(str);
@@ -190,11 +193,28 @@ namespace SVFUtil
             std::vector<std::string> list;
             Split(line, list, ':');
 
-            int64_t cs = std::stol(list[2], NULL, 10);
+            //int64_t cs = std::stol(list[2], NULL, 10);
+            std::vector<std::string> cs_type;
+            Split(list[2], cs_type, '-');
+
+            int64_t cs = std::stol(cs_type[0], NULL, 10);
+            int64_t edgeType = -1;
+            if (cs_type[1] == "R") {
+              edgeType = 1;
+            } else if (cs_type[1] == "B") {
+              edgeType = 2;
+            } else if (cs_type[1] == "E") {
+              edgeType = 3;
+            } else if (cs_type[1] == "EB") {
+              edgeType = 4;
+            }
+            assert(edgeType != -1);
+
             int64_t w = std::stol(list[3], NULL, 10);
 
             //assert(cs2w.find(cs) == cs2w.end());
             cs2w[cs] = w;
+            cs2type[cs] = edgeType;
             //std::cout << "cs: " << cs << ", w: " << w << std::endl;
         }
         inf.close();

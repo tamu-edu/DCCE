@@ -743,7 +743,7 @@ class pccegraph(callgraph):
             visited[tail] = False
 
         self.topoSort(self.root, visited, stack)
-        print(f'TopoSort: {stack[::-1]}')
+        #print(f'TopoSort: {stack[::-1]}')
         return stack[::-1]
 
     def topoSort(self, n, visited, stack):
