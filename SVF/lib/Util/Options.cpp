@@ -726,7 +726,7 @@ namespace SVF
 
     const llvm::cl::opt<std::string> Options::InstrMethod(
         "instr-method",
-        llvm::cl::value_desc("instrumentation mdethod"),
+        llvm::cl::value_desc("instrumentation method"),
         llvm::cl::desc("instrumentation method")
     );
 

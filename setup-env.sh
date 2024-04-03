@@ -8,13 +8,10 @@ if [[ "$host_name" == *"$hpcserver"* ]]; then
     echo "Activating spack environment dcce..."
     module load gcc-12.1.0-gcc-4.8.5-rw6672f
     module load llvm-openmp-12.0.1-gcc-12.1.0-e5sxuwh
-else
-    echo "This is ksungkeun84"
 fi
 export DCCE_ENV_SETUP=YES
 
 export DCCE_ROOT=${PWD}
-export CPU2017_RUN_DIR=/home/ksungkeun84/SPEC2017_INPUTS
 
 export SVF_ROOT=${DCCE_ROOT}/SVF
 export CCENC_ROOT=${DCCE_ROOT}/ccencoder

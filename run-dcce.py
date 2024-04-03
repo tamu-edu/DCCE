@@ -30,22 +30,22 @@ benchmark_suites = {
     #    '111.test-barrier-elision',
     #],
 
-    #'Splash-3' : [
-    #    '701.BARNES',
-    #    '702.CHOLESKY',
-    #    '703.FFT',
-    #    '704.FMM',
-    #    '705.LU-CB',
-    #    '706.LU-NCB',
-    #    '707.OCEAN-CP',
-    #    '708.OCEAN-NCP',
-    #    '709.RADIOSITY',
-    #    '710.RADIX',
-    #    '711.RAYTRACE',
-    #    #'712.VOLREND',
-    #    '713.WATER-NSQUARED',
-    #    '714.WATER-SPATIAL',
-    #],
+    'Splash-3' : [
+        '701.BARNES',
+        #'702.CHOLESKY',
+        #'703.FFT',
+        '704.FMM',
+        #'705.LU-CB',
+        #'706.LU-NCB',
+        '707.OCEAN-CP',
+        '708.OCEAN-NCP',
+        #'709.RADIOSITY',
+        #'710.RADIX',
+        #'711.RAYTRACE',
+        #'712.VOLREND',
+        #'713.WATER-NSQUARED',
+        #'714.WATER-SPATIAL',
+    ],
 
     'SPEC2017' : [
         #'500.perlbench_r', # MAXID Overflow
@@ -303,7 +303,7 @@ def callgraph():
 
     cmd_log = []
     for suite_name, bench in foreach_bench():
-        cmd = f'python ccencoder/callgraph-stats.py {output_cg}/{suite_name}/{bench}-final.cg {bench} main {output_cg}/{suite_name}'
+        cmd = f'python3 ccencoder/callgraph-stats.py {output_cg}/{suite_name}/{bench}-final.cg {bench} main {output_cg}/{suite_name}'
         log = f'{output_cg}/{suite_name}/{bench}.stats.log'
         cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
@@ -322,7 +322,7 @@ def ccenc(args):
     cmd_log = []
     for scheme in static_schemes:
         for suite_name, bench in foreach_bench():
-            cmd = f'python ccencoder/gen_calling_context.py ' \
+            cmd = f'python3 ccencoder/gen_calling_context.py ' \
                 f'{os.getenv("OUTPUT_CG")}/{suite_name}/{bench}-final.cg {bench} main {scheme} {ccenc_root}/{scheme}/{suite_name}'
             log = f'{ccenc_root}/{scheme}/{suite_name}/{bench}.ccenc.log'
             cmd_log.append((cmd, log))
@@ -472,7 +472,7 @@ def dyn_instr(args):
     for scheme in dynamic_schemes:
         for suite_name, bench in foreach_bench():
             bench_code = int(bench[:3])
-            cmd = f"python ccencoder/gen_ccw.py -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.offset -bin {output_dyn_bin}/{scheme}/{suite_name}/{bench}.asm -output {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw"
+            cmd = f"python3 ccencoder/gen_ccw.py -ccw {output_dyn_bin}/{scheme}/{suite_name}/{bench}.offset -bin {output_dyn_bin}/{scheme}/{suite_name}/{bench}.asm -output {output_dyn_bin}/{scheme}/{suite_name}/{bench}.ccw"
             log =  f'{output_dyn_bin}/{scheme}/{suite_name}/{bench}.gen_ccw.log'
             cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)

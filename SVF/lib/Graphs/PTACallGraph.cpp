@@ -460,7 +460,7 @@ void PTACallGraph::dump(const std::string& filename)
 //            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
 //                auto &I = *bbit;
 //
-//                if (scheme == 3/*pcce_ccid_overhead*/ && F.getName() == "main" && !insert_init) {
+//                if (scheme == PTACallGraph::pcce_ccid_overhead && F.getName() == "main" && !insert_init) {
 //                    IRBuilder builder(&I);
 //                    builder.SetInsertPoint(&I);
 //
@@ -471,7 +471,7 @@ void PTACallGraph::dump(const std::string& filename)
 //                    insert_init = true;
 //                }
 //
-//                if ((scheme == 1 || scheme == 3) &&!insert_getccid) {
+//                if ((scheme == PTACallGraph::dcce_ccid_overhead || scheme == PTACallGraph::pcce_ccid_overhead) &&!insert_getccid) {
 //                    rawstr << "Inserting getCCID\n";
 //                    PTACallGraphNode* node = getCallGraphNode(&F);
 //                    IRBuilder builder(&I);
@@ -661,7 +661,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 //-----------------------------
                 // Instrument loadECC call
                 //-----------------------------
-                if (F.getName() == "main" && !insert_loadecc && (scheme == 6/*dcce_barrier_elider*/ || scheme == 7/*pcce_barrier_elider*/)) {
+                if (F.getName() == "main" && !insert_loadecc && (scheme == PTACallGraph::dcce_barrier_elider || scheme == PTACallGraph::pcce_barrier_elider)) {
                     IRBuilder builder(&I);
                     builder.SetInsertPoint(&I);
 
@@ -675,7 +675,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 //-----------------------------
                 // Instrument getCCID call
                 //-----------------------------
-                if ((scheme == 1 || scheme == 3) &&!insert_getccid) {
+                if ((scheme == PTACallGraph::dcce_ccid_overhead || scheme == PTACallGraph::pcce_ccid_overhead) &&!insert_getccid) {
                     rawstr << "Inserting getCCID\n";
                     PTACallGraphNode* node = getCallGraphNode(&F);
                     IRBuilder builder(&I);
@@ -686,7 +686,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     Value* args[] = {i64_val};
                     builder.CreateCall(getCCID, args);
                     insert_getccid = true;
-                } else if ((scheme == 8 || scheme == 9) && !insert_func_acc) {
+                } else if ((scheme == PTACallGraph::dcce_func_acc || scheme == PTACallGraph::pcce_func_acc) && !insert_func_acc) {
                     rawstr << "Inserting profileFuncAcc\n";
                     PTACallGraphNode* node = getCallGraphNode(&F);
                     IRBuilder builder(&I);
@@ -699,7 +699,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     insert_func_acc = true;
 
                 }
-                       
+
                 // Check is the current instruction is return or exit call in main
                 // to insert saveECC call
                 if (F.getName() == "main") {
@@ -721,9 +721,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                       }
                     }
                   }
-                 
+
                   if (isReturn || isExitCall) {
-                    if (scheme == 4 || scheme == 5) {
+                    if (scheme == PTACallGraph::dcce_profile_ecc || scheme == PTACallGraph::pcce_profile_ecc) {
                       rawstr << "Inserting saveECC for " << I << "\n";
                       IRBuilder builder(&I);
                       builder.SetInsertPoint(&I);
@@ -731,7 +731,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                       llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
                       Value* args[] = {i64_val};
                       builder.CreateCall(saveECC, args);
-                    } else if (scheme == 8 || scheme == 9) {
+                    } else if (scheme == PTACallGraph::dcce_func_acc || scheme == PTACallGraph::pcce_func_acc) {
                       rawstr << "Inserting saveFuncAcc for " << I << "\n";
                       IRBuilder builder(&I);
                       builder.SetInsertPoint(&I);
@@ -750,7 +750,6 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     builder.CreateCall(printStats, args);
                   }
                 }
-
 
                 if (!SVFUtil::isCallSite(&I)) continue;
                 const llvm::Instruction* csInst = llvm::dyn_cast<llvm::Instruction>(&I);
@@ -782,10 +781,19 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     assert(idToCSMap.find(csID) != idToCSMap.end());
                     const CallBlockNode* cbnode = idToCSMap.find(csID)->second.first;
 
-                    if (callerName == "addWeight" || callerName == "removeWeight" || callerName == "addWeightRec" || callerName == "removeWeightRec"
-                        || calleeName == "addWeight" || calleeName == "removeWeight" || calleeName == "addWeightRec" || calleeName == "removeWeightRec"
-                        || calleeName == "addWeightEntry" || calleeName == "removeWeightEntry" || calleeName == "addWeightEB" || calleeName == "removeWeightEB") {
-                      // FIXME: check both calleeName and callerName
+                    if (callerName == "addWeight" ||
+                        callerName == "removeWeight" ||
+                        callerName == "addWeightRec" ||
+                        callerName == "removeWeightRec" ||
+                        calleeName == "addWeight" ||
+                        calleeName == "removeWeight" ||
+                        calleeName == "addWeightRec" ||
+                        calleeName == "removeWeightRec" ||
+                        calleeName == "addWeightEntry" ||
+                        calleeName == "removeWeightEntry" ||
+                        calleeName == "addWeightEB" ||
+                        calleeName == "removeWeightEB") {
+                        // FIXME: check both calleeName and callerName
                         rawstr << "Skip addWeight or removeWeight\n";
                         continue;
                     }
@@ -804,7 +812,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     }
                     if (weight == -1) {
                         recursive = true;
-			weight = 0; // Without Recursive
+                        weight = 0; // Without Recursive
                     }
 
                     // using rtlib
@@ -818,7 +826,8 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     llvm::Constant *i64_val_w = llvm::ConstantInt::get(i64_type_w, weight, true);
                     llvm::Constant *i64_val_nid = llvm::ConstantInt::get(i64_type_nid, node->getId(), true);
                     Value* args[] = {i64_val_w,i64_val_nid};
-		    // With Recursive 
+
+                    // With Recursive
                     //switch (edgeType) {
                     //  case 1 /*Regular Edge (R)*/:
                     //    builder.CreateCall(addWeight, args);
@@ -836,7 +845,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     //    assert(false && "Unknown edgeType");
                     //}
 
-		    // Without Recursive
+                    // Without Recursive
                     if (recursive) {
                       rawstr << "Inserting addWeightRec(" << weight << ", " << node->getId() << ") before " << I << "\n";
                       builder.CreateCall(addWeight, args);
@@ -848,7 +857,8 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
                       IRBuilder builder(SI);
                       builder.SetInsertPoint(SI);
-		      // With Recursive
+
+                      // With Recursive
                       //switch (edgeType) {
                       //  case 1 /*Regular Edge (R)*/:
                       //    builder.CreateCall(removeWeight, args);
@@ -865,19 +875,19 @@ void PTACallGraph::instrument(const std::string& ccinput,
                       //  default:
                       //    assert(false && "Unknown edgeType");
                       //}
-		      
-		      // Without Recursive
-		      if (recursive) {
-		          rawstr << "Inserting removeWeightRec(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
-		          builder.CreateCall(removeWeight, args);
-		      } else {
-		          rawstr << "Inserting removeWeight(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
-		          builder.CreateCall(removeWeight, args);
-		      }
+
+                      // Without Recursive
+                      if (recursive) {
+                        rawstr << "Inserting removeWeightRec(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
+                        builder.CreateCall(removeWeight, args);
+                      } else {
+                        rawstr << "Inserting removeWeight(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
+                        builder.CreateCall(removeWeight, args);
+                      }
                     }
 
                     // Inserting Callback function for Barrier Elision
-                    if ((scheme == 4 || scheme == 5)) {
+                    if ((scheme == PTACallGraph::dcce_profile_ecc || scheme == PTACallGraph::pcce_profile_ecc)) {
                       if (F.getName() == "pthread_create"
                           || calleeName == "pthread_cond_broadcast"
                           || calleeName == "pthread_barrier_wait"
@@ -892,7 +902,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                         Value* args[] = {i64_val};
                         builder.CreateCall(profileECC, args);
                       }
-                    } else if ((scheme == 6 || scheme == 7)) {
+                    } else if ((scheme == PTACallGraph::dcce_barrier_elider || scheme == PTACallGraph::pcce_barrier_elider)) {
                       if (F.getName() == "pthread_create"
                           || calleeName == "pthread_cond_broadcast"
                           || calleeName == "pthread_cond_wait") {

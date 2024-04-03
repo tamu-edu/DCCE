@@ -32,10 +32,10 @@ def main(args):
         ## caculate maxid of cc encoding
         c_encode = dcce()
         max_id = c_encode.maxid(c_cg, args.root)
-        
+
         #c_encode.setEntryEdges(c_cg)
         #print(c_encode.getEntryEdges(c_cg));
-        
+
         c_encode.setBackEdges(c_cg)
         c_encode.getBackEdges(c_cg)
         c_encode.setEntryEdges(c_cg)
@@ -44,7 +44,7 @@ def main(args):
         c_encode.write_cc(c_cg, f'{args.outdir}/{args.bench}.cg', args.trace)
         print(f'{args.bench} dynamic max_id is {max_id}')
         sys.stdout.flush()
-        
+
         c_cg, c_dcg, node2id = utils.make_callgraph_static(args.trace, args.scheme, args.root)
         ## caculate maxid of cc encoding
         c_encode = dcce()
@@ -52,6 +52,7 @@ def main(args):
         c_encode.write_static_cc(c_cg, f'{args.outdir}/{args.bench}.cc')
         print(f'{args.bench} static max_id is {max_id}')
         sys.stdout.flush()
+
     elif args.scheme == 'pcce':
         c_cg, c_dcg, node2id = utils.make_callgraph_static(args.trace, args.scheme, args.root)
         c_encode = pcce.pcce()
@@ -66,6 +67,7 @@ def main(args):
         max_id = c_encode.write_numcc(c_dcg, f'{args.outdir}/{args.bench}.numcc')
         print(f'{args.bench} static max_id is {max_id}')
         print(f'{args.bench} static non-zero edges is {non_zero_edges}')
+
     else:
         print(f"unkonwn scheme {args.scheme}")
         sys.stdout.flush()

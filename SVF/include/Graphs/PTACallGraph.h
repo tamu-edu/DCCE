@@ -449,13 +449,26 @@ public:
     /// Dump the graph
     void dump(const std::string& filename);
 
+    enum {
+      dcce_ccid_overhead_only_update,
+      dcce_ccid_overhead,
+      pcce_ccid_overhead_only_update,
+      pcce_ccid_overhead,
+      dcce_profile_ecc,
+      pcce_profile_ecc,
+      dcce_barrier_elider,
+      pcce_barrier_elider,
+      dcce_func_acc,
+      pcce_func_acc,
+    };
+
     /// View the graph from the debugger
     void view();
     void instrument(const std::string& ccinput,
                     const unsigned int bench_code,
                     const unsigned int scheme);
-    void instrument_dcce(const std::string& ccinput);
-    void instrument_pcce(const std::string& ccinput, unsigned int bench_code);
+    //void instrument_dcce(const std::string& ccinput);
+    //void instrument_pcce(const std::string& ccinput, unsigned int bench_code);
     void add_ccweights(const std::string& ccinput);
 };
 

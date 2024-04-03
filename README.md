@@ -13,7 +13,7 @@ Once you log in the dev-env docker container, activate conda with the following 
 ## Set Environment Variables
 In the root directory of DCCE, run following command.
 
-    $ source setup_env.sh
+    $ source setup-env.sh
 
 After sourcing the environments, you are going to use `run-dcce.py` program to use DCCE project.
 
