@@ -263,7 +263,6 @@ void PointerAnalysis::finalize()
     }
 
     if (!Options::InstrMethod.getValue().empty()) {
-        assert(!Options::CCInput.getValue().empty() && "CCInput must be provided to run instrumentation");
         if (Options::InstrMethod.getValue() == "dcce_ccid_overhead_only_update") {
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
@@ -280,6 +279,14 @@ void PointerAnalysis::finalize()
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
                                           PTACallGraph::pcce_ccid_overhead);
+        } else if (Options::InstrMethod.getValue() == "pcc_ccid_overhead_only_update") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          PTACallGraph::pcc_ccid_overhead_only_update);
+        } else if (Options::InstrMethod.getValue() == "pcc_ccid_overhead") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          PTACallGraph::pcc_ccid_overhead);
         } else if (Options::InstrMethod.getValue() == "dcce_profile_ecc") {
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
@@ -288,6 +295,10 @@ void PointerAnalysis::finalize()
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
                                           PTACallGraph::pcce_profile_ecc);
+        } else if (Options::InstrMethod.getValue() == "pcc_profile_ecc") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          PTACallGraph::pcc_profile_ecc);
         } else if (Options::InstrMethod.getValue() == "dcce_barrier_elider") {
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
@@ -296,6 +307,10 @@ void PointerAnalysis::finalize()
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
                                           PTACallGraph::pcce_barrier_elider);
+        } else if (Options::InstrMethod.getValue() == "pcc_barrier_elider") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          PTACallGraph::pcc_barrier_elider);
         } else if (Options::InstrMethod.getValue() == "dcce_profile_func_acc") {
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
@@ -304,6 +319,10 @@ void PointerAnalysis::finalize()
             getPTACallGraph()->instrument(Options::CCInput.getValue(),
                                           Options::BenchCode.getValue(),
                                           PTACallGraph::pcce_func_acc);
+        } else if (Options::InstrMethod.getValue() == "pcc_profile_func_acc") {
+            getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                          Options::BenchCode.getValue(),
+                                          PTACallGraph::pcc_func_acc);
         } else {
             printf("Unknown instrument method: %s\n", Options::InstrMethod.getValue().c_str());
             exit(1);

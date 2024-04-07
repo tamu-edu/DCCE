@@ -17,8 +17,6 @@ def simple_cycles(G):
                 B[node].clear()
     G = {v: set(nbrs) for (v,nbrs) in G.items()} # make a copy of the graph
     sccs = strongly_connected_components(G)
-    sccs_org = list.copy(sccs)
-    cycles = []
     while sccs:
         scc = sccs.pop()
         startnode = scc.pop()
@@ -33,7 +31,7 @@ def simple_cycles(G):
             if nbrs:
                 nextnode = nbrs.pop()
                 if nextnode == startnode:
-                    cycles.append(path[:])
+                    yield path[:]
                     closed.update(path)
                 elif nextnode not in blocked:
                     path.append(nextnode)
@@ -53,8 +51,8 @@ def simple_cycles(G):
         remove_node(G, startnode)
         H = subgraph(G, set(scc))
         sccs.extend(strongly_connected_components(H))
-
-    return cycles, sccs_org, sccs
+        del H
+        del scc
 
 def strongly_connected_components(graph):
     # Tarjan's algorithm for finding SCC's

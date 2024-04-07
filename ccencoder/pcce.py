@@ -73,7 +73,7 @@ class pcce:
     def setBackEdges(self, g):
         for n in g.nodes():
             self.number_of_back_edges[n] = 0
-        
+
         for cycle in self.findCycles(g):
             for idx in range(0, len(cycle)):
                 u = cycle[idx]
@@ -81,7 +81,7 @@ class pcce:
                     v = cycle[0]
                 else:
                     v = cycle[idx+1]
-        
+
                 for first, second in g.incidents(v):
                     if(u == first and (  len(g.incidents(v)) >=2) and u!=v and (u,v) not in self.set_of_back_edges):
                         self.number_of_back_edges[v] += 1
@@ -118,9 +118,7 @@ class pcce:
             for neighbor, callsite in g.neighbors(node):
                 adj_list[node].append(neighbor)
 
-        temp = simple_cycles(adj_list)[0]
-        print(temp)
-        return temp
+        yield from simple_cycles(adj_list)
 
     def write_cc(self, cg, filename):
         print(f'---------------------------------')

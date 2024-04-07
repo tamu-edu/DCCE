@@ -565,8 +565,14 @@ void PTACallGraph::instrument(const std::string& ccinput,
 {
     std::unordered_map<int64_t, int64_t> cs2w;
     std::unordered_map<int64_t, int64_t> cs2type;
-    SVFUtil::parse_static_ccfile(ccinput, cs2w, cs2type);
-    //SVFUtil::parse_static_ccfile(ccinput, cs2w);
+
+    bool is_pcc_scheme = (scheme == pcc_ccid_overhead_only_update ||
+                          scheme == pcc_ccid_overhead ||
+                          scheme == pcc_profile_ecc ||
+                          scheme == pcc_barrier_elider || scheme == pcc_func_acc);
+
+    if (!is_pcc_scheme)
+        SVFUtil::parse_static_ccfile(ccinput, cs2w, cs2type);
 
     Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
     LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
@@ -611,11 +617,11 @@ void PTACallGraph::instrument(const std::string& ccinput,
     FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
     FunctionCallee      addWeightRec     = mod->getOrInsertFunction("addWeightRec", funcType);
     FunctionCallee      removeWeightRec  = mod->getOrInsertFunction("removeWeightRec", funcType);
-    
     FunctionCallee      addWeightEntry  = mod->getOrInsertFunction("addWeightEntry", funcType);
     FunctionCallee      removeWeightEntry = mod->getOrInsertFunction("removeWeightEntry", funcType);
     FunctionCallee      addWeightEB = mod->getOrInsertFunction("addWeightEB", funcType);
     FunctionCallee      removeWeightEB = mod->getOrInsertFunction("removeWeightEB", funcType);
+    FunctionCallee      setCCID = mod->getOrInsertFunction("setCCID", funcType);
 	//4-D:6-F:5-EB:1
 	//4-D:1-E:4-R:3
 	//8-main:2-C:10-E:1
@@ -636,6 +642,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
 
     for (auto& F : *mod) {
         rawstr << "In Function " << F.getName() << "\n";
+        llvm::AllocaInst *cur_ccid;
         bool insert_getccid = false;
         bool insert_func_acc = false;
         for (auto &B : F) {
@@ -661,7 +668,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 //-----------------------------
                 // Instrument loadECC call
                 //-----------------------------
-                if (F.getName() == "main" && !insert_loadecc && (scheme == PTACallGraph::dcce_barrier_elider || scheme == PTACallGraph::pcce_barrier_elider)) {
+                if (F.getName() == "main" && !insert_loadecc && (scheme == PTACallGraph::dcce_barrier_elider || scheme == PTACallGraph::pcce_barrier_elider || scheme == PTACallGraph::pcc_barrier_elider)) {
                     IRBuilder builder(&I);
                     builder.SetInsertPoint(&I);
 
@@ -675,18 +682,25 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 //-----------------------------
                 // Instrument getCCID call
                 //-----------------------------
-                if ((scheme == PTACallGraph::dcce_ccid_overhead || scheme == PTACallGraph::pcce_ccid_overhead) &&!insert_getccid) {
+                if ((scheme == PTACallGraph::dcce_ccid_overhead ||
+                     scheme == PTACallGraph::pcce_ccid_overhead ||
+                     is_pcc_scheme) && !insert_getccid) {
                     rawstr << "Inserting getCCID\n";
                     PTACallGraphNode* node = getCallGraphNode(&F);
                     IRBuilder builder(&I);
                     builder.SetInsertPoint(&I);
 
                     llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                    cur_ccid = builder.CreateAlloca(i64_type, nullptr, "__cur_ccid");
+
                     llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
                     Value* args[] = {i64_val};
-                    builder.CreateCall(getCCID, args);
+                    llvm::CallInst *call = builder.CreateCall(getCCID, args);
+                    builder.CreateStore(call, cur_ccid);
                     insert_getccid = true;
-                } else if ((scheme == PTACallGraph::dcce_func_acc || scheme == PTACallGraph::pcce_func_acc) && !insert_func_acc) {
+                } else if ((scheme == PTACallGraph::dcce_func_acc ||
+                            scheme == PTACallGraph::pcce_func_acc ||
+                            scheme == PTACallGraph::pcc_func_acc) && !insert_func_acc) {
                     rawstr << "Inserting profileFuncAcc\n";
                     PTACallGraphNode* node = getCallGraphNode(&F);
                     IRBuilder builder(&I);
@@ -723,7 +737,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                   }
 
                   if (isReturn || isExitCall) {
-                    if (scheme == PTACallGraph::dcce_profile_ecc || scheme == PTACallGraph::pcce_profile_ecc) {
+                    if (scheme == PTACallGraph::dcce_profile_ecc
+                        || scheme == PTACallGraph::pcce_profile_ecc
+                        || scheme == PTACallGraph::pcc_profile_ecc) {
                       rawstr << "Inserting saveECC for " << I << "\n";
                       IRBuilder builder(&I);
                       builder.SetInsertPoint(&I);
@@ -731,7 +747,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                       llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
                       Value* args[] = {i64_val};
                       builder.CreateCall(saveECC, args);
-                    } else if (scheme == PTACallGraph::dcce_func_acc || scheme == PTACallGraph::pcce_func_acc) {
+                    } else if (scheme == PTACallGraph::dcce_func_acc
+                               || scheme == PTACallGraph::pcce_func_acc
+                               || scheme == PTACallGraph::pcc_func_acc) {
                       rawstr << "Inserting saveFuncAcc for " << I << "\n";
                       IRBuilder builder(&I);
                       builder.SetInsertPoint(&I);
@@ -759,7 +777,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 }
 
                 bool isIndirect = csInstToID.find(csInst)->second.size() > 1;
-                if (isIndirect) {
+                if (isIndirect && !is_pcc_scheme) {
                     rawstr << "Skip Instruction " << *csInst << " due to indirect call\n";
                     continue;
                 }
@@ -769,10 +787,22 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     const SVFFunction* calleeFunc = getCalleeOfCallSite(csID);
                     PTACallGraphNode* calleeNode = getCallGraphNode(calleeFunc);
 
-                    if (callerFunc == NULL) { rawstr << "Caller of CSID: " << csID << " is null\n"; continue; }
-                    if (calleeFunc == NULL) { rawstr << "Callee of CSID: " << csID << " is null\n"; continue; }
-                    if (callerFunc->isIntrinsic()) { rawstr << "skip inst - " << *csInst << " due to caller is intrinssic" << callerFunc << "\n"; continue; }
-                    if (calleeFunc->isIntrinsic()) { rawstr << "skip inst - " << *csInst << " due to callee is intrinssic" << calleeFunc << "\n"; continue; }
+                    if (!callerFunc) {
+                        rawstr << "Caller of CSID: " << csID << " is null\n";
+                        continue;
+                    }
+                    if (!calleeFunc) {
+                        rawstr << "Callee of CSID: " << csID << " is null\n";
+                        continue;
+                    }
+                    if (callerFunc->isIntrinsic()) {
+                        rawstr << "skip inst - " << *csInst << " due to caller is intrinssic" << callerFunc << "\n";
+                        continue;
+                    }
+                    if (calleeFunc->isIntrinsic()) {
+                        rawstr << "skip inst - " << *csInst << " due to callee is intrinssic" << calleeFunc << "\n";
+                        continue;
+                    }
 
                     std::string callerName = std::string(callerNode->getFunction()->getName());
                     std::string calleeName = std::string(calleeNode->getFunction()->getName());
@@ -781,30 +811,35 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     assert(idToCSMap.find(csID) != idToCSMap.end());
                     const CallBlockNode* cbnode = idToCSMap.find(csID)->second.first;
 
-                    if (callerName == "addWeight" ||
-                        callerName == "removeWeight" ||
-                        callerName == "addWeightRec" ||
-                        callerName == "removeWeightRec" ||
-                        calleeName == "addWeight" ||
-                        calleeName == "removeWeight" ||
-                        calleeName == "addWeightRec" ||
-                        calleeName == "removeWeightRec" ||
-                        calleeName == "addWeightEntry" ||
-                        calleeName == "removeWeightEntry" ||
-                        calleeName == "addWeightEB" ||
-                        calleeName == "removeWeightEB") {
+                    if (callerName == "addWeight"
+                        || callerName == "removeWeight"
+                        || callerName == "addWeightRec"
+                        || callerName == "removeWeightRec"
+                        || calleeName == "addWeight"
+                        || calleeName == "removeWeight"
+                        || calleeName == "addWeightRec"
+                        || calleeName == "removeWeightRec"
+                        || calleeName == "addWeightEntry"
+                        || calleeName == "removeWeightEntry"
+                        || calleeName == "addWeightEB"
+                        || calleeName == "removeWeightEB") {
                         // FIXME: check both calleeName and callerName
                         rawstr << "Skip addWeight or removeWeight\n";
                         continue;
                     }
 
+                    int64_t weight;
                     //-----------------------------
                     // Found the target call-site to instrument
                     // Instrument getCCID call
                     //-----------------------------
-                    assert (cs2w.find(csID) != cs2w.end());
-                    int64_t weight = cs2w[csID];
-                    int edgeType = cs2type[csID];
+                    if (is_pcc_scheme) {
+                        weight = rand() % 1000000000;
+                    } else {
+                        assert (cs2w.find(csID) != cs2w.end());
+                        weight = cs2w[csID];
+                        //edgeType = cs2type[csID];
+                    }
 
                     bool recursive = false;
                     if (weight == 0) {
@@ -820,12 +855,13 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     builder.SetInsertPoint(&I);
 
                     PTACallGraphNode* node = getCallGraphNode(&F);
-                    assert(node!=NULL);
-                    llvm::Type *i64_type_w = llvm::IntegerType::getInt64Ty(ctx);
-                    llvm::Type *i64_type_nid = llvm::IntegerType::getInt64Ty(ctx);
-                    llvm::Constant *i64_val_w = llvm::ConstantInt::get(i64_type_w, weight, true);
+                    assert(node);
+
+                    llvm::Type *i64_type_w      = llvm::IntegerType::getInt64Ty(ctx);
+                    llvm::Type *i64_type_nid    = llvm::IntegerType::getInt64Ty(ctx);
+                    llvm::Constant *i64_val_w   = llvm::ConstantInt::get(i64_type_w, weight, true);
                     llvm::Constant *i64_val_nid = llvm::ConstantInt::get(i64_type_nid, node->getId(), true);
-                    Value* args[] = {i64_val_w,i64_val_nid};
+                    Value* args[] = { i64_val_w, i64_val_nid };
 
                     // With Recursive
                     //switch (edgeType) {
@@ -846,7 +882,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     //}
 
                     // Without Recursive
-                    if (recursive) {
+                    if (recursive && !is_pcc_scheme) {
                       rawstr << "Inserting addWeightRec(" << weight << ", " << node->getId() << ") before " << I << "\n";
                       builder.CreateCall(addWeight, args);
                     } else {
@@ -877,7 +913,12 @@ void PTACallGraph::instrument(const std::string& ccinput,
                       //}
 
                       // Without Recursive
-                      if (recursive) {
+                      if (is_pcc_scheme) {
+                        rawstr << "Inserting setCCID(__cur_ccid, " << node->getId() << ") before " << *SI << "\n";
+                        args[0] = builder.CreateLoad(cur_ccid);
+                        builder.CreateCall(setCCID, args);
+
+                      } else if (recursive && !is_pcc_scheme) {
                         rawstr << "Inserting removeWeightRec(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
                         builder.CreateCall(removeWeight, args);
                       } else {
@@ -902,7 +943,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                         Value* args[] = {i64_val};
                         builder.CreateCall(profileECC, args);
                       }
-                    } else if ((scheme == PTACallGraph::dcce_barrier_elider || scheme == PTACallGraph::pcce_barrier_elider)) {
+                    } else if (scheme == PTACallGraph::dcce_barrier_elider
+                               || scheme == PTACallGraph::pcce_barrier_elider
+                               || scheme == PTACallGraph::pcc_barrier_elider) {
                       if (F.getName() == "pthread_create"
                           || calleeName == "pthread_cond_broadcast"
                           || calleeName == "pthread_cond_wait") {
@@ -1171,12 +1214,12 @@ void PTACallGraph::add_ccweights(const std::string& ccinput)
                     std::string callerName = std::string(callerNode->getFunction()->getName());
                     std::string calleeName = std::string(calleeNode->getFunction()->getName());
 
-                    if (callerName == "addWeight" || callerName == "removeWeight"
-                        || calleeName == "addWeight" || calleeName == "removeWeight") {
+                    if (callerName == "addWeight" || callerName == "removeWeight" ||
+                        calleeName == "addWeight" || calleeName == "removeWeight") {
                         rawstr << "Skip addWeight or removeWeight caller and callee\n";
                         continue;
                     }
-                    
+
                     rawstr << "Finding callSiteID " << callSiteID << " in f2cs2ccw for " << I << "\n";
                     if (f2cs2ccw[callerName].find(callSiteID) == f2cs2ccw[callerName].end()) {
                         rawstr << "callSiteID " << callSiteID << " not found in cg file\n";

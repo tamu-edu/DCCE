@@ -7,8 +7,9 @@ source ../setup-env.sh
 Install CPU 2017
 ------------------
 ```sh
-./install_cpu2017.sh [ios path]
+./install_cpu2017.sh [iso path]
 ```
+
 Build Executable of Benchmarks
 -------------------------------
 

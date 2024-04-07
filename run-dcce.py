@@ -9,6 +9,7 @@ import time
 
 
 static_schemes = ['pcce', 'dcce']
+static_schemes_instr_only = ['pcc']
 dynamic_schemes = ['dcce']
 
 
@@ -32,19 +33,19 @@ benchmark_suites = {
 
     'Splash-3' : [
         '701.BARNES',
-        #'702.CHOLESKY',
-        #'703.FFT',
+        '702.CHOLESKY',
+        '703.FFT',
         '704.FMM',
-        #'705.LU-CB',
-        #'706.LU-NCB',
+        '705.LU-CB',
+        '706.LU-NCB',
         '707.OCEAN-CP',
         '708.OCEAN-NCP',
-        #'709.RADIOSITY',
-        #'710.RADIX',
-        #'711.RAYTRACE',
+        '709.RADIOSITY',
+        '710.RADIX',
+        '711.RAYTRACE',
         #'712.VOLREND',
-        #'713.WATER-NSQUARED',
-        #'714.WATER-SPATIAL',
+        '713.WATER-NSQUARED',
+        '714.WATER-SPATIAL',
     ],
 
     'SPEC2017' : [
@@ -55,7 +56,7 @@ benchmark_suites = {
         '510.parest_r',
         #'511.povray_r',  # MAXID Overflow
         '519.lbm_r',
-        '520.omnetpp_r',
+        #'520.omnetpp_r',
         '523.xalancbmk_r',
         '525.x264_r',
         #'526.blender_r',
@@ -219,14 +220,12 @@ def run_cmd(cmd, log=None, force_exit=True):
 def build(debug=False):
     makedirs(os.getenv('DCCE_RTLIB_BUILD_DIR'))
     makedirs(os.getenv('PCCE_RTLIB_BUILD_DIR'))
+    makedirs(os.getenv('PCC_RTLIB_BUILD_DIR'))
 
     # Build benchmarks
-    cmd = f'cd {os.getenv("CPU2017_ROOT")} && bash cp_bin.sh /home/ksungkeun84/benchmarks/cpu2017-dcce; cd {os.getenv("DCCE_ROOT")}'
-    os.system(cmd)
-
     cmd = f'cd {os.getenv("TEST_ROOT")} && make ; cd {os.getenv("DCCE_ROOT")}'
     os.system(cmd)
-    
+
     cmd = f'cd {os.getenv("SPLASH3_ROOT")} && make ; cd {os.getenv("DCCE_ROOT")}'
     os.system(cmd)
 
@@ -241,10 +240,17 @@ def build(debug=False):
     else:
         cmd = f'cd {os.getenv("PCCE_RTLIB_BUILD_DIR")} && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4; cd {os.getenv("DCCE_ROOT")}'
     os.system(cmd)
-    
+
+    if debug:
+        cmd = f'cd {os.getenv("PCC_RTLIB_BUILD_DIR")} && cmake .. -DCMAKE_BUILD_TYPE=Debug && make -j4; cd {os.getenv("DCCE_ROOT")}'
+    else:
+        cmd = f'cd {os.getenv("PCC_RTLIB_BUILD_DIR")} && cmake .. -DCMAKE_BUILD_TYPE=Release && make -j4; cd {os.getenv("DCCE_ROOT")}'
+    os.system(cmd)
+
+
     cmd = f'cd {os.getenv("LLVM_ROOT")} && build compile.sh; cd {os.getenv("DCCE_ROOT")}'
     os.system(cmd)
-    
+
     cmd = f'cd {os.getenv("SVF_ROOT")} && bash build.sh; cd {os.getenv("DCCE_ROOT")}'
     os.system(cmd)
 
@@ -259,7 +265,7 @@ def extract_bitcode():
     output_bitcode = os.getenv("OUTPUT_BITCODE")
     for suite_name, _ in benchmark_suites.items():
         makedirs(f'{output_bitcode}/{suite_name}')
-    
+
     cmd_log = []
     for suite_name, bench in foreach_bench():
         # extract bitcode from the executable
@@ -327,7 +333,7 @@ def ccenc(args):
             log = f'{ccenc_root}/{scheme}/{suite_name}/{bench}.ccenc.log'
             cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
-    
+
     end_time = time.time()
     execution_time = end_time - start_time
     print(f'Calling context encoding is done and outputs are stored in {ccenc_root}, execution time: {execution_time}')
@@ -338,28 +344,29 @@ def static_instr():
     output_bitcode = os.getenv("OUTPUT_BITCODE")
     output_static_bin = os.getenv("OUTPUT_STATIC_BIN")
 
-    clients = ['profile_func_acc']
-    #clients = ['ccid_overhead_only_update', 'ccid_overhead', 'profile_ecc', 'barrier_elider', 'profile_func_acc']
-    #clients = ['profile_func_acc']
-    for scheme in static_schemes:
+    clients = ['ccid_overhead_only_update', 'ccid_overhead', 'profile_ecc', 'barrier_elider', 'profile_func_acc']
+    for scheme in static_schemes + static_schemes_instr_only:
         for client in clients:
             for suite_name, _ in benchmark_suites.items():
                 makedirs(f'{output_static_bin}/{scheme}/{client}/{suite_name}')
 
     # Insert CCID update 
     cmd_log = []
-    for scheme in static_schemes:
+    for scheme in static_schemes + static_schemes_instr_only:
         for client in clients:
             for suite_name, bench in foreach_bench():
                 bench_code = int(bench[:3])
-                cmd = f'wpa -ander -ccinput {output_ccenc}/{scheme}/{suite_name}/{bench}.cc -instr-method {scheme}_{client} -bench-code {bench_code} -dump-modules {output_static_bin}/{scheme}/{client}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
+                if scheme in static_schemes:
+                    cmd = f'wpa -ander -ccinput {output_ccenc}/{scheme}/{suite_name}/{bench}.cc -instr-method {scheme}_{client} -bench-code {bench_code} -dump-modules {output_static_bin}/{scheme}/{client}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
+                else:
+                    cmd = f'wpa -ander -instr-method {scheme}_{client} -bench-code {bench_code} -dump-modules {output_static_bin}/{scheme}/{client}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
                 log = f'{output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.instr.log'
                 cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
-   
+
     # Build instrumented bitcode
     cmd_log = []
-    for scheme in static_schemes:
+    for scheme in static_schemes + static_schemes_instr_only:
         rtlib_path = f'{os.getenv("RTLIB_ROOT")}/{scheme}/build/'
         for client in clients:
             for suite_name, bench in foreach_bench():
@@ -393,6 +400,7 @@ def static_instr():
                             -lpthread \
                             -o {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}'
 
+                cmd = ' '.join(cmd.split())
                 log = f'{output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.build.log'
                 cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
@@ -413,7 +421,7 @@ def static_instr():
 
     end_time = time.time()
     execution_time = end_time - start_time
-    print('Instrumentation is done, execution time: {execution_time}')
+    print(f'Instrumentation is done, execution time: {execution_time:.3f}s')
 
 def dyn_instr(args):
     start_time = time.time()
@@ -435,7 +443,7 @@ def dyn_instr(args):
             log = f'{output_dyn_bin}/{scheme}/{suite_name}/{bench}.addccweight.log'
             cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
-   
+
     # Build CCWeight attributed bitcode
     cmd_log = []
     for scheme in dynamic_schemes:
@@ -453,10 +461,11 @@ def dyn_instr(args):
                     -I/usr/lib/llvm-10/include/openmp \
                     -fopenmp=libomp \
                     -o {output_dyn_bin}/{scheme}/{suite_name}/{bench}'
+            cmd = ' '.join(cmd.split())
             log = f'{output_dyn_bin}/{scheme}/{suite_name}/{bench}.offset'
             cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
-   
+
     # Disassemble the executable
     cmd_log = []
     for scheme in dynamic_schemes:

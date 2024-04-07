@@ -105,10 +105,7 @@ class dcce:
             for neighbor, callsite in g.neighbors(node):
                 adj_list[node].append(neighbor)
 
-        temp = simple_cycles(adj_list)[0]
-        print(temp)
-        return temp
-    
+        yield from simple_cycles(adj_list)
 
     def write_static_cc(self, cg, filename):
          print(f'---------------------------------')

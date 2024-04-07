@@ -454,12 +454,17 @@ public:
       dcce_ccid_overhead,
       pcce_ccid_overhead_only_update,
       pcce_ccid_overhead,
+      pcc_ccid_overhead_only_update,
+      pcc_ccid_overhead,
       dcce_profile_ecc,
       pcce_profile_ecc,
+      pcc_profile_ecc,
       dcce_barrier_elider,
       pcce_barrier_elider,
+      pcc_barrier_elider,
       dcce_func_acc,
       pcce_func_acc,
+      pcc_func_acc,
     };
 
     /// View the graph from the debugger

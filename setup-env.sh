@@ -1,7 +1,5 @@
 #!/bin/bash
 
-spack env activate dcce
-
 hpcserver="hpcserver.cse.tamu.edu"
 host_name=`uname -a`
 if [[ "$host_name" == *"$hpcserver"* ]]; then
@@ -53,34 +51,39 @@ export OUTPUT_DYN_EXP=${OUTPUT_DYN}/experiment
 #export BASE2_OUT_DIR=${OUTPUT_ROOT}/base2
 #export DCCE_OUT_DIR=${OUTPUT_ROOT}/dcce
 #export PCCE_OUT_DIR=${OUTPUT_ROOT}/pcce
+#export PCC_OUT_DIR=${OUTPUT_ROOT}/pcc
 #export VALENCE_OUT_DIR=${OUTPUT_ROOT}/valence
 #export DRCCTLIB_OUT_DIR=${OUTPUT_ROOT}/drcctlib
 #export DRCCTLIB_CCUPDATE_TEST=${DRCCTLIB_OUT_DIR}/ccupdate_test
 
 #export DCCE_CCENC_DIR=${DCCE_OUT_DIR}/ccenc
 #export PCCE_CCENC_DIR=${PCCE_OUT_DIR}/ccenc
+#export PCC_CCENC_DIR=${PCC_OUT_DIR}/ccenc
 #export VALENCE_CCENC_DIR=${VALENCE_OUT_DIR}/ccenc
 #
 #export BASE2_BC_DIR=${BASE2_OUT_DIR}/bitcode
 #export DCCE_BC_DIR=${DCCE_OUT_DIR}/bitcode
 #export PCCE_BC_DIR=${PCCE_OUT_DIR}/bitcode
+#export PCC_BC_DIR=${PCC_OUT_DIR}/bitcode
 #export VALENCE_BC_DIR=${VALENCE_OUT_DIR}/bitcode
 #
 #export BASE2_BIN_DIR=${BASE2_OUT_DIR}/bin
 #export DCCE_BIN_DIR=${DCCE_OUT_DIR}/bin
 #export PCCE_BIN_DIR=${PCCE_OUT_DIR}/bin
+#export PCC_BIN_DIR=${PCC_OUT_DIR}/bin
 #export VALENCE_BIN_DIR=${VALENCE_OUT_DIR}/bin
-#
 #export BASE2_RTLIB_DIR=${RTLIB_ROOT}/base2
 #
 #export BASE_STATS_DIR=${BASE_OUT_DIR}/stats
 #export BASE2_STATS_DIR=${BASE2_OUT_DIR}/stats
 #export DCCE_STATS_DIR=${DCCE_OUT_DIR}/stats
 #export PCCE_STATS_DIR=${PCCE_OUT_DIR}/stats
+#export PCC_STATS_DIR=${PCC_OUT_DIR}/stats
 #export VALENCE_STATS_DIR=${VALENCE_OUT_DIR}/stats
 #
 #export DCCE_CCWEIGHT_DIR=${DCCE_OUT_DIR}/ccweight
 #export PCCE_CCWEIGHT_DIR=${PCCE_OUT_DIR}/ccweight
+#export PCC_CCWEIGHT_DIR=${PCC_OUT_DIR}/ccweight
 #export VALENCE_CCWEIGHT_DIR=${VALENCE_OUT_DIR}/ccweight
 
 
@@ -94,6 +97,9 @@ export DCCE_RTLIB_BUILD_DIR=${DCCE_RTLIB_DIR}/build
 
 export PCCE_RTLIB_DIR=${RTLIB_ROOT}/pcce
 export PCCE_RTLIB_BUILD_DIR=${PCCE_RTLIB_DIR}/build
+
+export PCC_RTLIB_DIR=${RTLIB_ROOT}/pcc
+export PCC_RTLIB_BUILD_DIR=${PCC_RTLIB_DIR}/build
 
 export VALENCE_RTLIB_DIR=${RTLIB_ROOT}/valence
 export VALENCE_RTLIB_BUILD_DIR=${VALENCE_RTLIB_DIR}/build
