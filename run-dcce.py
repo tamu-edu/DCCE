@@ -510,7 +510,7 @@ def run_static_exp(args):
     #clients = ['ccid_overhead_only_update', 'profile_ecc', 'barrier_elider', 'profile_func_acc']
     clients = ['profile_func_acc']
     for i in range(1):
-        for scheme in static_schemes:
+        for scheme in static_schemes + static_schemes_instr_only:
             for client in clients:
                 for suite_name, bench in foreach_bench():
                     makedirs(f'{output_static_exp}/{scheme}/{client}/{suite_name}')
