@@ -16,7 +16,7 @@ CFLAGS := $(CFLAGS) -I./glibdumb -I./glibps
 LOADLIBES = glibdumb/glib.a glibps/glibps.a
 
 $(TARGET): $(OBJS) $(LOADLIBES)
-	$(CC) $(OBJS) $(CFLAGS) $(LOADLIBES) -o $(TARGET) $(LDFLAGS) -fuse-ld=lld -flto -Wl,--plugin-opt=-lto-embed-bitcode
+	$(CC) $(OBJS) $(CFLAGS) $(LOADLIBES) -o $(TARGET) $(LDFLAGS) -fuse-ld=lld -flto -Wl,--plugin-opt=-lto-embed-bitcode=optimized
 
 radiosity.h: patch.h model.h parallel.h task.h
 rad_main.c: rad_main.c.in $(HS)

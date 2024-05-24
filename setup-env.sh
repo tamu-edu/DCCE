@@ -10,6 +10,7 @@ fi
 export DCCE_ENV_SETUP=YES
 
 export DCCE_ROOT=${PWD}
+export CPU2017_RUN_DIR=${DCCE_ROOT}/SPEC2017_INPUTS
 
 export SVF_ROOT=${DCCE_ROOT}/SVF
 export CCENC_ROOT=${DCCE_ROOT}/ccencoder
@@ -122,7 +123,38 @@ export CPU2017_ROOT=${BENCH_ROOT}/cpu2017
 export SPLASH3_ROOT=${BENCH_ROOT}/Splash-3-3.0X/codes
 #export SPLASH3_BARRIER_ELISION_ROOT=${DCCE_ROOT}/benchmark-suites/Splash-3-3.0X-barrier-elision/codes
 
+add_to_path ()
+{
+	path_list=`echo $PATH | tr ':' ' '`
+	new_dir=$1
+	for d in $path_list
+	do
+		if [ $d == $new_dir ]
+		then
+	            return 0
+		fi
+	done
+	echo "Adding $new_dir to PATH..."
+	export PATH=$PATH:$new_dir
+}
 
-export PATH=${PATH}:${DCCE_ROOT}
+add_to_path ${DCCE_ROOT}
 
-export LD_LIBRARY_PATH=${DCCE_RTLIB_BUILD_DIR}:${PCCE_RTLIB_BUILD_DIR}:${PCC_RTLIB_BUILD_DIR}:${LD_LIBRARY_PATH}
+add_to_ld_library_path ()
+{
+	path_list=`echo $LD_LIBRARY_PATH | tr ':' ' '`
+	new_dir=$1
+	for d in $path_list
+	do
+		if [ $d == $new_dir ]
+		then
+	            return 0
+		fi
+	done
+	echo "Adding $new_dir to LD_LIBRARY_PATH..."
+	export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$new_dir
+}
+
+add_to_ld_library_path ${DCCE_RTLIB_BUILD_DIR}
+add_to_ld_library_path ${PCCE_RTLIB_BUILD_DIR}
+add_to_ld_library_path ${PCC_RTLIB_BUILD_DIR}

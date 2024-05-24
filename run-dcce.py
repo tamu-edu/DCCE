@@ -302,7 +302,7 @@ def callgraph():
 
     cmd_log = []
     for suite_name, bench in foreach_bench():
-        cmd = f'wpa -ander -dump-callgraph {output_cg}/{suite_name}/{bench} {output_bitcode}/{suite_name}/{bench}.bc'
+        cmd = f'/usr/bin/time -v wpa -ander -dump-callgraph {output_cg}/{suite_name}/{bench} {output_bitcode}/{suite_name}/{bench}.bc'
         log = f'{output_cg}/{suite_name}/{bench}.callgraph.log'
         cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False, False)
@@ -328,7 +328,7 @@ def ccenc(args):
     cmd_log = []
     for scheme in static_schemes:
         for suite_name, bench in foreach_bench():
-            cmd = f'python3 ccencoder/gen_calling_context.py ' \
+            cmd = f'/usr/bin/time -v python3 ccencoder/gen_calling_context.py ' \
                 f'{os.getenv("OUTPUT_CG")}/{suite_name}/{bench}-final.cg {bench} main {scheme} {ccenc_root}/{scheme}/{suite_name}'
             log = f'{ccenc_root}/{scheme}/{suite_name}/{bench}.ccenc.log'
             cmd_log.append((cmd, log))
@@ -357,9 +357,9 @@ def static_instr():
             for suite_name, bench in foreach_bench():
                 bench_code = int(bench[:3])
                 if scheme in static_schemes:
-                    cmd = f'wpa -ander -ccinput {output_ccenc}/{scheme}/{suite_name}/{bench}.cc -instr-method {scheme}_{client} -bench-code {bench_code} -dump-modules {output_static_bin}/{scheme}/{client}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
+                    cmd = f'/usr/bin/time -v wpa -ander -ccinput {output_ccenc}/{scheme}/{suite_name}/{bench}.cc -instr-method {scheme}_{client} -bench-code {bench_code} -dump-modules {output_static_bin}/{scheme}/{client}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
                 else:
-                    cmd = f'wpa -ander -instr-method {scheme}_{client} -bench-code {bench_code} -dump-modules {output_static_bin}/{scheme}/{client}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
+                    cmd = f'/usr/bin/time -v wpa -ander -instr-method {scheme}_{client} -bench-code {bench_code} -dump-modules {output_static_bin}/{scheme}/{client}/{suite_name} {output_bitcode}/{suite_name}/{bench}.bc'
                 log = f'{output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.instr.log'
                 cmd_log.append((cmd, log))
     run_cmd_foreach_bench(cmd_log, False)
@@ -371,7 +371,7 @@ def static_instr():
         for client in clients:
             for suite_name, bench in foreach_bench():
                 if suite_name == "Splash-3":
-                    cmd = f'clang++ {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.bc \
+                    cmd = f'/usr/bin/time -v clang++ {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.bc \
                             -lpthread \
                             -D_XOPEN_SOURCE=500 \
                             -D_POSIX_C_SOURCE=200112 \
@@ -383,7 +383,7 @@ def static_instr():
                             -L{rtlib_path} \
                             -o {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}'
                 else:
-                    cmd = f'clang++ {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.bc \
+                    cmd = f'/usr/bin/time -v clang++ {output_static_bin}/{scheme}/{client}/{suite_name}/{bench}.bc \
                             -m64 \
                             -z muldefs \
                             -mavx \
@@ -509,7 +509,7 @@ def run_static_exp(args):
 
     #clients = ['ccid_overhead_only_update', 'profile_ecc', 'barrier_elider', 'profile_func_acc']
     clients = ['profile_func_acc']
-    for i in range(1):
+    for i in range(5):
         for scheme in static_schemes + static_schemes_instr_only:
             for client in clients:
                 for suite_name, bench in foreach_bench():

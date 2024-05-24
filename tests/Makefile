@@ -1,7 +1,7 @@
 .PHONY: all
 CFLAGS = -g -flto -mavx
 CPPFLAGS = -g -flto -mavx
-LTO_OPTION = -fuse-ld=lld -Wl,--plugin-opt=-lto-embed-bitcode
+LTO_OPTION = -fuse-ld=lld -Wl,--plugin-opt=-lto-embed-bitcode=optimized
 
 OBJDUMP_FLAGS = -DS
 OPENMP_LIB_DIR      = /usr/lib/llvm-10/lib
