@@ -1,1 +1,4 @@
 
+[submodule "DrCCTProf/dynamorio"]
+	path = DrCCTProf/dynamorio
+	url = https://github.com/DynamoRIO/dynamorio.git

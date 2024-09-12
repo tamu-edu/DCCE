@@ -20,6 +20,9 @@ def make_callgraph_dynamic(input_cg, scheme, root):
             caller, callsite_id, callee_set = line.split(':')
             caller, caller_id = caller.split('-')
 
+            if len(callee_set.split(',')) > 20:
+                continue
+
             for cs_callee_ccw in callee_set.split(','):
                 cs, callee, callee_id = cs_callee_ccw .split('-')
                 c_calls.add((caller, callee, callsite_id))
@@ -72,6 +75,9 @@ def make_callgraph_static(input_cg, scheme, root):
 
             caller, callsite_id, callee_set = line.split(':')
             caller, caller_id = caller.split('-')
+
+            if len(callee_set.split(',')) > 20:
+                continue
 
             for cs_callee_ccw in callee_set.split(','):
                 cs, callee, callee_id = cs_callee_ccw .split('-')

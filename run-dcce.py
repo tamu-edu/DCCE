@@ -56,7 +56,7 @@ benchmark_suites = {
         '510.parest_r',
         #'511.povray_r',  # MAXID Overflow
         '519.lbm_r',
-        #'520.omnetpp_r',
+        '520.omnetpp_r',
         '523.xalancbmk_r',
         '525.x264_r',
         #'526.blender_r',
@@ -652,7 +652,7 @@ if __name__== "__main__":
     parser.add_argument('-extract-bitcode', action='store_true',
             help='extract bitcode from the binary.')
     parser.add_argument('-callgraph', action='store_true',
-            help='run wpa to genrate callgph(.cg) file')
+            help='run wpa -ander to genrate callgph(.cg) file')
     parser.add_argument('-ccenc', action='store_true',
             help='run calling context encoding with given method.')
 

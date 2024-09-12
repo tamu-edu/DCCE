@@ -156,6 +156,10 @@ class dcce:
                 caller, callsite_id, callee_set = line.split(':')
                 caller, caller_id = caller.split('-')
                 
+d               
+                if len(callee_set.split(',')) > 20:
+                    continue
+
                 fout.write(f'{caller}:{callsite_id}:')
                 for cs_callee_ccw in callee_set.split(','):
                     cs, callee, callee_id = cs_callee_ccw.split('-')

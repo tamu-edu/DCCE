@@ -138,7 +138,7 @@ extern "C" {
   void loadECC(unsigned int bench_code)
   {
     pthread_mutex_lock(&lock_ecc);
-    std::string ecc_file = "/home/ksungkeun84/git/DCCE/output/static_instrument/experiment/pcce/profile_ecc/";
+    std::string ecc_file = "output/static_instrument/experiment/pcce/profile_ecc/";
     switch (bench_code) {
       case 100: ecc_file += "/test/100.test-pcce-fig-4"; break;
       case 101: ecc_file += "/test/101.test-pcce-fig-5a"; break;
@@ -227,7 +227,7 @@ extern "C" {
   void saveECC(unsigned int bench_code)
   {
     pthread_mutex_lock(&lock_ecc);
-    std::string ecc_file = "/home/ksungkeun84/git/DCCE/output/static_instrument/experiment/pcce/profile_ecc/";
+    std::string ecc_file = "output/static_instrument/experiment/pcce/profile_ecc/";
     switch (bench_code) {
       case 100: ecc_file += "/test/100.test-pcce-fig-4"; break;
       case 101: ecc_file += "/test/101.test-pcce-fig-5a"; break;

@@ -776,11 +776,11 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     continue;
                 }
 
-                bool isIndirect = csInstToID.find(csInst)->second.size() > 1;
-                if (isIndirect && !is_pcc_scheme) {
-                    rawstr << "Skip Instruction " << *csInst << " due to indirect call\n";
-                    continue;
-                }
+                //bool isIndirect = csInstToID.find(csInst)->second.size() > 1;
+                //if (isIndirect && !is_pcc_scheme) {
+                //    rawstr << "Skip Instruction " << *csInst << " due to indirect call\n";
+                //    continue;
+                //}
                 for (auto csID : csInstToID.find(csInst)->second) {
                     const SVFFunction* callerFunc = getCallerOfCallSite(csID);
                     PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
@@ -836,7 +836,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     if (is_pcc_scheme) {
                         weight = rand() % 1000000000;
                     } else {
-                        assert (cs2w.find(csID) != cs2w.end());
+                        if (cs2w.find(csID) == cs2w.end()) {
+                            continue;
+                        }
                         weight = cs2w[csID];
                         //edgeType = cs2type[csID];
                     }
@@ -960,6 +962,8 @@ void PTACallGraph::instrument(const std::string& ccinput,
                         builder.CreateCall(barrierElider, args);
                       }
                     }
+
+		    break; // Break after inserting one call
                 }
             }
         }
