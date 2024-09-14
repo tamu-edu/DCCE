@@ -684,34 +684,35 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 //-----------------------------
                 if ((scheme == PTACallGraph::dcce_ccid_overhead ||
                      scheme == PTACallGraph::pcce_ccid_overhead ||
-                     is_pcc_scheme) && !insert_getccid) {
-                    rawstr << "Inserting getCCID\n";
-                    PTACallGraphNode* node = getCallGraphNode(&F);
-                    IRBuilder builder(&I);
-                    builder.SetInsertPoint(&I);
+                     scheme == PTACallGraph::pcc_ccid_overhead)) {
+		    if (!insert_getccid) {
+                        rawstr << "Inserting getCCID\n";
+                        PTACallGraphNode* node = getCallGraphNode(&F);
+                        IRBuilder builder(&I);
+                        builder.SetInsertPoint(&I);
 
-                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                    cur_ccid = builder.CreateAlloca(i64_type, nullptr, "__cur_ccid");
+                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
 
-                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
-                    Value* args[] = {i64_val};
-                    llvm::CallInst *call = builder.CreateCall(getCCID, args);
-                    builder.CreateStore(call, cur_ccid);
-                    insert_getccid = true;
+                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
+                        Value* args[] = {i64_val};
+                        builder.CreateCall(getCCID, args);
+                        insert_getccid = true;
+		    }
                 } else if ((scheme == PTACallGraph::dcce_func_acc ||
                             scheme == PTACallGraph::pcce_func_acc ||
-                            scheme == PTACallGraph::pcc_func_acc) && !insert_func_acc) {
-                    rawstr << "Inserting profileFuncAcc\n";
-                    PTACallGraphNode* node = getCallGraphNode(&F);
-                    IRBuilder builder(&I);
-                    builder.SetInsertPoint(&I);
+                            scheme == PTACallGraph::pcc_func_acc)) {
+                    if (!insert_func_acc) {
+                        rawstr << "Inserting profileFuncAcc\n";
+                        PTACallGraphNode* node = getCallGraphNode(&F);
+                        IRBuilder builder(&I);
+                        builder.SetInsertPoint(&I);
 
-                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
-                    Value* args[] = {i64_val};
-                    builder.CreateCall(profileFuncAcc, args);
-                    insert_func_acc = true;
-
+                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
+                        Value* args[] = {i64_val};
+                        builder.CreateCall(profileFuncAcc, args);
+                        insert_func_acc = true;
+		    }
                 }
 
                 // Check is the current instruction is return or exit call in main
@@ -930,7 +931,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     }
 
                     // Inserting Callback function for Barrier Elision
-                    if ((scheme == PTACallGraph::dcce_profile_ecc || scheme == PTACallGraph::pcce_profile_ecc)) {
+                    if ((scheme == PTACallGraph::dcce_profile_ecc
+      	                 || scheme == PTACallGraph::pcce_profile_ecc
+                         || scheme == PTACallGraph::pcc_profile_ecc)) {
                       if (F.getName() == "pthread_create"
                           || calleeName == "pthread_cond_broadcast"
                           || calleeName == "pthread_barrier_wait"
