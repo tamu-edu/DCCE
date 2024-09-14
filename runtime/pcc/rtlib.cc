@@ -301,13 +301,12 @@ extern "C" {
   {
     pthread_mutex_lock(&lock_func_acc);
     uint64_t ccid = getCCID(funcEntry);
-//    pthread_mutex_unlock(&lock_func_acc);
 //#ifdef DEBUG
 //    printf("profileFuncAcc %lu\n", ccid);
 //#endif
-    funcAcc.insert(ccid);
+    //funcAcc.insert(ccid);
     pthread_mutex_unlock(&lock_func_acc);
-    return 0;
+    return ccid;
   }
 
   void printStats(unsigned int bench_code) {

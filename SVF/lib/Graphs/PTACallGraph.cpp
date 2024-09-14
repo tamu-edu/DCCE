@@ -645,6 +645,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
         llvm::AllocaInst *cur_ccid;
         bool insert_getccid = false;
         bool insert_func_acc = false;
+        bool store_ccid = false;
         for (auto &B : F) {
           rawstr << "Found Basic Block \n";
             for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
@@ -693,9 +694,15 @@ void PTACallGraph::instrument(const std::string& ccinput,
 
                         llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
 
+                        if (is_pcc_scheme)
+                            cur_ccid = builder.CreateAlloca(i64_type, nullptr, "__cur_ccid");
                         llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
                         Value* args[] = {i64_val};
-                        builder.CreateCall(getCCID, args);
+			llvm::CallInst *call = builder.CreateCall(getCCID, args);
+                        if (is_pcc_scheme) {
+                            builder.CreateStore(call, cur_ccid);
+                            store_ccid = true;
+                        }
                         insert_getccid = true;
 		    }
                 } else if ((scheme == PTACallGraph::dcce_func_acc ||
@@ -708,9 +715,15 @@ void PTACallGraph::instrument(const std::string& ccinput,
                         builder.SetInsertPoint(&I);
 
                         llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
+                        if (is_pcc_scheme)
+                            cur_ccid = builder.CreateAlloca(i64_type, nullptr, "__cur_ccid");
                         llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
                         Value* args[] = {i64_val};
-                        builder.CreateCall(profileFuncAcc, args);
+			llvm::CallInst *call = builder.CreateCall(profileFuncAcc, args);
+                        if (is_pcc_scheme) {
+                            builder.CreateStore(call, cur_ccid);
+                            store_ccid = true;
+                        }
                         insert_func_acc = true;
 		    }
                 }
@@ -885,7 +898,12 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     //}
 
                     // Without Recursive
-                    if (recursive && !is_pcc_scheme) {
+                    if (store_ccid) {
+                        rawstr << "Inserting setCCID(__cur_ccid, " << node->getId() << ") before " << I << "\n";
+                        args[0] = builder.CreateLoad(cur_ccid);
+                        builder.CreateCall(setCCID, args);
+
+                    } else if (recursive && !is_pcc_scheme) {
                       rawstr << "Inserting addWeightRec(" << weight << ", " << node->getId() << ") before " << I << "\n";
                       builder.CreateCall(addWeight, args);
                     } else {
@@ -916,7 +934,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                       //}
 
                       // Without Recursive
-                      if (is_pcc_scheme) {
+                      if (store_ccid) {
                         rawstr << "Inserting setCCID(__cur_ccid, " << node->getId() << ") before " << *SI << "\n";
                         args[0] = builder.CreateLoad(cur_ccid);
                         builder.CreateCall(setCCID, args);
