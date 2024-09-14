@@ -39,6 +39,11 @@ extern "C" {
       printf("mutex init for lock_ecc has failed\n");
       exit(1);
     }
+
+    if (pthread_mutex_init(&lock_func_acc, NULL) != 0) {
+      printf("mutex init for lock_func_acc has failed\n");
+      exit(1);
+    }
   }
 
   void addWeight(uint64_t weight, uint64_t nid)
@@ -54,7 +59,7 @@ extern "C" {
 #endif
 
 #ifdef VERBOSE
-    printf("[tid:%lu][nid:%lu] Before callsite, %lu + %lu => %lu\n", pthread_self(), nid, ccid, weight, ccid + weight);
+    printf("[tid:%lu][nid:%lu] Before callsite, %lu * 3 + %lu => %lu\n", pthread_self(), nid, ccid, weight, ccid * 3 + weight);
 #endif
     ccid = ccid * 3 + weight;
   }
@@ -69,7 +74,7 @@ extern "C" {
     }
 #endif
 #ifdef VERBOSE
-    printf("[tid:%lu][nid:%lu] After callsite, %lu - %lu => %lu\n", pthread_self(), nid, ccid, weight, ccid - weight);
+    printf("[tid:%lu][nid:%lu] After callsite, (%lu - %lu) / 3 => %lu\n", pthread_self(), nid, ccid, weight, (ccid - weight) / 3);
 #endif
     ccid = (ccid - weight) / 3;
   }
@@ -134,10 +139,10 @@ extern "C" {
   void loadECC(unsigned int bench_code)
   {
     pthread_mutex_lock(&lock_ecc);
-    std::string ecc_file = "output/static_instrument/experiment/pcce/profile_ecc/";
+    std::string ecc_file = "output/static_instrument/experiment/pcc/profile_ecc/";
     switch (bench_code) {
-      case 100: ecc_file += "/test/100.test-pcce-fig-4"; break;
-      case 101: ecc_file += "/test/101.test-pcce-fig-5a"; break;
+      case 100: ecc_file += "/test/100.test-pcc-fig-4"; break;
+      case 101: ecc_file += "/test/101.test-pcc-fig-5a"; break;
       case 102: ecc_file += "/test/102.test-indirect-call"; break;
       case 103: ecc_file += "/test/103.test-libc-nostatic-nodebug"; break;
                 //case 103: ecc_file += "/test/103.test-libc-static-nodebug"; break;
@@ -223,14 +228,12 @@ extern "C" {
   void saveECC(unsigned int bench_code)
   {
     pthread_mutex_lock(&lock_ecc);
-    std::string ecc_file = "output/static_instrument/experiment/pcce/profile_ecc/";
+    std::string ecc_file = "output/static_instrument/experiment/pcc/profile_ecc/";
     switch (bench_code) {
-      case 100: ecc_file += "/test/100.test-pcce-fig-4"; break;
-      case 101: ecc_file += "/test/101.test-pcce-fig-5a"; break;
+      case 100: ecc_file += "/test/100.test-pcc-fig-4"; break;
+      case 101: ecc_file += "/test/101.test-pcc-fig-5a"; break;
       case 102: ecc_file += "/test/102.test-indirect-call"; break;
       case 103: ecc_file += "/test/103.test-libc-nostatic-nodebug"; break;
-                //case 103: ecc_file += "/test/103.test-libc-static-nodebug"; break;
-                //case 103: ecc_file += "/test/103.test-libc-static-debug"; break;
       case 104: ecc_file += "/test/104.test-backedge"; break;
       case 105: ecc_file += "/test/105.test-functionname"; break;
       case 106: ecc_file += "/test/106.test-machinecode"; break;
@@ -298,12 +301,12 @@ extern "C" {
   {
     pthread_mutex_lock(&lock_func_acc);
     uint64_t ccid = getCCID(funcEntry);
-    ccid++;
-    pthread_mutex_unlock(&lock_func_acc);
+//    pthread_mutex_unlock(&lock_func_acc);
 //#ifdef DEBUG
 //    printf("profileFuncAcc %lu\n", ccid);
 //#endif
-    //funcAcc.insert(ccid);
+    funcAcc.insert(ccid);
+    pthread_mutex_unlock(&lock_func_acc);
     return 0;
   }
 
@@ -317,7 +320,71 @@ extern "C" {
   }
   void saveFuncAcc(unsigned int bench_code)
   {
-    return;
+    pthread_mutex_lock(&lock_func_acc);
+    std::string func_acc_file = "output/static_instrument/experiment/pcc/profile_func_acc";
+    switch (bench_code) {
+      case 100: func_acc_file += "/test/100.test-pcce-fig-4"; break;
+      case 101: func_acc_file += "/test/101.test-pcce-fig-5a"; break;
+      case 102: func_acc_file += "/test/102.test-indirect-call"; break;
+      case 103: func_acc_file += "/test/103.test-libc-nostatic-nodebug"; break;
+    //case 103: func_acc_file += "/test/103.test-libc-static-nodebug"; break;
+    //case 103: func_acc_file += "/test/103.test-libc-static-debug"; break;
+      case 104: func_acc_file += "/test/104.test-backedge"; break;
+      case 105: func_acc_file += "/test/105.test-functionname"; break;
+      case 106: func_acc_file += "/test/106.test-machinecode"; break;
+      case 108: func_acc_file += "/test/108.test-mleak"; break;
+      case 109: func_acc_file += "/test/109.test-matadd"; break;
+      case 110: func_acc_file += "/test/110.test-tail-call"; break;
+      case 111: func_acc_file += "/test/111.barrier-elision"; break;
+
+      case 505: func_acc_file += "/SPEC2017/505.mcf_r"; break;
+      case 508: func_acc_file += "/SPEC2017/508.namd_r"; break;
+      case 510: func_acc_file += "/SPEC2017/510.parest_r"; break;
+      case 519: func_acc_file += "/SPEC2017/519.lbm_r"; break;
+      case 523: func_acc_file += "/SPEC2017/523.xalancbmk_r"; break;
+      case 525: func_acc_file += "/SPEC2017/525.x264_r"; break;
+      case 541: func_acc_file += "/SPEC2017/541.leela_r"; break;
+      case 557: func_acc_file += "/SPEC2017/557.xz_r"; break;
+      case 605: func_acc_file += "/SPEC2017/605.mcf_s"; break;
+      case 619: func_acc_file += "/SPEC2017/619.lbm_s"; break;
+      case 623: func_acc_file += "/SPEC2017/623.xalancbmk_s"; break;
+      case 625: func_acc_file += "/SPEC2017/625.x264_s"; break;
+      case 641: func_acc_file += "/SPEC2017/641.leela_s"; break;
+      case 657: func_acc_file += "/SPEC2017/657.xz_s"; break;
+
+      case 701: func_acc_file += "/Splash-3/701.BARNES"; break;
+      case 702: func_acc_file += "/Splash-3/702.CHOLESKY"; break;
+      case 703: func_acc_file += "/Splash-3/703.FFT"; break;
+      case 704: func_acc_file += "/Splash-3/704.FMM"; break;
+      case 705: func_acc_file += "/Splash-3/705.LU-CB"; break;
+      case 706: func_acc_file += "/Splash-3/706.LU-NCB"; break;
+      case 707: func_acc_file += "/Splash-3/707.OCEAN-CP"; break;
+      case 708: func_acc_file += "/Splash-3/708.OCEAN-NCP"; break;
+      case 709: func_acc_file += "/Splash-3/709.RADIOSITY"; break;
+      case 710: func_acc_file += "/Splash-3/710.RADIX"; break;
+      case 711: func_acc_file += "/Splash-3/711.RAYTRACE"; break;
+      case 712: func_acc_file += "/Splash-3/712.VOLREND"; break;
+      case 713: func_acc_file += "/Splash-3/713.WATER-NSQUARED"; break;
+      case 714: func_acc_file += "/Splash-3/714.WATER-SPATIAL"; break;
+      
+      case 802: func_acc_file += "/extra/802.lud"; break;
+    }
+    func_acc_file += ".func_acc";
+    printf("saveFuncAcc %u to %s\n", bench_code, func_acc_file.c_str());
+    FILE *fptr = fopen(func_acc_file.c_str(), "w");
+    if (fptr == NULL) {
+      printf("Error: failed to open func_acc file %s\n", func_acc_file.c_str());
+      exit(1);
+    }
+
+    for (auto id : funcAcc) {
+      fprintf(fptr, "%lu,", id);
+    }
+    fprintf(fptr, "\n");
+
+    fclose(fptr);
+    pthread_mutex_unlock(&lock_func_acc);
+
   }
 
 
