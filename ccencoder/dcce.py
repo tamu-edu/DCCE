@@ -156,7 +156,6 @@ class dcce:
                 caller, callsite_id, callee_set = line.split(':')
                 caller, caller_id = caller.split('-')
                 
-d               
                 if len(callee_set.split(',')) > 20:
                     continue
 

@@ -217,7 +217,8 @@ public:
     static const llvm::cl::opt<std::string> dumpModules;
     static const llvm::cl::opt<std::string> CallGraphDotGraph;
     static const llvm::cl::opt<std::string> CCInput;
-    static const llvm::cl::opt<std::string> InstrMethod;
+    static const llvm::cl::opt<std::string> InstrScheme;
+    static const llvm::cl::opt<std::string> InstrClient;
     static const llvm::cl::opt<bool> CCWeight;
     static const llvm::cl::opt<unsigned> BenchCode;
 

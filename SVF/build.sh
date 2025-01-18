@@ -16,8 +16,6 @@ MacZ3="https://github.com/Z3Prover/z3/releases/download/z3-4.8.8/z3-4.8.8-x64-os
 UbuntuZ3="https://github.com/Z3Prover/z3/releases/download/z3-4.8.8/z3-4.8.8-x64-ubuntu-16.04.zip"
 MacCTIR="https://github.com/mbarbar/ctir/releases/download/ctir-10.c3/ctir-clang-v10.c3-macos10.15.zip"
 UbuntuCTIR="https://github.com/mbarbar/ctir/releases/download/ctir-10.c3/ctir-clang-v10.c3-ubuntu18.04.zip"
-LLVMHome="llvm-12.0.0"
-Z3Home="z3.obj"
 CTIRHome="ctir.obj"
 
 # Downloads $1 (URL) to $2 (target destination) using wget or curl,
@@ -67,36 +65,6 @@ else
 fi
 
 ########
-# Check if LLVM exits.
-#######
-if [ ! -d "$LLVM_DIR" ]
-then
-    if [ ! -d "$LLVMHome" ]
-    then
-        echo "llvm-12.0.0 is not included in the repo."
-        exit 1
-    fi
-
-    export LLVM_DIR="$SVFHOME/$LLVMHome"
-fi
-
-########
-# Download Z3 if need be.
-#######
-if [ ! -d "$Z3_DIR" ]
-then
-    if [ ! -d "$Z3Home" ]
-    then
-        echo "Downloading Z3 binary for $OSDisplayName"
-        generic_download_file "$urlZ3" z3.zip
-        unzip -q "z3.zip" && mv ./z3-* ./$Z3Home
-        rm z3.zip
-    fi
-
-    export Z3_DIR="$SVFHOME/$Z3Home"
-fi
-
-########
 # Download ctir Clang if need be.
 # This is required to compile fstbhc tests in Test-Suite.
 # We will only download if $CTIR is set (and if $CTIR_DIR doesn't exist).
@@ -113,10 +81,6 @@ then
 
     export CTIR_DIR="$SVFHOME/$CTIRHome/bin"
 fi
-
-export PATH=$LLVM_DIR/bin:$PATH
-echo "LLVM_DIR =" $LLVM_DIR
-echo "Z3_DIR =" $Z3_DIR
 
 ########
 # Build SVF

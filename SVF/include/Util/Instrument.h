@@ -124,7 +124,7 @@ namespace SVFUtil
 
         std::ifstream inf(ccinput);
         if (!inf.is_open()) {
-            std::cout << "unable to open file " << ccinput << std::endl;
+            std::cout << "unable to open CCW file " << ccinput << std::endl;
             exit(1);
         }
 
@@ -179,7 +179,7 @@ namespace SVFUtil
 
         std::ifstream inf(ccinput);
         if (!inf.is_open()) {
-            std::cout << "unable to open file " << ccinput << std::endl;
+            std::cout << "unable to open static CC file " << ccinput << std::endl;
             exit(1);
         }
 
@@ -229,7 +229,7 @@ namespace SVFUtil
 
         std::ifstream inf(ccinput);
         if (!inf.is_open()) {
-            std::cout << "unable to open file " << ccinput << std::endl;
+            std::cout << "unable to open CC file " << ccinput << std::endl;
             exit(1);
         }
 

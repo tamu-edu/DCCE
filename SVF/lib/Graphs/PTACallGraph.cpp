@@ -429,149 +429,16 @@ void PTACallGraph::dump(const std::string& filename)
     GraphPrinter::WriteGraphToFile(outs(), filename, this);
 }
 
-//void PTACallGraph::instrument(const std::string& ccinput,
-//                              const unsigned int bench_code,
-//                              const unsigned int scheme)
-//{
-//
-//    std::unordered_map<uint64_t, uint64_t> cs2w;
-//    SVFUtil::parse_static_ccfile(ccinput, cs2w);
-//
-//    Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
-//    LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
-//
-//    // using rtlib
-//    std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
-//    Type*               retType       = Type::getVoidTy(ctx);
-//    FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
-//    FunctionCallee      addWeight     = mod->getOrInsertFunction("addWeight", funcType);
-//    FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
-//    FunctionCallee      initCallgraph = mod->getOrInsertFunction("initCallgraph", funcType);
-//    FunctionCallee      getCCID       = mod->getOrInsertFunction("getCCID", funcType);
-//
-//    bool insert_init = false;
-//    std::string str;
-//    raw_string_ostream rawstr(str);
-//
-//    for (auto& F : *mod) {
-//        rawstr << "Function " << F.getName().str() << "\n";
-//        bool insert_getccid = false;
-//        for (auto &B : F) {
-//            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
-//                auto &I = *bbit;
-//
-//                if (scheme == PTACallGraph::pcce_ccid_overhead && F.getName() == "main" && !insert_init) {
-//                    IRBuilder builder(&I);
-//                    builder.SetInsertPoint(&I);
-//
-//                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-//                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
-//                    Value* args[] = {i64_val};
-//                    builder.CreateCall(initCallgraph, args);
-//                    insert_init = true;
-//                }
-//
-//                if ((scheme == PTACallGraph::dcce_ccid_overhead || scheme == PTACallGraph::pcce_ccid_overhead) &&!insert_getccid) {
-//                    rawstr << "Inserting getCCID\n";
-//                    PTACallGraphNode* node = getCallGraphNode(&F);
-//                    IRBuilder builder(&I);
-//                    builder.SetInsertPoint(&I);
-//
-//                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-//                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
-//                    Value* args[] = {i64_val};
-//                    builder.CreateCall(getCCID, args);
-//                    insert_getccid = true;
-//                }
-//
-//
-//                if (SVFUtil::isCallSite(&I)) {
-//                    auto *CB = llvm::dyn_cast<llvm::CallBase>(&I);
-//                    Function *func = CB->getCalledFunction();
-//  
-//                    // Check if the CallBase does not have to have CCWeight
-//                    bool IsIntrinsic = false;
-//                    bool IsInstrumentedFunc = false;
-//                    if (func != NULL) {
-//                        IsIntrinsic = func->isIntrinsic();
-//                        IsInstrumentedFunc = (func->getName() == "addWeight"
-//                            || func->getName() == "removeWeight"
-//                            || func->getName() == "initCallgraph"
-//                            || func->getName() == "getCCID");
-//                    }
-//
-//                    if (IsIntrinsic || IsInstrumentedFunc) {
-//                        rawstr << "  Skipping instruction" << *CB
-//                            << " due to IsIntrinsic: " << IsIntrinsic
-//                            << ", IsInstrumentedFunc: " << IsInstrumentedFunc << "\n";
-//                        continue;
-//                    }
-//
-//                    CSInstToID::const_iterator it = csInstToID.find(&I);
-//                    if (it == csInstToID.end()) {
-//                        rawstr << "Can't find csid of call " << I << "\n";
-//                        //printf("%s\n", rawstr.str().c_str());
-//                        continue;
-//                        //assert(it != csInstToID.end());
-//                    }
-//                    if ((it->second).size() > 1) {
-//                        rawstr << "  Indirect call " << I
-//                            << " has more than one call targets ("
-//                            << (it->second).size() << "). Instrumentation is skipped because we don't know the call target at runtime\n";
-//                        continue;
-//                    }
-//
-//                    // Instrument direct call or indirect call with a single call target.
-//                    for (auto csid : it->second) {
-//                        //const SVFFunction* callerFunc = getCallerOfCallSite(csid);
-//                        //PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
-//                        //if (callerFunc == NULL || callerNode == NULL) { rawstr << "Caller of CSID " << csid << " is null\n"; continue; }
-//                        //std::string callerName = std::string(callerNode->getFunction()->getName());
-//
-//                        assert (cs2w.find(csid) != cs2w.end());
-//                        unsigned long long int weight = cs2w[csid];
-//                        if (weight == 0) {
-//                            continue;
-//                        }
-//
-//                        rawstr << "  Inserting add/removeWeight with CCWeight " << weight
-//                            << " before/after CB " << *CB << "\n";
-//
-//                        // using rtlib
-//                        IRBuilder builder(&I);
-//                        builder.SetInsertPoint(&I);
-//
-//                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-//                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
-//                        Value* args[] = {i64_val};
-//                        builder.CreateCall(addWeight, args);
-//
-//                        for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
-//                            builder.SetInsertPoint(SI);
-//                            builder.CreateCall(removeWeight, args);
-//                        }
-//                    }
-//
-//                }
-//            }
-//        }
-//    }
-//    printf("%s\n", rawstr.str().c_str());
-//}
-
 void PTACallGraph::instrument(const std::string& ccinput,
                               const unsigned int bench_code,
-                              const unsigned int scheme)
+                              const unsigned int scheme,
+                              const unsigned int client)
 {
     std::unordered_map<int64_t, int64_t> cs2w;
     std::unordered_map<int64_t, int64_t> cs2type;
 
-    bool is_pcc_scheme = (scheme == pcc_ccid_overhead_only_update ||
-                          scheme == pcc_ccid_overhead ||
-                          scheme == pcc_profile_ecc ||
-                          scheme == pcc_barrier_elider || scheme == pcc_func_acc);
-
-    if (!is_pcc_scheme)
+    // Instrumtation for PCC does not need CC files
+    if (scheme != PTACallGraph::pcc)
         SVFUtil::parse_static_ccfile(ccinput, cs2w, cs2type);
 
     Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
@@ -584,32 +451,19 @@ void PTACallGraph::instrument(const std::string& ccinput,
                                                                         initCallgraph_paramTypes, false);
     FunctionCallee      initCallgraph = mod->getOrInsertFunction("initCallgraph", initCallgraph_funcType);
     FunctionCallee      initRuntime = mod->getOrInsertFunction("initRuntime", initCallgraph_funcType);
-    FunctionCallee      saveECC = mod->getOrInsertFunction("saveECC", initCallgraph_funcType);
-    FunctionCallee      saveFuncAcc = mod->getOrInsertFunction("saveFuncAcc", initCallgraph_funcType);
-    FunctionCallee      loadECC = mod->getOrInsertFunction("loadECC", initCallgraph_funcType);
     FunctionCallee      printStats = mod->getOrInsertFunction("printStats", initCallgraph_funcType);
+    FunctionCallee      saveProfile = mod->getOrInsertFunction("saveProfile", initCallgraph_funcType);
 
     std::vector<Type*>  getCCID_paramTypes    = {Type::getInt64Ty(ctx)};
     Type*               getCCID_retType       = Type::getInt64Ty(ctx);
     FunctionType*       getCCID_funcType      = FunctionType::get(getCCID_retType, getCCID_paramTypes, false);
     FunctionCallee      getCCID       = mod->getOrInsertFunction("getCCID", getCCID_funcType);
 
-    std::vector<Type*>  profileECC_paramTypes    = {Type::getInt64Ty(ctx)};
-    Type*               profileECC_retType       = Type::getInt64Ty(ctx);
-    FunctionType*       profileECC_funcType      = FunctionType::get(profileECC_retType, profileECC_paramTypes, false);
-    FunctionCallee      profileECC       = mod->getOrInsertFunction("profileECC", profileECC_funcType);
+    std::vector<Type*>  profile_paramTypes    = {Type::getInt64Ty(ctx)};
+    Type*               profile_retType       = Type::getInt64Ty(ctx);
+    FunctionType*       profile_funcType      = FunctionType::get(profile_retType, profile_paramTypes, false);
+    FunctionCallee      profile       = mod->getOrInsertFunction("profile", profile_funcType);
     
-    std::vector<Type*>  barrierElider_paramTypes    = {Type::getInt64Ty(ctx)};
-    Type*               barrierElider_retType       = Type::getInt64Ty(ctx);
-    FunctionType*       barrierElider_funcType      = FunctionType::get(barrierElider_retType, barrierElider_paramTypes, false);
-    FunctionCallee      barrierElider       = mod->getOrInsertFunction("barrierElider", barrierElider_funcType);
-    
-    std::vector<Type*>  profileFuncAcc_paramTypes    = {Type::getInt64Ty(ctx)};
-    Type*               profileFuncAcc_retType       = Type::getInt64Ty(ctx);
-    FunctionType*       profileFuncAcc_funcType      = FunctionType::get(profileFuncAcc_retType, profileFuncAcc_paramTypes, false);
-    FunctionCallee      profileFuncAcc       = mod->getOrInsertFunction("profileFuncAcc", profileFuncAcc_funcType);
-
-
     std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx),Type::getInt64Ty(ctx)};
     Type*               retType       = Type::getVoidTy(ctx);
     FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
@@ -633,7 +487,6 @@ void PTACallGraph::instrument(const std::string& ccinput,
 	//2-C:5-G:3-R:1
 	//2-C:4-D:2-R:4
 
-    bool insert_loadecc = false;
     bool insert_init_runtime = false;
     std::string str;
     raw_string_ostream rawstr(str);
@@ -644,7 +497,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
         rawstr << "In Function " << F.getName() << "\n";
         llvm::AllocaInst *cur_ccid;
         bool insert_getccid = false;
-        bool insert_func_acc = false;
+        bool insert_profile = false;
         bool store_ccid = false;
         for (auto &B : F) {
           rawstr << "Found Basic Block \n";
@@ -667,25 +520,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 }
 
                 //-----------------------------
-                // Instrument loadECC call
+                // Instrument getCCID call for Whistle in every function
                 //-----------------------------
-                if (F.getName() == "main" && !insert_loadecc && (scheme == PTACallGraph::dcce_barrier_elider || scheme == PTACallGraph::pcce_barrier_elider || scheme == PTACallGraph::pcc_barrier_elider)) {
-                    IRBuilder builder(&I);
-                    builder.SetInsertPoint(&I);
-
-                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
-                    Value* args[] = {i64_val};
-                    builder.CreateCall(loadECC, args);
-                    insert_loadecc = true;
-                }
-
-                //-----------------------------
-                // Instrument getCCID call
-                //-----------------------------
-                if ((scheme == PTACallGraph::dcce_ccid_overhead ||
-                     scheme == PTACallGraph::pcce_ccid_overhead ||
-                     scheme == PTACallGraph::pcc_ccid_overhead)) {
+                if (client == PTACallGraph::whistle) {
 		    if (!insert_getccid) {
                         rawstr << "Inserting getCCID\n";
                         PTACallGraphNode* node = getCallGraphNode(&F);
@@ -694,42 +531,39 @@ void PTACallGraph::instrument(const std::string& ccinput,
 
                         llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
 
-                        if (is_pcc_scheme)
+                        if (scheme == PTACallGraph::pcc)
                             cur_ccid = builder.CreateAlloca(i64_type, nullptr, "__cur_ccid");
                         llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
                         Value* args[] = {i64_val};
 			llvm::CallInst *call = builder.CreateCall(getCCID, args);
-                        if (is_pcc_scheme) {
+                        if (scheme == PTACallGraph::pcc) {
                             builder.CreateStore(call, cur_ccid);
                             store_ccid = true;
                         }
                         insert_getccid = true;
 		    }
-                } else if ((scheme == PTACallGraph::dcce_func_acc ||
-                            scheme == PTACallGraph::pcce_func_acc ||
-                            scheme == PTACallGraph::pcc_func_acc)) {
-                    if (!insert_func_acc) {
-                        rawstr << "Inserting profileFuncAcc\n";
+                } else if (client == PTACallGraph::profile) {
+                    if (!insert_profile) {
+                        rawstr << "Inserting profile\n";
                         PTACallGraphNode* node = getCallGraphNode(&F);
                         IRBuilder builder(&I);
                         builder.SetInsertPoint(&I);
 
                         llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                        if (is_pcc_scheme)
+                        if (scheme == PTACallGraph::pcc)
                             cur_ccid = builder.CreateAlloca(i64_type, nullptr, "__cur_ccid");
                         llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
                         Value* args[] = {i64_val};
-			llvm::CallInst *call = builder.CreateCall(profileFuncAcc, args);
-                        if (is_pcc_scheme) {
+			llvm::CallInst *call = builder.CreateCall(profile, args);
+                        if (scheme == PTACallGraph::pcc) {
                             builder.CreateStore(call, cur_ccid);
                             store_ccid = true;
                         }
-                        insert_func_acc = true;
+                        insert_profile = true;
 		    }
                 }
 
                 // Check is the current instruction is return or exit call in main
-                // to insert saveECC call
                 if (F.getName() == "main") {
                   bool isExitCall = false;
                   bool isReturn = false;
@@ -751,26 +585,14 @@ void PTACallGraph::instrument(const std::string& ccinput,
                   }
 
                   if (isReturn || isExitCall) {
-                    if (scheme == PTACallGraph::dcce_profile_ecc
-                        || scheme == PTACallGraph::pcce_profile_ecc
-                        || scheme == PTACallGraph::pcc_profile_ecc) {
-                      rawstr << "Inserting saveECC for " << I << "\n";
+                    if (client == PTACallGraph::profile) {
+                      rawstr << "Inserting saveProfile for " << I << "\n";
                       IRBuilder builder(&I);
                       builder.SetInsertPoint(&I);
                       llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
                       llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
                       Value* args[] = {i64_val};
-                      builder.CreateCall(saveECC, args);
-                    } else if (scheme == PTACallGraph::dcce_func_acc
-                               || scheme == PTACallGraph::pcce_func_acc
-                               || scheme == PTACallGraph::pcc_func_acc) {
-                      rawstr << "Inserting saveFuncAcc for " << I << "\n";
-                      IRBuilder builder(&I);
-                      builder.SetInsertPoint(&I);
-                      llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                      llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
-                      Value* args[] = {i64_val};
-                      builder.CreateCall(saveFuncAcc, args);
+                      builder.CreateCall(saveProfile, args);
                     }
 
                     rawstr << "Inserting printStats for " << I << "\n";
@@ -791,10 +613,11 @@ void PTACallGraph::instrument(const std::string& ccinput,
                 }
 
                 //bool isIndirect = csInstToID.find(csInst)->second.size() > 1;
-                //if (isIndirect && !is_pcc_scheme) {
+                //if (isIndirect && scheme != PTACallGraph::pcc) {
                 //    rawstr << "Skip Instruction " << *csInst << " due to indirect call\n";
                 //    continue;
                 //}
+	
                 for (auto csID : csInstToID.find(csInst)->second) {
                     const SVFFunction* callerFunc = getCallerOfCallSite(csID);
                     PTACallGraphNode* callerNode = getCallGraphNode(callerFunc);
@@ -825,20 +648,13 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     assert(idToCSMap.find(csID) != idToCSMap.end());
                     const CallBlockNode* cbnode = idToCSMap.find(csID)->second.first;
 
-                    if (callerName == "addWeight"
-                        || callerName == "removeWeight"
-                        || callerName == "addWeightRec"
-                        || callerName == "removeWeightRec"
-                        || calleeName == "addWeight"
-                        || calleeName == "removeWeight"
-                        || calleeName == "addWeightRec"
-                        || calleeName == "removeWeightRec"
-                        || calleeName == "addWeightEntry"
-                        || calleeName == "removeWeightEntry"
-                        || calleeName == "addWeightEB"
-                        || calleeName == "removeWeightEB") {
+                    if (callerName == "addWeight" || calleeName == "addWeight"
+                        || callerName == "removeWeight" || calleeName == "removeWeight"
+                        || callerName == "addWeightRec" || calleeName == "addWeightRec"
+                        || callerName == "removeWeightRec" || calleeName == "removeWeightRec"
+                        || callerName == "addWeightEB" || calleeName == "addWeightEB") {
                         // FIXME: check both calleeName and callerName
-                        rawstr << "Skip addWeight or removeWeight\n";
+                        rawstr << "Skip addWeight or removeWeight related calls\n";
                         continue;
                     }
 
@@ -847,7 +663,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     // Found the target call-site to instrument
                     // Instrument getCCID call
                     //-----------------------------
-                    if (is_pcc_scheme) {
+                    if (scheme == PTACallGraph::pcc) {
                         weight = rand() % 1000000000;
                     } else {
                         if (cs2w.find(csID) == cs2w.end()) {
@@ -903,9 +719,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                         args[0] = builder.CreateLoad(cur_ccid);
                         builder.CreateCall(setCCID, args);
 
-                    } else if (recursive && !is_pcc_scheme) {
+                    } else if (recursive && scheme != PTACallGraph::pcc) {
                       rawstr << "Inserting addWeightRec(" << weight << ", " << node->getId() << ") before " << I << "\n";
-                      builder.CreateCall(addWeight, args);
+                      builder.CreateCall(addWeightRec, args);
                     } else {
                       rawstr << "Inserting addWeight(" << weight << ", " << node->getId() << ") before " << I << "\n";
                       builder.CreateCall(addWeight, args);
@@ -939,9 +755,9 @@ void PTACallGraph::instrument(const std::string& ccinput,
                         args[0] = builder.CreateLoad(cur_ccid);
                         builder.CreateCall(setCCID, args);
 
-                      } else if (recursive && !is_pcc_scheme) {
+                      } else if (recursive && scheme != PTACallGraph::pcc) {
                         rawstr << "Inserting removeWeightRec(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
-                        builder.CreateCall(removeWeight, args);
+                        builder.CreateCall(removeWeightRec, args);
                       } else {
                         rawstr << "Inserting removeWeight(" << weight << ", " << node->getId() << ") before " << *SI << "\n";
                         builder.CreateCall(removeWeight, args);
@@ -949,28 +765,10 @@ void PTACallGraph::instrument(const std::string& ccinput,
                     }
 
                     // Inserting Callback function for Barrier Elision
-                    if ((scheme == PTACallGraph::dcce_profile_ecc
-      	                 || scheme == PTACallGraph::pcce_profile_ecc
-                         || scheme == PTACallGraph::pcc_profile_ecc)) {
+                    if (client == PTACallGraph::barrier_elider) {
                       if (F.getName() == "pthread_create"
                           || calleeName == "pthread_cond_broadcast"
-                          || calleeName == "pthread_barrier_wait"
-                          || calleeName == "pthread_cond_wait") {
-                        rawstr << "Inserting profileECC to " << calleeName << "\n";
-                        PTACallGraphNode* node = getCallGraphNode(&F);
-                        IRBuilder builder(&I);
-                        builder.SetInsertPoint(&I);
-
-                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
-                        Value* args[] = {i64_val};
-                        builder.CreateCall(profileECC, args);
-                      }
-                    } else if (scheme == PTACallGraph::dcce_barrier_elider
-                               || scheme == PTACallGraph::pcce_barrier_elider
-                               || scheme == PTACallGraph::pcc_barrier_elider) {
-                      if (F.getName() == "pthread_create"
-                          || calleeName == "pthread_cond_broadcast"
+			  || calleeName == "pthread_barrier_wait"
                           || calleeName == "pthread_cond_wait") {
                         rawstr << "Inserting barrierElider to " << calleeName << "\n";
                         PTACallGraphNode* node = getCallGraphNode(&F);
@@ -980,7 +778,7 @@ void PTACallGraph::instrument(const std::string& ccinput,
                         llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
                         llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
                         Value* args[] = {i64_val};
-                        builder.CreateCall(barrierElider, args);
+                        builder.CreateCall(getCCID, args);
                       }
                     }
 
@@ -991,202 +789,6 @@ void PTACallGraph::instrument(const std::string& ccinput,
     }
     printf("%s", rawstr.str().c_str());
 }
-
-//void PTACallGraph::instrument_dcce(const std::string& ccinput)
-//{
-//
-//    std::unordered_map<uint64_t, uint64_t> cs2w;
-//    SVFUtil::parse_ccfile(ccinput, cs2w);
-//
-//    Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
-//    LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
-//
-//    // using rtlib
-//    std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
-//    Type*               retType       = Type::getVoidTy(ctx);
-//    FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
-//    FunctionCallee      addWeight     = mod->getOrInsertFunction("addWeight", funcType);
-//    FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
-//
-//    std::string str;
-//    raw_string_ostream rawstr(str);
-//
-//    for (auto& F : *mod) {
-//        rawstr << "Function " << F.getName().str() << "\n";
-//        for (auto &B : F) {
-//            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
-//                auto &I = *bbit;
-//                if (SVFUtil::isCallSite(&I)) {
-//                    auto *CB = llvm::dyn_cast<llvm::CallBase>(&I);
-//                    Function *func = CB->getCalledFunction();
-//  
-//                    // Check if the CallBase does not have to have CCWeight
-//                    bool IsIntrinsic = false;
-//                    bool IsInstrumentedFunc = false;
-//                    if (func != NULL) {
-//                        IsIntrinsic = func->isIntrinsic();
-//                        IsInstrumentedFunc = func->getName() == "addWeight" || func->getName() == "removeWeight";
-//                    }
-//
-//                    if (IsIntrinsic || IsInstrumentedFunc) {
-//                        rawstr << "  Skipping instruction" << *CB
-//                            << " due to IsIntrinsic: " << IsIntrinsic
-//                            << ", IsInstrumentedFunc: " << IsInstrumentedFunc << "\n";
-//                        continue;
-//                    }
-//
-//                    CSInstToID::const_iterator it = csInstToID.find(&I);
-//                    assert(it != csInstToID.end());
-//                    if ((it->second).size() > 1) {
-//                        rawstr << "  Indirect call " << I
-//                            << " has more than one call targets ("
-//                            << (it->second).size() << "). Instrumentation is skipped because we don't know the call target at runtime\n";
-//                        continue;
-//                    }
-//
-//                    // Instrument direct call or indirect call with a single call target.
-//                    for (auto csid : it->second) {
-//                        assert (cs2w.find(csid) != cs2w.end());
-//                        unsigned long long int weight = cs2w[csid];
-//
-//                        rawstr << "  Inserting add/removeWeight with CCWeight " << weight
-//                            << " before/after CB " << *CB << "\n";
-//
-//                        // using rtlib
-//                        IRBuilder builder(&I);
-//                        builder.SetInsertPoint(&I);
-//
-//                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-//                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
-//                        Value* args[] = {i64_val};
-//                        builder.CreateCall(addWeight, args);
-//
-//                        for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
-//                            builder.SetInsertPoint(SI);
-//                            builder.CreateCall(removeWeight, args);
-//                        }
-//                    }
-//
-//                }
-//            }
-//        }
-//    }
-//    printf("%s\n", rawstr.str().c_str());
-//}
-
-//void PTACallGraph::instrument_pcce(const std::string& ccinput, unsigned int bench_code)
-//{
-//    std::unordered_map<uint64_t, uint64_t> cs2w;
-//    SVFUtil::parse_ccfile(ccinput, cs2w);
-//
-//    Module*       mod = LLVMModuleSet::getLLVMModuleSet()->getMainLLVMModule();
-//    LLVMContext&  ctx = LLVMModuleSet::getLLVMModuleSet()->getContext();
-//
-//    // using rtlib
-//    std::vector<Type*>  paramTypes    = {Type::getInt64Ty(ctx)};
-//    Type*               retType       = Type::getVoidTy(ctx);
-//    FunctionType*       funcType      = FunctionType::get(retType, paramTypes, false);
-//    FunctionCallee      addWeight     = mod->getOrInsertFunction("addWeight", funcType);
-//    FunctionCallee      removeWeight  = mod->getOrInsertFunction("removeWeight", funcType);
-//    FunctionCallee      initCallgraph = mod->getOrInsertFunction("initCallgraph", funcType);
-//    FunctionCallee      decode = mod->getOrInsertFunction("decode", funcType);
-//
-//    bool insert_init = false;
-//    std::string str;
-//    raw_string_ostream rawstr(str);
-//
-//    for (auto& F : *mod) {
-//        rawstr << "Function " << F.getName().str() << "\n";
-//        bool insert_decode = false;
-//        for (auto &B : F) {
-//            for (BasicBlock::iterator bbit = B.begin(), bbie = B.end(); bbit != bbie; ++bbit) {
-//                auto &I = *bbit;
-//
-//                if (F.getName() == "main" && !insert_init) {
-//                    IRBuilder builder(&I);
-//                    builder.SetInsertPoint(&I);
-//
-//                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-//                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, bench_code, true);
-//                    Value* args[] = {i64_val};
-//                    builder.CreateCall(initCallgraph, args);
-//                    insert_init = true;
-//                }
-//
-//                if (!insert_decode) {
-//                    printf("Inserting decode\n");
-//                    PTACallGraphNode* node = getCallGraphNode(&F);
-//                    IRBuilder builder(&I);
-//                    builder.SetInsertPoint(&I);
-//
-//                    llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-//                    llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, node->getId(), true);
-//                    Value* args[] = {i64_val};
-//                    builder.CreateCall(decode, args);
-//                    insert_decode = true;
-//                }
-//
-//                if (SVFUtil::isCallSite(&I)) {
-//                    auto *CB = llvm::dyn_cast<llvm::CallBase>(&I);
-//                    Function *func = CB->getCalledFunction();
-//
-//                    // Check if the CallBase does not have to have CCWeight
-//                    bool IsIntrinsic = false;
-//                    bool IsInstrumentedFunc = false;
-//                    if (func != NULL) {
-//                        IsIntrinsic = func->isIntrinsic();
-//                        IsInstrumentedFunc = func->getName() == "addWeight" || func->getName() == "removeWeight";
-//                    }
-//
-//                    if (IsIntrinsic || IsInstrumentedFunc) {
-//                        rawstr << "  Skipping instruction" << *CB
-//                            << " due to IsIntrinsic: " << IsIntrinsic
-//                            << ", IsInstrumentedFunc: " << IsInstrumentedFunc << "\n";
-//                        continue;
-//                    }
-//
-//                    CSInstToID::const_iterator it = csInstToID.find(&I);
-//                    assert(it != csInstToID.end());
-//                    if ((it->second).size() > 1) {
-//                        rawstr << "  Indirect call " << I
-//                            << " has more than one call targets ("
-//                            << (it->second).size() << "). Instrumentation is skipped because we don't know the call target at runtime\n";
-//                        continue;
-//                    }
-//
-//                    // Instrument direct call or indirect call with a single call target.
-//                    for (auto csid : it->second) {
-//                        assert(cs2w.find(csid) != cs2w.end());
-//                        unsigned long long int weight = cs2w[csid];
-//
-//                        if (weight == 0) {
-//                            rawstr << "  This call-site has zero CCWeight. Skipping instrumenting.\n";
-//                            continue;
-//                        }
-//
-//                        rawstr << "  Inserting add/removeWeight with CCWeight " << weight
-//                            << " before/after CB " << *CB << "\n";
-//
-//                        // using rtlib
-//                        IRBuilder builder(&I);
-//                        builder.SetInsertPoint(&I);
-//
-//                        llvm::Type *i64_type = llvm::IntegerType::getInt64Ty(ctx);
-//                        llvm::Constant *i64_val = llvm::ConstantInt::get(i64_type, weight, true);
-//                        Value* args[] = {i64_val};
-//                        builder.CreateCall(addWeight, args);
-//
-//                        for (auto* SI : SVF::SVFUtil::get_succ_insts(&I)) {
-//                            builder.SetInsertPoint(SI);
-//                            builder.CreateCall(removeWeight, args);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//    printf("%s\n", rawstr.str().c_str());
-//}
 
 void PTACallGraph::add_ccweights(const std::string& ccinput)
 {
@@ -1239,8 +841,8 @@ void PTACallGraph::add_ccweights(const std::string& ccinput)
                     std::string callerName = std::string(callerNode->getFunction()->getName());
                     std::string calleeName = std::string(calleeNode->getFunction()->getName());
 
-                    if (callerName == "addWeight" || callerName == "removeWeight" ||
-                        calleeName == "addWeight" || calleeName == "removeWeight") {
+                    if (callerName == "addWeight" || calleeName == "addWeight"
+                        || callerName == "removeWeight" || calleeName == "removeWeight") {
                         rawstr << "Skip addWeight or removeWeight caller and callee\n";
                         continue;
                     }

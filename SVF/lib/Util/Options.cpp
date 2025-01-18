@@ -724,10 +724,16 @@ namespace SVF
         llvm::cl::desc("calling context file file to instrument")
     );
 
-    const llvm::cl::opt<std::string> Options::InstrMethod(
-        "instr-method",
-        llvm::cl::value_desc("instrumentation method"),
-        llvm::cl::desc("instrumentation method")
+    const llvm::cl::opt<std::string> Options::InstrScheme(
+        "instr-scheme",
+        llvm::cl::value_desc("instrumentation scheme"),
+        llvm::cl::desc("instrumentation scheme")
+    );
+
+    const llvm::cl::opt<std::string> Options::InstrClient(
+        "instr-client",
+        llvm::cl::value_desc("instrumentation client"),
+        llvm::cl::desc("instrumentation client")
     );
 
     const llvm::cl::opt<unsigned> Options::BenchCode(

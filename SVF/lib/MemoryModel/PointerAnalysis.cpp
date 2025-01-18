@@ -262,72 +262,41 @@ void PointerAnalysis::finalize()
         getPTACallGraph()->dump(Options::CallGraphDotGraph.getValue() + "-final");
     }
 
-    if (!Options::InstrMethod.getValue().empty()) {
-        if (Options::InstrMethod.getValue() == "dcce_ccid_overhead_only_update") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::dcce_ccid_overhead_only_update);
-        } else if (Options::InstrMethod.getValue() == "dcce_ccid_overhead") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::dcce_ccid_overhead);
-        } else if (Options::InstrMethod.getValue() == "pcce_ccid_overhead_only_update") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcce_ccid_overhead_only_update);
-        } else if (Options::InstrMethod.getValue() == "pcce_ccid_overhead") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcce_ccid_overhead);
-        } else if (Options::InstrMethod.getValue() == "pcc_ccid_overhead_only_update") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcc_ccid_overhead_only_update);
-        } else if (Options::InstrMethod.getValue() == "pcc_ccid_overhead") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcc_ccid_overhead);
-        } else if (Options::InstrMethod.getValue() == "dcce_profile_ecc") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::dcce_profile_ecc);
-        } else if (Options::InstrMethod.getValue() == "pcce_profile_ecc") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcce_profile_ecc);
-        } else if (Options::InstrMethod.getValue() == "pcc_profile_ecc") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcc_profile_ecc);
-        } else if (Options::InstrMethod.getValue() == "dcce_barrier_elider") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::dcce_barrier_elider);
-        } else if (Options::InstrMethod.getValue() == "pcce_barrier_elider") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcce_barrier_elider);
-        } else if (Options::InstrMethod.getValue() == "pcc_barrier_elider") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcc_barrier_elider);
-        } else if (Options::InstrMethod.getValue() == "dcce_profile_func_acc") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::dcce_func_acc);
-        } else if (Options::InstrMethod.getValue() == "pcce_profile_func_acc") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcce_func_acc);
-        } else if (Options::InstrMethod.getValue() == "pcc_profile_func_acc") {
-            getPTACallGraph()->instrument(Options::CCInput.getValue(),
-                                          Options::BenchCode.getValue(),
-                                          PTACallGraph::pcc_func_acc);
-        } else {
-            printf("Unknown instrument method: %s\n", Options::InstrMethod.getValue().c_str());
+    unsigned int scheme = 0;
+    if (!Options::InstrScheme.getValue().empty()) {
+        if (Options::InstrScheme.getValue() == "dcce") {
+            scheme = PTACallGraph::dcce;
+	} else if (Options::InstrScheme.getValue() == "pcce") {
+            scheme = PTACallGraph::pcce;
+	} else if (Options::InstrScheme.getValue() == "pcc") {
+            scheme = PTACallGraph::pcc;
+	} else {
+            printf("Unknown instrument scheme: %s\n", Options::InstrScheme.getValue().c_str());
             exit(1);
         }
     }
+
+    unsigned int client = 0;
+    if (!Options::InstrClient.getValue().empty()) {
+        if (Options::InstrClient.getValue() == "ccid_update_only") {
+            client = PTACallGraph::ccid_update_only;
+	} else if (Options::InstrClient.getValue() == "whistle") {
+            client = PTACallGraph::whistle;
+	} else if (Options::InstrClient.getValue() == "barrier_elider") {
+            client = PTACallGraph::barrier_elider;
+	} else if (Options::InstrClient.getValue() == "profile") {
+            client = PTACallGraph::barrier_elider;
+	} else {
+            printf("Unknown instrument client: %s\n", Options::InstrClient.getValue().c_str());
+            exit(1);
+        }
+    }
+
+
+    if (scheme && client)
+        getPTACallGraph()->instrument(Options::CCInput.getValue(),
+                                      Options::BenchCode.getValue(),
+                                      scheme, client);				  
 
     if (Options::CCWeight) {
         assert(!Options::CCInput.getValue().empty() && "CCInput must be provided to run ccweight");
