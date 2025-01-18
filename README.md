@@ -47,21 +47,27 @@ cd ../..
 ```
 
 ## Run wpa to genrate call graphes.
+
     $ python run-dcce.py -callgraph
 
 Output files will be stored in `${DCCE_ROOT}/output/callgraph`.
+
     $ ls output/callgraph
 
 ## Run Calling Context Encoder to generate weights to update Context ID.
+
     $ python run-dcce.py -ccenc
 
 ## Run wpa to instrument bit code.
+
     $ python run-dcce.py -static-instr
 
 ## Run native experiment without instrumentation
+
     $ python run-dcce.py -run-native-exp
 
 ## Run instrumented experiment
+
     $ python run-dcce.py -run-static-exp
 
 ## Output directory structure
