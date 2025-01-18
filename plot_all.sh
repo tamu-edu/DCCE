@@ -1,5 +1,0 @@
-
-python3 plot_dynamic_runtime_spec_whistle.py
-python3 plot_dynamic_runtime_splash_whistle.py
-python3 plot_static_runtime_spec_whistle.py
-python3 plot_static_runtime_splash_barrier_whistle.py
